@@ -60,15 +60,17 @@ class soapODConverter:
             #clean up
             zip.close()
             return matches
-        def pdf( self, param0 ):
+        def pdf( self, params0, params1 ):
             """open the odt file which is really just a zip, create a new odt (zip), and copy all
             files from the first odt to the new.  If the file is the content.xml, then 
-            replace the tokens from param0 in the xml before placing it in the new odt.
+            replace the tokens from params in the xml before placing it in the new odt.
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data."""
+            odtName = params0
+            params = params1
             #tmpnam is subject to symlink attaks, but since i'm hard coding the tmp dir, it shouldn't be a problem
             '''http://docs.python.org/library/shutil.html'''
-            sourcezip = zipfile.ZipFile( 'policy_example.odt', 'r' )
+            sourcezip = zipfile.ZipFile( odtName, 'r' )
             #create destination zip
             '''http://docs.python.org/library/os.html#os.tmpfile'''
             destodt = u"%s.odt" % os.tmpnam()
@@ -76,7 +78,7 @@ class soapODConverter:
             #copy all file from the source zip(odt) the the destination zip
             for x in sourcezip.namelist():
                 if x == 'content.xml':
-                    tmp = self.replaceContent( sourcezip.read( x ), param0 )
+                    tmp = self.replaceContent( sourcezip.read( x ), params )
                 else:
                     tmp = sourcezip.read( x )
                 destzip.writestr( x, tmp )
