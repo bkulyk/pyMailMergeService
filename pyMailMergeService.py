@@ -47,11 +47,12 @@ class soapODConverter:
         def hello( self, param0 ):
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
-        def getTokens( self ):
+        def getTokens( self, param0 ):
+            odtName = param0
             """Open the odt, and parse for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are single words and start and end with at tilde (~)"""
             '''http://docs.python.org/library/zipfile.html'''
-            zip = zipfile.ZipFile( u"policy_example.odt", 'r' )
+            zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             xml = zip.read( u'content.xml' ) #get the xml string
             #get the tokens from the xml
             '''http://docs.python.org/library/re.html'''
@@ -60,17 +61,17 @@ class soapODConverter:
             #clean up
             zip.close()
             return matches
-        def pdf( self, params0, params1 ):
+        def pdf( self, param0, param1 ):
             """open the odt file which is really just a zip, create a new odt (zip), and copy all
             files from the first odt to the new.  If the file is the content.xml, then 
             replace the tokens from params in the xml before placing it in the new odt.
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data."""
-            odtName = params0
-            params = params1
+            odtName = param0
+            params = param1
             #tmpnam is subject to symlink attaks, but since i'm hard coding the tmp dir, it shouldn't be a problem
             '''http://docs.python.org/library/shutil.html'''
-            sourcezip = zipfile.ZipFile( odtName, 'r' )
+            sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
             '''http://docs.python.org/library/os.html#os.tmpfile'''
             destodt = u"%s.odt" % os.tmpnam()
