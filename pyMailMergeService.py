@@ -94,7 +94,6 @@ class soapODConverter:
             sourcezip.close()
             #now convert the odt to pdf
             destpdf = u"%s.%s" % ( os.tmpnam(), doctype ) 
-            print destpdf
             self.converter.convert( destodt, destpdf )
             f = open( destpdf, 'r' )
             doc = f.read()
@@ -131,9 +130,11 @@ class soapODConverter:
                 return self.repeatingColumn( xml, key, params )
             else:
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
+                print key
                 exp = re.compile( '~%s~' % key )
                 for v in params:
                     xml = re.sub( exp, "%s" % v, xml, 1 )
+                self.xml = None #need to clear the xml cache.                 
                 return xml
         def repeatingColumn( self, xml, key, params ):
             """There is a repeat column modifier on the key, so find the column, repeat it, then remove the original. Also the table has
