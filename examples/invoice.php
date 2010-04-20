@@ -68,6 +68,7 @@ foreach( $tokens as $token ) {
 	if( method_exists( $class, $method ) )
 		$params[$token] = call_user_method_array( $method, $class, array( $app, $modifier ) );
 }
-$pdf = $python->pdf( 'invoice.odt', $params );
-file_put_contents( '/var/www/html/invoice'.".pdf", base64_decode( $pdf ) );
+$doctype = 'pdf'; //other options include, html, rtf, doc, etc. (should be anything open office supports)
+$doc = $python->convert( 'invoice.odt', $params, $doctype );
+file_put_contents( '/var/www/html/invoice.'.$doctype, base64_decode( $doc ) );
 ?>

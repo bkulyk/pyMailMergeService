@@ -12,28 +12,28 @@
 #3. All advertising materials mentioning features or use of this software
 #   must display the following acknowledgement:
 #   This product includes software developed by the <organization>.
-#4. Neither the name of the <organization> nor the
+#4. Neither the name of the Brian Kulyk nor the
 #   names of its contributors may be used to endorse or promote products
 #   derived from this software without specific prior written permission.
 #
-#THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ''AS IS'' AND ANY
+#THIS SOFTWARE IS PROVIDED BY Brian Kulyk ''AS IS'' AND ANY
 #EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 #WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+#DISCLAIMED. IN NO EVENT SHALL Brian Kulyk BE LIABLE FOR ANY
 #DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 #(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 #LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 #ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import sys
-sys.path.append( '/usr/lib/openoffice.org/program/' )
-from DocumentConverter import *
-from SOAPpy import *
+from sys import path
+path.append( '/usr/lib/openoffice.org/program/' )
 import base64
 import zipfile
 import re
 import os
+from DocumentConverter import *
+from SOAPpy import *
 from lxml import etree
 class soapODConverter:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
@@ -41,6 +41,7 @@ class soapODConverter:
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' , 
               'office':'urn:oasis:names:tc:opendocument:xmlns:office:1.0', 
               'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
+        xml = None
         def __init__( self ):
             """Create an instance of the document conversion class."""
             self.converter = DocumentConverter()
@@ -48,10 +49,10 @@ class soapODConverter:
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
         def getTokens( self, param0 ):
-            odtName = param0
             """Open the odt, and parse for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are single words and start and end with at tilde (~)"""
             '''http://docs.python.org/library/zipfile.html'''
+            odtName = param0
             zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             xml = zip.read( u'content.xml' ) #get the xml string
             #get the tokens from the xml
@@ -62,6 +63,10 @@ class soapODConverter:
             zip.close()
             return matches
         def pdf( self, param0, param1 ):
+            """"Convert the odt provided in param0 to a pdf, using the values from param1 
+            as mailmerge values."""
+            return self.convert( param0, param1, 'pdf' )
+        def convert( self, param0, param1, param2='pdf' ):
             """open the odt file which is really just a zip, create a new odt (zip), and copy all
             files from the first odt to the new.  If the file is the content.xml, then 
             replace the tokens from params in the xml before placing it in the new odt.
@@ -69,11 +74,12 @@ class soapODConverter:
             it can be transported via Soap.  Soap doesn't seem to like binary data."""
             odtName = param0
             params = param1
-            #tmpnam is subject to symlink attaks, but since i'm hard coding the tmp dir, it shouldn't be a problem
+            doctype = param2
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
             '''http://docs.python.org/library/os.html#os.tmpfile'''
+            #TODO tmpnam is subject to symlink attaks, but since i'm hard coding the tmp dir, it shouldn't be a problem
             destodt = u"%s.odt" % os.tmpnam()
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
@@ -87,7 +93,8 @@ class soapODConverter:
             destzip.close()
             sourcezip.close()
             #now convert the odt to pdf
-            destpdf = u"%s.pdf" % os.tmpnam()
+            destpdf = u"%s.%s" % ( os.tmpnam(), doctype ) 
+            print destpdf
             self.converter.convert( destodt, destpdf )
             f = open( destpdf, 'r' )
             doc = f.read()
@@ -132,7 +139,7 @@ class soapODConverter:
             """There is a repeat column modifier on the key, so find the column, repeat it, then remove the original. Also the table has
             an element called table-column, that needs to be updated with the new cell count.  Then any cells that span multiple
             columns needs to be increated by the number of parmas"""
-            x = etree.XML( xml )
+            x = self.getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatcolumn")]', namespaces=self.ns )
             if len( cols ):
                 row = cols[0].getparent()
@@ -155,6 +162,7 @@ class soapODConverter:
                     colstring = etree.tostring( cols[0] )
                     #need to escape the key because it contains a pipe (|) which is a special char in regular expressions
                     exp = re.compile( "~%s~" % re.escape( key ) )
+                    #columns need to be placed one after the other starting from where the token was found.
                     previouscol = cols[0]
                     for v in params:
                         #replace the token with the value
@@ -165,12 +173,13 @@ class soapODConverter:
                         previouscol = col
                     #remove the row that contained the original tokens
                     row.remove( cols[0] )
+                self.xml = x
                 return etree.tostring( x )
             else:
                 return xml
         def repeatingRow( self, xml, key, params ):
             """There is a repeat row modifier on the key, so find the rows, repeat it, then remove the original."""
-            x = etree.XML( xml )
+            x = self.getXML( xml )
             #perform an xpath search for table cells that contain the repeat row modifier
             rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatrow")]', namespaces=self.ns )
             if len( rows ):
@@ -189,9 +198,17 @@ class soapODConverter:
                         table.append( row )
                     #remove the row that contained the original tokens
                     table.remove( rows[0].getparent() )
+                self.xml = x
                 return etree.tostring( x )
             else:
                 return xml
+        def getXML( self, xml ):
+            """Getter for the xml property.  This is to help prevent parsing the entire XML 
+            document more often than what's necessary."""
+            if self.xml is not None:
+                return self.xml
+            else:
+                return etree.XML( xml )
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
     sodc = soapODConverter()
