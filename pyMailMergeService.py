@@ -54,11 +54,14 @@ class soapODConverter:
             '''http://docs.python.org/library/zipfile.html'''
             odtName = param0
             zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
-            xml = zip.read( u'content.xml' ) #get the xml string
             #get the tokens from the xml
             '''http://docs.python.org/library/re.html'''
-            exp = re.compile( r'~([a-zA-Z\|]+::\w+)~' )
-            matches = exp.findall( xml )
+            exp = re.compile( r'~([a-zA-Z\|]+::\w+)~' )            
+            matches = []
+            #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
+            for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
+                xml = zip.read( file )
+                matches.extend( exp.findall( xml ) )
             #clean up
             zip.close()
             return matches
@@ -84,7 +87,7 @@ class soapODConverter:
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
             for x in sourcezip.namelist():
-                if x == 'content.xml':
+                if x in ['content.xml', 'meta.xml', 'styles.xml']:
                     tmp = self.replaceContent( sourcezip.read( x ), params )
                 else:
                     tmp = sourcezip.read( x )
@@ -98,21 +101,27 @@ class soapODConverter:
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
+            #print destodt
             os.unlink( destodt ) #delete the odt file
             os.unlink( destpdf ) #delete the pdf file
-            return base64.b64encode( doc )#pdf
+            return base64.b64encode( doc ) #pdf
         def replaceContent( self, xml, param0 ):
             """Do a regular expression find and replace for all of the params, unless the 
             param has multiple values, then do the duplicate rows stuff."""
             #no idea why this stuff is inside of 'item'...
             #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
-            for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/
-                if type( value ).__name__ == 'instance':
+            try:
+                params = param0['item']
+            except:
+                print "skipping find and replace."
+                return xml            
+            for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/                
+                if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self.multipleValues( xml, key, value )
                 else:
-                    exp = re.compile( '~%s~' % key )
+                    exp = re.compile( '~%s~' % re.escape(key) )
                     xml = re.sub( exp, "%s" % value, xml )
-            f = open( '/var/www/html/content.xml', 'w' )
+            f = open( '/var/www/pyMailMergeService/content.xml', 'w' )
             f.write( xml );
             f.close()
             return xml
@@ -130,8 +139,7 @@ class soapODConverter:
                 return self.repeatingColumn( xml, key, params )
             else:
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
-                print key
-                exp = re.compile( '~%s~' % key )
+                exp = re.compile( '~%s~' % re.escape(key) )
                 for v in params:
                     xml = re.sub( exp, "%s" % v, xml, 1 )
                 self.xml = None #need to clear the xml cache.                 
@@ -141,7 +149,7 @@ class soapODConverter:
             an element called table-column, that needs to be updated with the new cell count.  Then any cells that span multiple
             columns needs to be increated by the number of parmas"""
             x = self.getXML( xml )
-            cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatcolumn")]', namespaces=self.ns )
+            cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
                 row = cols[0].getparent()
                 if len( row ):
@@ -182,7 +190,8 @@ class soapODConverter:
             """There is a repeat row modifier on the key, so find the rows, repeat it, then remove the original."""
             x = self.getXML( xml )
             #perform an xpath search for table cells that contain the repeat row modifier
-            rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatrow")]', namespaces=self.ns )
+            rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
+            #rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatrow")]', namespaces=self.ns )
             if len( rows ):
                 table = rows[0].getparent()#.getparent()
                 while table.tag != "{%s}table" % self.ns['table']:
@@ -209,7 +218,7 @@ class soapODConverter:
             if self.xml is not None:
                 return self.xml
             else:
-                return etree.XML( xml )
+                return etree.XML( xml )        
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
     sodc = soapODConverter()
