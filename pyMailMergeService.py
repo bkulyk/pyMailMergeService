@@ -36,6 +36,7 @@ from DocumentConverter import *
 from SOAPpy import *
 from lxml import etree
 import codecs
+#@todo: Move the soap methods to a seperate class so it's not confusing what methods are interfaceing with the webservice vs internal methods
 class soapODConverter:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
         ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
@@ -57,7 +58,7 @@ class soapODConverter:
             zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #get the tokens from the xml
             '''http://docs.python.org/library/re.html'''
-            exp = re.compile( r'~([a-zA-Z\|]+::\w+)~' )            
+            exp = re.compile( r'~([a-zA-Z\|]+::\w+\|?\w*)~' )
             matches = []
             #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
             for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
@@ -65,6 +66,7 @@ class soapODConverter:
                 matches.extend( exp.findall( xml ) )
             #clean up
             zip.close()
+            matches = list( set( matches ) ) #removes duplicate items from the list
             return matches
         def pdf( self, param0, param1 ):
             """"Convert the odt provided in param0 to a pdf, using the values from param1 
@@ -102,7 +104,7 @@ class soapODConverter:
                     tmpFile.close()
                     destzip.write( tmpFileName, x )
                     #remove file now
-                    os.unlink( tmpFileName )                    
+                    os.unlink( tmpFileName )
                 else:
                     tmp = sourcezip.read( x )
                     destzip.writestr( x, tmp )
@@ -148,11 +150,11 @@ class soapODConverter:
                 #if it matches the repeat column, token modifer, then repeat the columns.
                 return self.repeatingColumn( xml, key, params )
             else:
+                self.xml = None #need to clear the xml cache.                
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
                 exp = re.compile( '~%s~' % re.escape(key) )
                 for v in params:
-                    xml = re.sub( exp, "%s" % v, xml, 1 )
-                self.xml = None #need to clear the xml cache.                 
+                    xml = re.sub( exp, v, xml, count=1 )
                 return xml
         def repeatingColumn( self, xml, key, params ):
             """There is a repeat column modifier on the key, so find the column, repeat it, then remove the original. Also the table has
