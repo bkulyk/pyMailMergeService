@@ -35,6 +35,7 @@ import os
 from DocumentConverter import *
 from SOAPpy import *
 from lxml import etree
+import codecs
 class soapODConverter:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
         ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
@@ -89,9 +90,22 @@ class soapODConverter:
             for x in sourcezip.namelist():
                 if x in ['content.xml', 'meta.xml', 'styles.xml']:
                     tmp = self.replaceContent( sourcezip.read( x ), params )
+                    '''I could not get the contents of the xml (tmp) file to write directly
+                    to the zip because of file encoding stuff with french characters, so I'm writing
+                    the contetns to a utf-8 file, then putting that file into the zip archive.'''
+                    tmpFileName = "%s" % os.tmpnam()
+                    tmpFile = codecs.open( tmpFileName, 'w', 'utf-8' )
+                    try:
+                        tmpFile.write( unicode( tmp, 'utf-8' ) ) #for english
+                    except:
+                        tmpFile.write( tmp ) #for french
+                    tmpFile.close()
+                    destzip.write( tmpFileName, x )
+                    #remove file now
+                    os.unlink( tmpFileName )                    
                 else:
                     tmp = sourcezip.read( x )
-                destzip.writestr( x, tmp )
+                    destzip.writestr( x, tmp )
             #clan up
             destzip.close()
             sourcezip.close()
@@ -108,22 +122,18 @@ class soapODConverter:
         def replaceContent( self, xml, param0 ):
             """Do a regular expression find and replace for all of the params, unless the 
             param has multiple values, then do the duplicate rows stuff."""
-            #no idea why this stuff is inside of 'item'...
-            #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
             try:
-                params = param0['item']
+                params = param0['item'] #no idea why this stuff is inside of 'item'...
             except:
                 print "skipping find and replace."
-                return xml            
+                return xml
+            #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
             for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/                
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self.multipleValues( xml, key, value )
                 else:
                     exp = re.compile( '~%s~' % re.escape(key) )
-                    xml = re.sub( exp, "%s" % value, xml )
-            f = open( '/var/www/pyMailMergeService/content.xml', 'w' )
-            f.write( xml );
-            f.close()
+                    xml = re.sub( exp, "%s" % value, xml )            
             return xml
         def multipleValues( self, xml, key, params ):
             """There are multiple values for this key, so see if there is a modifier on the key to, repeat columns or rows.
@@ -217,8 +227,12 @@ class soapODConverter:
             document more often than what's necessary."""
             if self.xml is not None:
                 return self.xml
-            else:
-                return etree.XML( xml )        
+            else:                
+                try:
+                    return etree.XML( xml )
+                except:
+                    return etree.XML( xml.encode( 'utf-8' ) )
+        
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
     sodc = soapODConverter()
