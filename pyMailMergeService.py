@@ -86,7 +86,6 @@ class soapODConverter:
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
-            '''http://docs.python.org/library/os.html#os.tmpfile'''
             destodt = u"%s.odt" % self._getTempFile()
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
@@ -95,7 +94,7 @@ class soapODConverter:
                     tmp = self._replaceContent( sourcezip.read( x ), params )
                     '''I could not get the contents of the xml (tmp) file to write directly
                     to the zip because of file encoding stuff with french characters, so I'm writing
-                    the contetns to a utf-8 file, then putting that file into the zip archive.'''
+                    the contents to a utf-8 file, then putting that file into the zip archive.'''
                     tmpFileName = "%s" % self._getTempFile()
                     tmpFile = codecs.open( tmpFileName, 'w', 'utf-8' )
                     try:
@@ -252,7 +251,7 @@ class soapODConverter:
             document more often than what's necessary.'''
             if self.xml is not None:
                 return self.xml
-            else:                
+            else:
                 try:
                     return etree.XML( xml )
                 except:
@@ -262,13 +261,13 @@ class soapODConverter:
             same symlink injection problems.  I wrapped this simple command in a function 
             beause I don't want to use the file handle it creates. There maybe a more efficent
             way to get a tmp file name, but I havn't found one yet, so I'm using this.'''
-            file = tempfile.mkstemp( suffix='_pyMMS' )            
+            file = tempfile.mkstemp( suffix='_pyMMS' )
             '''I am not going to use this file handle because I found in my research,
             I found that I need to open it with the codec module to ensure it's open as 
             utf-8 file intead of whatever the default is'''
             os.close( file[0] )
             return file[1]
-        
+#if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
     sodc = soapODConverter()
