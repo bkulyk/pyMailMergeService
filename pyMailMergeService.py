@@ -28,14 +28,16 @@
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
-import base64
-import zipfile
-import re
-import os
-from DocumentConverter import *
-from SOAPpy import *
-from lxml import etree
-import codecs
+import base64                       #to be able to return the output file utf encoded
+import zipfile                      #to open odt so we can do find and replace on the xml
+import re                           #regular expressions for doing find and replace on the xml
+import os                           #removing the temp files
+import tempfile                     #create temp files for writing xml and output
+from DocumentConverter import *     #to convert open office documents
+from SOAPpy import *                #soap interface
+from lxml import etree              #parsing xml
+from lxml import objectify          #parsing xml
+import codecs                       #opening a file for writing as UTF-8
 #@todo: Move the soap methods to a seperate class so it's not confusing what methods are interfaceing with the webservice vs internal methods
 class soapODConverter:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
@@ -85,17 +87,16 @@ class soapODConverter:
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
             '''http://docs.python.org/library/os.html#os.tmpfile'''
-            #TODO tmpnam is subject to symlink attaks, but since i'm hard coding the tmp dir, it shouldn't be a problem
-            destodt = u"%s.odt" % os.tmpnam()
+            destodt = u"%s.odt" % self._getTempFile()
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
             for x in sourcezip.namelist():
                 if x in ['content.xml', 'meta.xml', 'styles.xml']:
-                    tmp = self.replaceContent( sourcezip.read( x ), params )
+                    tmp = self._replaceContent( sourcezip.read( x ), params )
                     '''I could not get the contents of the xml (tmp) file to write directly
                     to the zip because of file encoding stuff with french characters, so I'm writing
                     the contetns to a utf-8 file, then putting that file into the zip archive.'''
-                    tmpFileName = "%s" % os.tmpnam()
+                    tmpFileName = "%s" % self._getTempFile()
                     tmpFile = codecs.open( tmpFileName, 'w', 'utf-8' )
                     try:
                         tmpFile.write( unicode( tmp, 'utf-8' ) ) #for english
@@ -112,7 +113,7 @@ class soapODConverter:
             destzip.close()
             sourcezip.close()
             #now convert the odt to pdf
-            destpdf = u"%s.%s" % ( os.tmpnam(), doctype ) 
+            destpdf = u"%s.%s" % ( self._getTempFile(), doctype ) 
             self.converter.convert( destodt, destpdf )
             f = open( destpdf, 'r' )
             doc = f.read()
@@ -121,7 +122,7 @@ class soapODConverter:
             os.unlink( destodt ) #delete the odt file
             os.unlink( destpdf ) #delete the pdf file
             return base64.b64encode( doc ) #pdf
-        def replaceContent( self, xml, param0 ):
+        def _replaceContent( self, xml, param0 ):
             """Do a regular expression find and replace for all of the params, unless the 
             param has multiple values, then do the duplicate rows stuff."""
             try:
@@ -132,23 +133,45 @@ class soapODConverter:
             #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
             for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/                
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
-                    xml = self.multipleValues( xml, key, value )
+                    xml = self._multipleValues( xml, key, value )
                 else:
+                    #para_exp = re.compile( '\<p\>.+\<\/p\>' ) 
+                    #if re.match( para_exp, value ) is not None:
+                        #xml = self._buildParagraph( key, value, xml )
+                    #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
-                    xml = re.sub( exp, "%s" % value, xml )            
+                    xml = re.sub( exp, "%s" % value, xml )
             return xml
-        def multipleValues( self, xml, key, params ):
+        def _buildParagraph( self, key, value, xml ):
+            """If there was a single paragraph containing the merge tag, and now there 
+            needs to be multiple paragrpahs, convert html <p> tags to their openoffice
+            couterparts, which is still a p, but with a namespace and styole attribute"""
+            x = self._getXML( xml )
+            paragraphs = x.xpath( '//text:p[contains(text(),"~%s~")]' % key, namespaces=self.ns )
+            if not len( paragraphs ):
+                return xml
+            #stringAttributes = ''            
+            #print paragraphs[0].attrib
+            
+            #for k in attribs:
+            #    stringAttributes = stringAttributes + '%s="%s"' % ( k, attribs[k] )
+                
+            #print stringAttributes;
+        
+            #return the string version of the xml.
+            return etree.tostring( x )
+        def _multipleValues( self, xml, key, params ):
             """There are multiple values for this key, so see if there is a modifier on the key to, repeat columns or rows.
             If so, then duplicat the column, or row, then fill in the values.  This is like the normal find and replace, but not 
             global."""
             rowExp = re.compile( "^" + re.escape( 'repeatrow|' ) )
-            colExp = re.compile( "^" + re.escape( 'repeatcolumn|' ) )
+            colExp = re.compile( "^" + re.escape( 'repeatcolumn|' ) )            
             if re.match( rowExp, key ):
                 #if it matches the repeat row modifier, then repeat the rows.
-                return self.repeatingRow( xml, key, params ) 
+                return self._repeatingRow( xml, key, params ) 
             elif re.match( colExp, key ):
                 #if it matches the repeat column, token modifer, then repeat the columns.
-                return self.repeatingColumn( xml, key, params )
+                return self._repeatingColumn( xml, key, params )
             else:
                 self.xml = None #need to clear the xml cache.                
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
@@ -156,11 +179,11 @@ class soapODConverter:
                 for v in params:
                     xml = re.sub( exp, v, xml, count=1 )
                 return xml
-        def repeatingColumn( self, xml, key, params ):
+        def _repeatingColumn( self, xml, key, params ):
             """There is a repeat column modifier on the key, so find the column, repeat it, then remove the original. Also the table has
             an element called table-column, that needs to be updated with the new cell count.  Then any cells that span multiple
             columns needs to be increated by the number of parmas"""
-            x = self.getXML( xml )
+            x = self._getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
                 row = cols[0].getparent()
@@ -198,9 +221,9 @@ class soapODConverter:
                 return etree.tostring( x )
             else:
                 return xml
-        def repeatingRow( self, xml, key, params ):
+        def _repeatingRow( self, xml, key, params ):
             """There is a repeat row modifier on the key, so find the rows, repeat it, then remove the original."""
-            x = self.getXML( xml )
+            x = self._getXML( xml )
             #perform an xpath search for table cells that contain the repeat row modifier
             rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             #rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"~repeatrow")]', namespaces=self.ns )
@@ -224,9 +247,9 @@ class soapODConverter:
                 return etree.tostring( x )
             else:
                 return xml
-        def getXML( self, xml ):
-            """Getter for the xml property.  This is to help prevent parsing the entire XML 
-            document more often than what's necessary."""
+        def _getXML( self, xml ):
+            '''Getter for the xml property.  This is to help prevent parsing the entire XML 
+            document more often than what's necessary.'''
             if self.xml is not None:
                 return self.xml
             else:                
@@ -234,6 +257,17 @@ class soapODConverter:
                     return etree.XML( xml )
                 except:
                     return etree.XML( xml.encode( 'utf-8' ) )
+        def _getTempFile( self ):
+            '''This is the replacement for os.tmpnam, it should not be suceptable to the
+            same symlink injection problems.  I wrapped this simple command in a function 
+            beause I don't want to use the file handle it creates. There maybe a more efficent
+            way to get a tmp file name, but I havn't found one yet, so I'm using this.'''
+            file = tempfile.mkstemp( suffix='_pyMMS' )            
+            '''I am not going to use this file handle because I found in my research,
+            I found that I need to open it with the codec module to ensure it's open as 
+            utf-8 file intead of whatever the default is'''
+            os.close( file[0] )
+            return file[1]
         
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
