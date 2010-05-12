@@ -129,35 +129,40 @@ class soapODConverter:
             except:
                 print "skipping find and replace."
                 return xml
+            #these were moved out of the loop because compiling the re everytime would be ineffeciant
+            para_exp = re.compile( '\<p\>.+\<\/p\>' )
             #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
             for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/                
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self._multipleValues( xml, key, value )
                 else:
-                    #para_exp = re.compile( '\<p\>.+\<\/p\>' ) 
-                    #if re.match( para_exp, value ) is not None:
-                        #xml = self._buildParagraph( key, value, xml )
+                    if re.match( para_exp, value ) is not None:
+                        xml = self._buildParagraph( key, value, xml )
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
-                    xml = re.sub( exp, "%s" % value, xml )
+                    xml = exp.sub( "%s" % value, xml )
             return xml
         def _buildParagraph( self, key, value, xml ):
             """If there was a single paragraph containing the merge tag, and now there 
             needs to be multiple paragrpahs, convert html <p> tags to their openoffice
             couterparts, which is still a p, but with a namespace and styole attribute"""
+            self.xml = None
             x = self._getXML( xml )
             paragraphs = x.xpath( '//text:p[contains(text(),"~%s~")]' % key, namespaces=self.ns )
             if not len( paragraphs ):
                 return xml
-            #stringAttributes = ''            
-            #print paragraphs[0].attrib
-            
-            #for k in attribs:
-            #    stringAttributes = stringAttributes + '%s="%s"' % ( k, attribs[k] )
-                
-            #print stringAttributes;
-        
-            #return the string version of the xml.
+            parent = paragraphs[0].getparent()
+            #need to add the paragraphy style attribute (and any others) to the new p tags
+            attribs = paragraphs[0].attrib
+            html = etree.XML( "<html>" + value + "</html>" )
+            for tag in html.findall( 'p' ):
+                p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
+                p.text = tag.text
+                parent.append( p )
+                #add an extra line of blank
+                p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
+                parent.append( p )
+            parent.remove( paragraphs[0] )
             return etree.tostring( x )
         def _multipleValues( self, xml, key, params ):
             """There are multiple values for this key, so see if there is a modifier on the key to, repeat columns or rows.
@@ -216,8 +221,8 @@ class soapODConverter:
                         previouscol = col
                     #remove the row that contained the original tokens
                     row.remove( cols[0] )
-                self.xml = x
-                return etree.tostring( x )
+                self.xml = etree.tostring( x )
+                return self.xml
             else:
                 return xml
         def _repeatingRow( self, xml, key, params ):
@@ -249,13 +254,13 @@ class soapODConverter:
         def _getXML( self, xml ):
             '''Getter for the xml property.  This is to help prevent parsing the entire XML 
             document more often than what's necessary.'''
-            if self.xml is not None:
-                return self.xml
-            else:
-                try:
-                    return etree.XML( xml )
-                except:
-                    return etree.XML( xml.encode( 'utf-8' ) )
+            #if self.xml is not None:
+                #return self.xml
+            #else:
+            try:
+                return etree.XML( xml )
+            except:
+                return etree.XML( xml.encode( 'utf-8' ) )
         def _getTempFile( self ):
             '''This is the replacement for os.tmpnam, it should not be suceptable to the
             same symlink injection problems.  I wrapped this simple command in a function 
@@ -263,8 +268,8 @@ class soapODConverter:
             way to get a tmp file name, but I havn't found one yet, so I'm using this.'''
             file = tempfile.mkstemp( suffix='_pyMMS' )
             '''I am not going to use this file handle because I found in my research,
-            I found that I need to open it with the codec module to ensure it's open as 
-            utf-8 file intead of whatever the default is'''
+            that I need to open it with the codec module to ensure it's open as utf-8 
+            file intead of whatever the default is'''
             os.close( file[0] )
             return file[1]
 #if this module is not being included as a sub module, then start up the soap server
