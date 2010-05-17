@@ -173,7 +173,6 @@ class pyMailMergeService:
             closetoken = starttoken.replace( r"if|", r"endif|" ) 
             startpos = xml.find( starttoken )
             closepos = xml.find( closetoken )
-            print startpos > 0 and closepos > 0 and value == 1
             if startpos > 0 and closepos > 0 and value == 0:
                 tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
                 return tmp
