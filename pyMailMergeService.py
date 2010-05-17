@@ -32,8 +32,12 @@
 @todo: unit tests would be good.
 @todo: turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
 @todo: the openoffice document can have modifiers, like repeatrow| or repeatcolumn| or 
-        multiparagraph| It would be really interesting, if these could be plugins or dynamically 
-        loaded modules, or something similar
+       multiparagraph| It would be really interesting, if these could be plugins or dynamically 
+       loaded modules, or something similar
+@todo: need to be able to have a modifier for an IF statement, one of our documents needs to 
+       be able to omit a section depending on a varaible that would come through the webservice
+       client.
+@todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system. 
 """
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
@@ -150,12 +154,32 @@ class pyMailMergeService:
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self._multipleValues( xml, key, value )
                 else:
-                    if 'multiparagraph|' in key:
+                    if r'multiparagraph|' in key:
                         xml = self._multiparagraph( key, value, xml )
+                    if key.find( r"if|" ) == 0:
+                        xml = self._if( key, value, xml )
+                    if key.find( r"endif|" ) == 0:
+                        continue
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
                     xml = exp.sub( "%s" % value, xml )
             return xml
+        def _if( self, key, value, xml ):
+            """
+            If there is a modifier tag for an if statement, only show the stuff between the if
+            and the endif modifiers IF the value is 1, '1' or true.
+            """
+            starttoken = "~"+key+"~"
+            closetoken = starttoken.replace( r"if|", r"endif|" ) 
+            startpos = xml.find( starttoken )
+            closepos = xml.find( closetoken )
+            print startpos > 0 and closepos > 0 and value == 1
+            if startpos > 0 and closepos > 0 and value == 0:
+                tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
+                return tmp
+            else:
+                xml = xml.replace( closetoken, '' )
+                return xml.replace( starttoken, '' )
         def _multiparagraph( self, key, value, xml ):
             """
             If there was a single paragraph containing the merge tag, and now there 
