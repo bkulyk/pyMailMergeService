@@ -26,6 +26,15 @@
 #ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+@todo: add support for batches of documents, ie a real mail merge
+@todo: for the batch support, probably need to be able to support receiving merge values from XML
+@todo: unit tests would be good.
+@todo: turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
+@todo: the openoffice document can have modifiers, like repeatrow| or repeatcolumn| or 
+        multiparagraph| It would be really interesting, if these could be plugins or dynamically 
+        loaded modules, or something similar
+"""
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
 import base64                       #to be able to return the output file utf encoded
@@ -38,12 +47,11 @@ from SOAPpy import *                #soap interface
 from lxml import etree              #parsing xml
 from lxml import objectify          #parsing xml
 import codecs                       #opening a file for writing as UTF-8
-#@todo: Move the soap methods to a seperate class so it's not confusing what methods are interfaceing with the webservice vs internal methods
-class soapODConverter:
+class pyMailMergeService:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
         ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
-              'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' , 
-              'office':'urn:oasis:names:tc:opendocument:xmlns:office:1.0', 
+              'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
+              'office':'urn:oasis:names:tc:opendocument:xmlns:office:1.0',
               'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
         xml = None
         def __init__( self ):
@@ -53,8 +61,10 @@ class soapODConverter:
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
         def getTokens( self, param0 ):
-            """Open the odt, and parse for tokens that should be replaced with content, kind 
-            of like a mailmerge.  Tokens are single words and start and end with at tilde (~)"""
+            """
+            Open the odt, and parse for tokens that should be replaced with content, kind 
+            of like a mailmerge.  Tokens are single words and start and end with at tilde (~)
+            """
             '''http://docs.python.org/library/zipfile.html'''
             odtName = param0
             zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
@@ -75,11 +85,13 @@ class soapODConverter:
             as mailmerge values."""
             return self.convert( param0, param1, 'pdf' )
         def convert( self, param0, param1, param2='pdf' ):
-            """open the odt file which is really just a zip, create a new odt (zip), and copy all
+            """
+            open the odt file which is really just a zip, create a new odt (zip), and copy all
             files from the first odt to the new.  If the file is the content.xml, then 
             replace the tokens from params in the xml before placing it in the new odt.
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
-            it can be transported via Soap.  Soap doesn't seem to like binary data."""
+            it can be transported via Soap.  Soap doesn't seem to like binary data.
+            """
             odtName = param0
             params = param1
             doctype = param2
@@ -122,8 +134,10 @@ class soapODConverter:
             os.unlink( destpdf ) #delete the pdf file
             return base64.b64encode( doc ) #pdf
         def _replaceContent( self, xml, param0 ):
-            """Do a regular expression find and replace for all of the params, unless the 
-            param has multiple values, then do the duplicate rows stuff."""
+            """
+            Do a regular expression find and replace for all of the params, unless the 
+            param has multiple values, then do the duplicate rows stuff.
+            """
             try:
                 params = param0['item'] #no idea why this stuff is inside of 'item'...
             except:
@@ -136,16 +150,18 @@ class soapODConverter:
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self._multipleValues( xml, key, value )
                 else:
-                    if re.match( para_exp, value ) is not None:
-                        xml = self._buildParagraph( key, value, xml )
+                    if 'multiparagraph|' in key:
+                        xml = self._multiparagraph( key, value, xml )
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
                     xml = exp.sub( "%s" % value, xml )
             return xml
-        def _buildParagraph( self, key, value, xml ):
-            """If there was a single paragraph containing the merge tag, and now there 
+        def _multiparagraph( self, key, value, xml ):
+            """
+            If there was a single paragraph containing the merge tag, and now there 
             needs to be multiple paragrpahs, convert html <p> tags to their openoffice
-            couterparts, which is still a p, but with a namespace and styole attribute"""
+            couterparts, which is still a p, but with a namespace and style attribute
+            """
             self.xml = None
             x = self._getXML( xml )
             paragraphs = x.xpath( '//text:p[contains(text(),"~%s~")]' % key, namespaces=self.ns )
@@ -262,10 +278,12 @@ class soapODConverter:
             except:
                 return etree.XML( xml.encode( 'utf-8' ) )
         def _getTempFile( self ):
-            '''This is the replacement for os.tmpnam, it should not be suceptable to the
+            '''
+            This is the replacement for os.tmpnam, it should not be suceptable to the
             same symlink injection problems.  I wrapped this simple command in a function 
             beause I don't want to use the file handle it creates. There maybe a more efficent
-            way to get a tmp file name, but I havn't found one yet, so I'm using this.'''
+            way to get a tmp file name, but I havn't found one yet, so I'm using this.
+            '''
             file = tempfile.mkstemp( suffix='_pyMMS' )
             '''I am not going to use this file handle because I found in my research,
             that I need to open it with the codec module to ensure it's open as utf-8 
@@ -275,7 +293,7 @@ class soapODConverter:
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
-    sodc = soapODConverter()
+    pyMMS = pyMailMergeService()
     namespace = 'urn:approve'
-    server.registerObject( sodc, namespace )
+    server.registerObject( pyMMS, namespace )
     server.serve_forever()
