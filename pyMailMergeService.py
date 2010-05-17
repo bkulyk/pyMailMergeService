@@ -27,17 +27,18 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+@complete: need to be able to have a modifier for an IF statement, one of our documents needs to 
+       be able to omit a section depending on a varaible that would come through the webservice
+       client.
 @todo: add support for batches of documents, ie a real mail merge
-@todo: for the batch support, probably need to be able to support receiving merge values from XML
+@todo: for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
 @todo: unit tests would be good.
 @todo: turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
 @todo: the openoffice document can have modifiers, like repeatrow| or repeatcolumn| or 
        multiparagraph| It would be really interesting, if these could be plugins or dynamically 
        loaded modules, or something similar
-@todo: need to be able to have a modifier for an IF statement, one of our documents needs to 
-       be able to omit a section depending on a varaible that would come through the webservice
-       client.
-@todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system. 
+@todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
+@todo: Modifier for repeating section. 
 """
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
