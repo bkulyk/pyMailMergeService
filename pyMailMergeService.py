@@ -30,6 +30,7 @@
 @complete: need to be able to have a modifier for an IF statement, one of our documents needs to 
        be able to omit a section depending on a varaible that would come through the webservice
        client.
+@complete: Modifier for repeating section.
 @todo: add support for batches of documents, ie a real mail merge
 @todo: for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
 @todo: unit tests would be good.
@@ -38,7 +39,6 @@
        multiparagraph| It would be really interesting, if these could be plugins or dynamically 
        loaded modules, or something similar
 @todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
-@todo: Modifier for repeating section. 
 """
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
@@ -59,6 +59,7 @@ class pyMailMergeService:
               'office':'urn:oasis:names:tc:opendocument:xmlns:office:1.0',
               'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
         xml = None
+        _params = None
         def __init__( self ):
             """Create an instance of the document conversion class."""
             self.converter = DocumentConverter()
@@ -98,7 +99,7 @@ class pyMailMergeService:
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
             odtName = param0
-            params = param1
+            params  = param1
             doctype = param2
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
@@ -143,15 +144,22 @@ class pyMailMergeService:
             Do a regular expression find and replace for all of the params, unless the 
             param has multiple values, then do the duplicate rows stuff.
             """
-            try:
-                params = param0['item'] #no idea why this stuff is inside of 'item'...
-            except:
-                print "skipping find and replace."
-                return xml
+            if self._params is None: #preventing having to soft the params more than once.
+                try:
+                    params = param0['item'] #no idea why this stuff is inside of 'item'...
+                    params = self._sortparams( params )
+                except:
+                    print "skipping find and replace."
+                    return xml
+                self._params = params
+            else:
+                params = self._params
             #these were moved out of the loop because compiling the re everytime would be ineffeciant
             para_exp = re.compile( '\<p\>.+\<\/p\>' )
             #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
-            for key,value in param0['item']: #param0 is a struct see: http://www.ibm.com/developerworks/webservices/library/ws-pyth16/                
+            for dictionary in params:
+                key = dictionary.keys()[0]
+                value = dictionary.values()[0]
                 if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
                     xml = self._multipleValues( xml, key, value )
                 else:
@@ -160,6 +168,10 @@ class pyMailMergeService:
                     if key.find( r"if|" ) == 0:
                         xml = self._if( key, value, xml )
                     if key.find( r"endif|" ) == 0:
+                        continue
+                    if key.find( r"repeatsection|" ) == 0:
+                        xml = self._repeatsection( key, value, xml )
+                    if key.find( r"endrepeatsection|" ) == 0:
                         continue
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
@@ -170,16 +182,57 @@ class pyMailMergeService:
             If there is a modifier tag for an if statement, only show the stuff between the if
             and the endif modifiers IF the value is 1, '1' or true.
             """
+            xmlbackup = xml
             starttoken = "~"+key+"~"
             closetoken = starttoken.replace( r"if|", r"endif|" ) 
             startpos = xml.find( starttoken )
             closepos = xml.find( closetoken )
+            tmp = None
             if startpos > 0 and closepos > 0 and value == 0:
                 tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
-                return tmp
+            if tmp is not None:
+                tmp = tmp.replace( closetoken, '' )
+                tmp = tmp.replace( starttoken, '' )
             else:
-                xml = xml.replace( closetoken, '' )
-                return xml.replace( starttoken, '' )
+                xmlbackup = xmlbackup.replace( closetoken, '' )
+                xmlbackup = xmlbackup.replace( starttoken, '' )
+            """The removal of content in the manner that it was just done could break the 
+            xml structure and cause it to not parse anymore.  That would be bad.  So if the 
+            xml is broken then don't use this modified version and fall back to the old."""
+            try:
+                xml = etree.XML( tmp )
+                return tmp
+            except:
+                return xmlbackup
+        def _repeatsection( self, key, value, xml ):
+            """
+            Repeat a section of the document as many times as the value says, which should be 
+            and integer.
+            """
+            xmlbackup = xml
+            starttoken = "~"+key+"~"
+            closetoken = starttoken.replace( r"repeatsection|", r"endrepeatsection|" ) 
+            startpos = xml.find( starttoken ) + len( starttoken )
+            closepos = xml.find( closetoken )
+            if startpos == -1 or closepos == -1 or value <= 0:
+                return xml
+            #now get the content of the section
+            content = xml[ startpos : closepos ]
+            #duplicate the conent as many times as the value
+            allcontent = ""
+            for x in range( 1,value ):
+                allcontent = allcontent+content
+            xml = xml[:closepos] + allcontent + xml[closepos:]
+            xml = xml.replace( starttoken, '' )
+            xml = xml.replace( closetoken, '' )
+            """The removal of content in the manner that it was just done could break the 
+            xml structure and cause it to not parse anymore.  That would be bad.  So if the 
+            xml is broken then don't use this modified version and fall back to the old."""
+            try:
+                tmp = etree.XML( xml )
+                return xml
+            except:
+                return xmlbackup
         def _multiparagraph( self, key, value, xml ):
             """
             If there was a single paragraph containing the merge tag, and now there 
@@ -209,9 +262,11 @@ class pyMailMergeService:
             parent.remove( paragraphs[0] )
             return etree.tostring( x )
         def _multipleValues( self, xml, key, params ):
-            """There are multiple values for this key, so see if there is a modifier on the key to, repeat columns or rows.
-            If so, then duplicat the column, or row, then fill in the values.  This is like the normal find and replace, but not 
-            global."""
+            """
+            There are multiple values for this key, so see if there is a modifier on the key to, 
+            repeat columns or rows. If so, then duplicat the column, or row, then fill in the 
+            values.  This is like the normal find and replace, but not global.
+            """
             rowExp = re.compile( "^" + re.escape( 'repeatrow|' ) )
             colExp = re.compile( "^" + re.escape( 'repeatcolumn|' ) )            
             if re.match( rowExp, key ):
@@ -228,9 +283,12 @@ class pyMailMergeService:
                     xml = re.sub( exp, v, xml, count=1 )
                 return xml
         def _repeatingColumn( self, xml, key, params ):
-            """There is a repeat column modifier on the key, so find the column, repeat it, then remove the original. Also the table has
-            an element called table-column, that needs to be updated with the new cell count.  Then any cells that span multiple
-            columns needs to be increated by the number of parmas"""
+            """
+            There is a repeat column modifier on the key, so find the column, repeat it, then 
+            remove the original. Also the table has an element called table-column, that needs 
+            to be updated with the new cell count.  Then any cells that span multiple columns 
+            needs to be increated by the number of parmas
+            """
             x = self._getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
@@ -270,7 +328,10 @@ class pyMailMergeService:
             else:
                 return xml
         def _repeatingRow( self, xml, key, params ):
-            """There is a repeat row modifier on the key, so find the rows, repeat it, then remove the original."""
+            """
+            There is a repeat row modifier on the key, so find the rows, repeat it, then remove 
+            the original.
+            """
             x = self._getXML( xml )
             #perform an xpath search for table cells that contain the repeat row modifier
             rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
@@ -296,8 +357,10 @@ class pyMailMergeService:
             else:
                 return xml
         def _getXML( self, xml ):
-            '''Getter for the xml property.  This is to help prevent parsing the entire XML 
-            document more often than what's necessary.'''
+            '''
+            Getter for the xml property.  This is to help prevent parsing the entire XML 
+            document more often than what's necessary.
+            '''
             #if self.xml is not None:
                 #return self.xml
             #else:
@@ -318,6 +381,22 @@ class pyMailMergeService:
             file intead of whatever the default is'''
             os.close( file[0] )
             return file[1]
+        def _sortparams( self, params ):
+            """
+            The parameters need to be sorted a little bit; for now, I'm just going to make it so
+            that the keys with modifiers come first in the array.  This fixed a problem I had 
+            where the repeat section was repeating the section after the conent had already been
+            filled in, and therefore showing the wrong content.
+            """
+            sorted = []
+            for key, value in params:
+                pipe   = key.find( r"|" )
+                colons = key.find( r"::" )  
+                if pipe > 0 and colons > 0 and pipe < colons :
+                    sorted.insert( 0, {key:value} )
+                else:
+                    sorted.append( {key:value} )
+            return sorted
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
