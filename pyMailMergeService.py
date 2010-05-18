@@ -195,13 +195,17 @@ class pyMailMergeService:
             #need to add the paragraphy style attribute (and any others) to the new p tags
             attribs = paragraphs[0].attrib
             html = etree.XML( "<html>" + value + "</html>" )
+            previous = paragraphs[0]
             for tag in html.findall( 'p' ):
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
                 p.text = tag.text
-                parent.append( p )
+                #need to add next instead of append because it was messing up ordering of content
+                previous.addnext( p )
+                previous = p
                 #add an extra line of blank
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
-                parent.append( p )
+                previous.addnext( p )
+                previous = p
             parent.remove( paragraphs[0] )
             return etree.tostring( x )
         def _multipleValues( self, xml, key, params ):
