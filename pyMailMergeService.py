@@ -39,6 +39,9 @@
        multiparagraph| It would be really interesting, if these could be plugins or dynamically 
        loaded modules, or something similar
 @todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
+@todo: Add some logging information.  
+        What types of documents are being converted
+        What IPs are using the service, simple stats about client computer
 """
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
@@ -101,6 +104,7 @@ class pyMailMergeService:
             odtName = param0
             params  = param1
             doctype = param2
+            print "Converting file: %s to type: %s" % ( odtName, doctype )
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
@@ -288,11 +292,14 @@ class pyMailMergeService:
             remove the original. Also the table has an element called table-column, that needs 
             to be updated with the new cell count.  Then any cells that span multiple columns 
             needs to be increated by the number of parmas
+            @todo there is a bug, here only one cell is being repeated, not the entire column.
             """
             x = self._getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
                 row = cols[0].getparent()
+                #get the index of the cell
+                index = row.index( cols[0] )
                 if len( row ):
                     table = row.getparent()
                     while table.tag != "{%s}table" % self.ns['table']:
@@ -301,7 +308,8 @@ class pyMailMergeService:
                     tablecolumn = table.find( "{%s}table-column" % self.ns['table'] )
                     if tablecolumn is not None:
                         columncount = tablecolumn.get( '{%s}number-columns-repeated' % self.ns['table'] )
-                        tablecolumn.set( '{%s}number-columns-repeated' % self.ns['table'], "%s" % ( int( columncount ) + len( params ) - 1 ) )
+                        if columncount is not None: #with out this an error was being generated
+                            tablecolumn.set( '{%s}number-columns-repeated' % self.ns['table'], "%s" % ( int( columncount ) + len( params ) - 1 ) )
                     #if there are any columns that have col span, we need to increase that span by the number of params - 1
                     cells = table.findall( '{%s}table-row/{%s}table-cell' % ( self.ns['table'], self.ns['table'] ) );
                     for checkcell in cells:
