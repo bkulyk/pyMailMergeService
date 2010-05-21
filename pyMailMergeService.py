@@ -53,7 +53,6 @@ import tempfile                     #create temp files for writing xml and outpu
 from DocumentConverter import *     #to convert open office documents
 from SOAPpy import *                #soap interface
 from lxml import etree              #parsing xml
-from lxml import objectify          #parsing xml
 import codecs                       #opening a file for writing as UTF-8
 class pyMailMergeService:
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
@@ -335,6 +334,70 @@ class pyMailMergeService:
                 return self.xml
             else:
                 return xml
+        def _repeatcolumn( self, xml, key, params ):
+            x = self._getXML( xml )
+            cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
+            if len( cols ):
+                sourcerow = cols[0].getparent()
+                #get the index of the cell
+                index = sourcerow.index( cols[0] )
+                if len( sourcerow ):
+                    table = sourcerow.getparent()
+                    rowIndex = table.index( sourcerow )
+                    i=1
+                    for row in table.xpath( "//table:table-row" , namespaces=self.ns ):
+                        if i == rowIndex: 
+                            #dont bother looking up the index if the row is the same as the source
+                            insertIndex = index
+                        else: 
+                            insertIndex = self._repeatcolumn_getinsertindex( index, sourcerow, row )
+                        i += 1
+                self.xml = etree.tostring( x )
+                return self.xml
+            else:
+                return xml
+        def _repeatcolumn_repeatcell( self, row, insert ):
+            cells = row.find( "{%s}table-cell" % self.ns['table'] )
+            previous_cell = cells[0]
+            exp = re.compile( "~%s~" % re.escape( key ) )
+            for v in params:
+                cell_string = etree.tostring( cells[insertIndex] )
+                #replace the token with the value
+                replaced = re.sub( exp, "%s" % v, cell_string )
+                cell = etree.XML( replaced )
+                #append the new row to the cell
+                previous_cell.addnext( cell )
+                previous_cell = cell
+        def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
+            i=0;
+            cellsa = row_a.find( "{%s}table-cell" % self.ns['table'] ) 
+            cellsb = row_b.find( "{%s}table-cell" % self.ns['table'] )
+            span_start = None
+            span_size  = None
+            if len( cellsa ) == len( cellsb ):
+                return index
+            else:
+                print len( cellsa )
+                print len( cellsb )
+                for i in range( len( cellsa ) ):
+                    colspana = cellsa[i].attr( '{%s}number-columns-spanned' % self.ns['table'] )
+                    colspanb = cellsb[i].attr( '{%s}number-columns-spanned' % self.ns['table'] )
+                    if colspansa == colspanb:
+                        continue
+                    else:
+                        span_start = i
+                        span_size = colspanb
+                    if j == index and span_start is not None:
+                        span_end = span_start - 1 + span_size
+                        if i >= span_start and i <= span_end:
+                            colspan = colspanb+1
+                            cellsb[i].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colspan )
+                            return span_start + span_size
+                    elif index > span_end:
+                        return index+1 - span_size
+                    elif index < span_start:
+                        return index
+            return index
         def _repeatingRow( self, xml, key, params ):
             """
             There is a repeat row modifier on the key, so find the rows, repeat it, then remove 
