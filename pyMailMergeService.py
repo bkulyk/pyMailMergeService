@@ -336,6 +336,9 @@ class pyMailMergeService:
             else:
                 return xml
         def _repeatcolumn( self, xml, key, params ):
+            """
+            Repeat an entire column of a given table, replacing values as we go.
+            """
             x = self._getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
@@ -368,6 +371,10 @@ class pyMailMergeService:
             else:
                 return xml
         def _repeatcolumn_dorepeat( self, row, index, key, params ):
+            """
+            This method is called by _repeatcolumn.  This method duplicates the cell 
+            as many times as indicated by the length of the params.
+            """
             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
             oldString = etree.tostring( cells[ index ] )
             previous = cells[ index ]
@@ -378,6 +385,12 @@ class pyMailMergeService:
                 previous = newElement
             row.remove( cells[ index ] )
         def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
+            """
+            Because of merged rows and whatnot we may need to do some checking as to which cell
+            to actually duplicate.  This method checks what cell to duplicate and retuns the index,
+            also if the row has merged cells it returns the index of the column that needs to have
+            it's merged cells updated.
+            """
             i=0;
             cellsa = row_a.xpath( "./table:table-cell", namespaces=self.ns ) 
             cellsb = row_b.xpath( "./table:table-cell", namespaces=self.ns )

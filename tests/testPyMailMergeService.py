@@ -67,7 +67,7 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEqual( 'c3', matrix[2][3] )
         self.assertEqual( 'c4', matrix[2][4] )
         xml = etree.XML( xml )
-    def test_repeat_column_merged_columns_after( self ):
+    def test_repeat_column_merged_columns_before( self ):
         xml = getXML( "repeat_column_merged_columns_before.odt" )
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )
@@ -86,6 +86,28 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEqual( 'c2', matrix[2][1] )
         self.assertEqual( 'c3', matrix[2][2] )
         self.assertEqual( 'c3', matrix[2][3] )
+    def test_repeat_column_merged_columns_before_2( self ):
+        xml = getXML( "repeat_column_merged_columns_before_2.odt" )
+        key = "repeatcolumn|token::test"
+        value = ( "replace1", "replace2" )
+        #run methods
+        pymms = pyMailMergeService( False )
+        xml = pymms._repeatcolumn( xml, key, value )
+        matrix = getTableText( xml )
+        self.assertEqual( 'a1', matrix[0][0] )
+        self.assertEqual( 'a2', matrix[0][1] )
+        self.assertEqual( 'a3', matrix[0][2] )
+        self.assertEqual( 'replace1', matrix[0][3] )
+        self.assertEqual( 'replace2', matrix[0][4] )
+        self.assertEqual( 'b1b2', matrix[1][0] )
+        self.assertEqual( 'b3', matrix[1][1] )
+        self.assertEqual( 'b4', matrix[1][2] )
+        self.assertEqual( 'b4', matrix[1][3] )
+        self.assertEqual( 'c1', matrix[2][0] )
+        self.assertEqual( 'c2', matrix[2][1] )
+        self.assertEqual( 'c3', matrix[2][2] )
+        self.assertEqual( 'c4', matrix[2][3] )
+        self.assertEqual( 'c4', matrix[2][4] )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
