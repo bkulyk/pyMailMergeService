@@ -355,60 +355,61 @@ class pyMailMergeService:
                             insertIndex, fixspanned = self._repeatcolumn_getinsertindex( index, sourcerow, row )
                             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
                             if insertIndex is not None:
-                                oldString = etree.tostring( cells[ insertIndex ] )
-                                previous = cells[ insertIndex ]
-                                for param in params:
-                                    newElement = oldString.replace( "~%s~" % key, param )
-                                    newElement = etree.XML( newElement )
-                                    previous.addnext( newElement )
-                                    previous = newElement
-                                row.remove( cells[ insertIndex ] )
+                                self._repeatcolumn_dorepeat( row, insertIndex, key, params )
                             if fixspanned is not None:
                                 colsspan = cells[ fixspanned ].get( '{%s}number-columns-spanned' % self.ns['table'] )
                                 colsspan = int( colsspan ) + len( params ) - 1
                                 cells[ fixspanned ].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colsspan )
                     #since the source row was skipped, it needs to be done now.
-                    cells = sourcerow.xpath( "./table:table-cell", namespaces=self.ns )
-                    oldString = etree.tostring( cells[ index ] )
-                    previous = cells[ index ]
-                    for param in params:
-                        newElement = oldString.replace( "~%s~" % key, param )
-                        newElement = etree.XML( newElement )
-                        previous.addnext( newElement )
-                        previous = newElement
-                    sourcerow.remove( cells[ index ] )
+                    self._repeatcolumn_dorepeat( sourcerow, index, key, params )
                     i+=1
                 self.xml = etree.tostring( x )
                 return self.xml
             else:
                 return xml
+        def _repeatcolumn_dorepeat( self, row, index, key, params ):
+            cells = row.xpath( "./table:table-cell", namespaces=self.ns )
+            oldString = etree.tostring( cells[ index ] )
+            previous = cells[ index ]
+            for param in params:
+                newElement = oldString.replace( "~%s~" % key, param )
+                newElement = etree.XML( newElement )
+                previous.addnext( newElement )
+                previous = newElement
+            row.remove( cells[ index ] )
         def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
             i=0;
             cellsa = row_a.xpath( "./table:table-cell", namespaces=self.ns ) 
             cellsb = row_b.xpath( "./table:table-cell", namespaces=self.ns )
-            span_start = None
-            span_size  = None
+            span_start  = None
+            span_size   = None
+            span_end    = None
             fixspanned  = None
+            span_total  = 0
             if len( cellsa ) == len( cellsb ):
                 return [ index, None ]
             else:
                 for i in range( len( cellsa ) ):
-                    colspana = cellsa[i].get( '{%s}number-columns-spanned' % self.ns['table'] )
-                    colspanb = cellsb[i].get( '{%s}number-columns-spanned' % self.ns['table'] )
-                    if colspana is None:
-                        colspana = 1
-                    if colspanb is None:
-                        colspanb = 1
+                    colspana = cellsa[i].get( '{%s}number-columns-spanned' % self.ns['table'], default=1 )
+                    if i < len( cellsb ):
+                        colspanb = cellsb[i].get( '{%s}number-columns-spanned' % self.ns['table'], default=1 )
+                    else:
+                        '''this will happen if the repeating row is after a merged column 
+                        causing this row to have fewer cells than the source row. 
+                        The insert index will be the total number of cells, minus 
+                        the (total number of cells spanned minus the cell that will be removed)''' 
+                        return [ len(cellsb) - int( int(span_total)-1 ), None ]
                     if colspana == colspanb:
                         continue
                     else:
                         span_start = i
                         span_size = colspanb
+                        #need to count the total number of columns spanned, so the new cell can be inserted in the correct place
+                        span_total += int( span_size )
                     if i == index and span_start is not None:
                         span_end = span_start - 1 + int( span_size )
                         if i >= span_start and i <= span_end:
                             colspan = int(colspanb) + 1
-                            #cellsb[i].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colspan )
                             fixspanned = span_start
                             return [ None, fixspanned ]
                     elif span_end is not None:

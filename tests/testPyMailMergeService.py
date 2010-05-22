@@ -73,10 +73,19 @@ class testPyMailMergerService( unittest.TestCase ):
         value = ( "replace1", "replace2" )
         #run methods
         pymms = pyMailMergeService( False )
-#        xml = pymms._repeatcolumn( xml, key, value )
-#        matrix = getTableText( xml )
-#        for x in matrix:
-#            print x
+        xml = pymms._repeatcolumn( xml, key, value )
+        matrix = getTableText( xml )
+        self.assertEqual( 'a1', matrix[0][0] )
+        self.assertEqual( 'a2', matrix[0][1] )
+        self.assertEqual( 'replace1', matrix[0][2] )
+        self.assertEqual( 'replace2', matrix[0][3] )
+        self.assertEqual( 'b1b2', matrix[1][0] )
+        self.assertEqual( 'b3', matrix[1][1] )
+        self.assertEqual( 'b3', matrix[1][2] )
+        self.assertEqual( 'c1', matrix[2][0] )
+        self.assertEqual( 'c2', matrix[2][1] )
+        self.assertEqual( 'c3', matrix[2][2] )
+        self.assertEqual( 'c3', matrix[2][3] )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
