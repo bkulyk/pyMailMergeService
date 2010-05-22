@@ -62,9 +62,10 @@ class pyMailMergeService:
               'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
         xml = None
         _params = None
-        def __init__( self ):
+        def __init__( self, connect=True ):
             """Create an instance of the document conversion class."""
-            self.converter = DocumentConverter()
+            if connect:
+                self.converter = DocumentConverter()
         def hello( self, param0 ):
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
@@ -339,65 +340,83 @@ class pyMailMergeService:
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
                 sourcerow = cols[0].getparent()
+                sourceIndex = sourcerow.getparent().index( sourcerow )
                 #get the index of the cell
                 index = sourcerow.index( cols[0] )
                 if len( sourcerow ):
                     table = sourcerow.getparent()
-                    rowIndex = table.index( sourcerow )
-                    i=1
+                    i=0
                     for row in table.xpath( "//table:table-row" , namespaces=self.ns ):
-                        if i == rowIndex: 
-                            #dont bother looking up the index if the row is the same as the source
-                            insertIndex = index
-                        else: 
-                            insertIndex = self._repeatcolumn_getinsertindex( index, sourcerow, row )
-                        i += 1
+                        rowIndex = table.index( row )
+                        '''need to hold off on repeating the cells in the source column
+                        until last because it would mess up the column count that I need
+                        in order to make the merged cell count stuff work''' 
+                        if int(sourceIndex) != int(rowIndex)+i:
+                            insertIndex, fixspanned = self._repeatcolumn_getinsertindex( index, sourcerow, row )
+                            cells = row.xpath( "./table:table-cell", namespaces=self.ns )
+                            if insertIndex is not None:
+                                oldString = etree.tostring( cells[ insertIndex ] )
+                                previous = cells[ insertIndex ]
+                                for param in params:
+                                    newElement = oldString.replace( "~%s~" % key, param )
+                                    newElement = etree.XML( newElement )
+                                    previous.addnext( newElement )
+                                    previous = newElement
+                                row.remove( cells[ insertIndex ] )
+                            if fixspanned is not None:
+                                colsspan = cells[ fixspanned ].get( '{%s}number-columns-spanned' % self.ns['table'] )
+                                colsspan = int( colsspan ) + len( params ) - 1
+                                cells[ fixspanned ].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colsspan )
+                    #since the source row was skipped, it needs to be done now.
+                    cells = sourcerow.xpath( "./table:table-cell", namespaces=self.ns )
+                    oldString = etree.tostring( cells[ index ] )
+                    previous = cells[ index ]
+                    for param in params:
+                        newElement = oldString.replace( "~%s~" % key, param )
+                        newElement = etree.XML( newElement )
+                        previous.addnext( newElement )
+                        previous = newElement
+                    sourcerow.remove( cells[ index ] )
+                    i+=1
                 self.xml = etree.tostring( x )
                 return self.xml
             else:
                 return xml
-        def _repeatcolumn_repeatcell( self, row, insert ):
-            cells = row.find( "{%s}table-cell" % self.ns['table'] )
-            previous_cell = cells[0]
-            exp = re.compile( "~%s~" % re.escape( key ) )
-            for v in params:
-                cell_string = etree.tostring( cells[insertIndex] )
-                #replace the token with the value
-                replaced = re.sub( exp, "%s" % v, cell_string )
-                cell = etree.XML( replaced )
-                #append the new row to the cell
-                previous_cell.addnext( cell )
-                previous_cell = cell
         def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
             i=0;
-            cellsa = row_a.find( "{%s}table-cell" % self.ns['table'] ) 
-            cellsb = row_b.find( "{%s}table-cell" % self.ns['table'] )
+            cellsa = row_a.xpath( "./table:table-cell", namespaces=self.ns ) 
+            cellsb = row_b.xpath( "./table:table-cell", namespaces=self.ns )
             span_start = None
             span_size  = None
+            fixspanned  = None
             if len( cellsa ) == len( cellsb ):
-                return index
+                return [ index, None ]
             else:
-                print len( cellsa )
-                print len( cellsb )
                 for i in range( len( cellsa ) ):
-                    colspana = cellsa[i].attr( '{%s}number-columns-spanned' % self.ns['table'] )
-                    colspanb = cellsb[i].attr( '{%s}number-columns-spanned' % self.ns['table'] )
-                    if colspansa == colspanb:
+                    colspana = cellsa[i].get( '{%s}number-columns-spanned' % self.ns['table'] )
+                    colspanb = cellsb[i].get( '{%s}number-columns-spanned' % self.ns['table'] )
+                    if colspana is None:
+                        colspana = 1
+                    if colspanb is None:
+                        colspanb = 1
+                    if colspana == colspanb:
                         continue
                     else:
                         span_start = i
                         span_size = colspanb
-                    if j == index and span_start is not None:
-                        span_end = span_start - 1 + span_size
+                    if i == index and span_start is not None:
+                        span_end = span_start - 1 + int( span_size )
                         if i >= span_start and i <= span_end:
-                            colspan = colspanb+1
-                            cellsb[i].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colspan )
-                            return span_start + span_size
-                    elif index > span_end:
-                        return index+1 - span_size
+                            colspan = int(colspanb) + 1
+                            #cellsb[i].set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colspan )
+                            fixspanned = span_start
+                            return [ None, fixspanned ]
+                    elif span_end is not None:
+                        if index > span_end:
+                            return [ index+1 - int(span_size), None ]
                     elif index < span_start:
-                        return index
-            return index
+                        return [ index, None ]
+            return [ index, fixspanned ]
         def _repeatingRow( self, xml, key, params ):
             """
             There is a repeat row modifier on the key, so find the rows, repeat it, then remove 
