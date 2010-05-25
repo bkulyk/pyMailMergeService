@@ -360,7 +360,7 @@ class pyMailMergeService:
                 previous.addnext( newElement )
                 previous = newElement
                 #this method gets called once for each row, however it only needs to update the columns once per column
-                if dontupdatecolumns: 
+                if dontupdatecolumns == False: 
                     #need to updeate th table-column nodes
                     stylename = newElement.get( "{%s}style-name" % self.ns['table'] )
                     stylename, stylenumber = [ stylename[:-1], stylename[-1:] ] #need to extract the number at the end.
