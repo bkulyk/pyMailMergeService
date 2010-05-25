@@ -45,7 +45,7 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( "b1", matrix[1][0] )
         self.assertEquals( "b1", matrix[1][1] )
         self.assertEquals( "b2", matrix[1][2] )
-    def test_repeat_column_merged_columns_before( self ):
+    def test_repeat_column_merged_columns_above( self ):
         xml = getXML( "repeat_column_merged_columns_above.odt" )
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )

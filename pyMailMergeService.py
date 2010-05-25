@@ -101,6 +101,10 @@ class pyMailMergeService:
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
+            """NEED to clear the params because they are cached from xml file to xml file 
+            because the tokens would be the same for, content.xml as styles.xml, etc.  But 
+            it was remembering these from document to document (very bad)"""
+            self._params = None
             odtName = param0
             params  = param1
             doctype = param2
@@ -108,7 +112,7 @@ class pyMailMergeService:
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
-            destodt = u"%s.odt" % self._getTempFile()
+            destodt = self._getTempFile( '.odt' )
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
             for x in sourcezip.namelist():
@@ -134,12 +138,13 @@ class pyMailMergeService:
             destzip.close()
             sourcezip.close()
             #now convert the odt to pdf
-            destpdf = u"%s.%s" % ( self._getTempFile(), doctype ) 
-            self.converter.convert( destodt, destpdf )
+            destpdf = u"%s" % ( self._getTempFile( "."+doctype ) )
+            converter = DocumentConverter()
+            converter.convert( destodt, destpdf )
+            converter = None
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
-            #print destodt
             os.unlink( destodt ) #delete the odt file
             os.unlink( destpdf ) #delete the pdf file
             return base64.b64encode( doc ) #pdf
@@ -153,8 +158,17 @@ class pyMailMergeService:
                     params = param0['item'] #no idea why this stuff is inside of 'item'...
                     params = self._sortparams( params )
                 except:
-                    print "skipping find and replace."
-                    return xml
+                    """if there is only a single value passed it will come out as a struct instead of a list"""
+                    try:
+                        params = [ {} ]
+                        for k,x in param0:
+                            params[0] = dict( )
+                            params[0][ k ] = []
+                            for y in x:
+                                params[0][k].append( y )
+                    except:
+                        print "skipping find and replace."
+                        return xml
                 self._params = params
             else:
                 params = self._params
@@ -164,7 +178,7 @@ class pyMailMergeService:
             for dictionary in params:
                 key = dictionary.keys()[0]
                 value = dictionary.values()[0]
-                if type( value ).__name__ == 'instance' or type( value ).__name__ == 'typedArrayType':
+                if type( value ).__name__ in ('instance', 'list', 'typedArrayType' ):
                     xml = self._multipleValues( xml, key, value )
                 else:
                     if r'multiparagraph|' in key:
@@ -185,21 +199,30 @@ class pyMailMergeService:
             """
             If there is a modifier tag for an if statement, only show the stuff between the if
             and the endif modifiers IF the value is 1, '1' or true.
+            This piece is really touchy as the start and end tags have to be in the same 
+            depth of xml nodes, which can be difficult.  This whole piece may need be be
+            reworked to do the editing via XML instead of text
             """
             xmlbackup = xml
             starttoken = "~"+key+"~"
             closetoken = starttoken.replace( r"if|", r"endif|" ) 
             startpos = xml.find( starttoken )
             closepos = xml.find( closetoken )
+            if startpos == -1 and closepos == -1:
+                return xml
             tmp = None
             if startpos > 0 and closepos > 0 and value == 0:
                 tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
+                section = xml[startpos:closepos]
             if tmp is not None:
                 tmp = tmp.replace( closetoken, '' )
                 tmp = tmp.replace( starttoken, '' )
             else:
                 xmlbackup = xmlbackup.replace( closetoken, '' )
                 xmlbackup = xmlbackup.replace( starttoken, '' )
+                if value == 0:
+                    print "\"if\" modifier failed, reverting to xml before statement"
+                return xmlbackup
             """The removal of content in the manner that it was just done could break the 
             xml structure and cause it to not parse anymore.  That would be bad.  So if the 
             xml is broken then don't use this modified version and fall back to the old."""
@@ -207,6 +230,7 @@ class pyMailMergeService:
                 xml = etree.XML( tmp )
                 return tmp
             except:
+                print "xml is bad reverting"
                 return xmlbackup
         def _repeatsection( self, key, value, xml ):
             """
@@ -278,7 +302,7 @@ class pyMailMergeService:
                 return self._repeatingRow( xml, key, params ) 
             elif re.match( colExp, key ):
                 #if it matches the repeat column, token modifer, then repeat the columns.
-                return self.repeatcolumn( xml, key, params )
+                return self._repeatcolumn( xml, key, params )
             else:
                 self.xml = None #need to clear the xml cache.                
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
@@ -300,7 +324,7 @@ class pyMailMergeService:
                 if len( sourcerow ):
                     table = sourcerow.getparent()
                     i=0
-                    for row in table.xpath( "//table:table-row" , namespaces=self.ns ):
+                    for row in table.xpath( "./table:table-row" , namespaces=self.ns ):
                         rowIndex = table.index( row )
                         '''need to hold off on repeating the cells in the source column
                         until last because it would mess up the column count that I need
@@ -309,7 +333,7 @@ class pyMailMergeService:
                             insertIndex, fixspanned = self._repeatcolumn_getinsertindex( index, sourcerow, row )
                             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
                             if insertIndex is not None:
-                                self._repeatcolumn_dorepeat( row, insertIndex, key, params )
+                                self._repeatcolumn_dorepeat( row, insertIndex, key, params, dontupdatecolumns=True )
                             if fixspanned is not None:
                                 colsspan = cells[ fixspanned ].get( '{%s}number-columns-spanned' % self.ns['table'] )
                                 colsspan = int( colsspan ) + len( params ) - 1
@@ -321,7 +345,7 @@ class pyMailMergeService:
                 return self.xml
             else:
                 return xml
-        def _repeatcolumn_dorepeat( self, row, index, key, params ):
+        def _repeatcolumn_dorepeat( self, row, index, key, params, dontupdatecolumns=False ):
             """
             This method is called by _repeatcolumn.  This method duplicates the cell 
             as many times as indicated by the length of the params.
@@ -329,11 +353,29 @@ class pyMailMergeService:
             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
             oldString = etree.tostring( cells[ index ] )
             previous = cells[ index ]
+            i=0
             for param in params:
                 newElement = oldString.replace( "~%s~" % key, param )
                 newElement = etree.XML( newElement )
                 previous.addnext( newElement )
                 previous = newElement
+                #this method gets called once for each row, however it only needs to update the columns once per column
+                if dontupdatecolumns: 
+                    #need to updeate th table-column nodes
+                    stylename = newElement.get( "{%s}style-name" % self.ns['table'] )
+                    stylename, stylenumber = [ stylename[:-1], stylename[-1:] ] #need to extract the number at the end.
+                    tablecolumns = row.getparent().xpath( r"./table:table-column[@table:style-name='%s']" % stylename, namespaces=self.ns )
+                    if len( tablecolumns ):
+                        tablecolumn = tablecolumns[0] #should only be one.
+                        tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
+                    else: #as a last option, duplicate the first table-column
+                        tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
+                        tablecolumn = tablecolumns[0]
+                    tablecolumnString = etree.tostring( tablecolumn )
+                    tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
+                    if len( cells ) < int( len( cells ) + i ):
+                        tablecolumns[ len( tablecolumns ) -1 ].addnext( etree.XML( tablecolumnString ) )
+                i += 1
             row.remove( cells[ index ] )
         def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
             """
@@ -416,21 +458,18 @@ class pyMailMergeService:
             Getter for the xml property.  This is to help prevent parsing the entire XML 
             document more often than what's necessary.
             '''
-            #if self.xml is not None:
-                #return self.xml
-            #else:
             try:
                 return etree.XML( xml )
             except:
                 return etree.XML( xml.encode( 'utf-8' ) )
-        def _getTempFile( self ):
+        def _getTempFile( self, extension='' ):
             '''
             This is the replacement for os.tmpnam, it should not be suceptable to the
             same symlink injection problems.  I wrapped this simple command in a function 
             beause I don't want to use the file handle it creates. There maybe a more efficent
             way to get a tmp file name, but I havn't found one yet, so I'm using this.
             '''
-            file = tempfile.mkstemp( suffix='_pyMMS' )
+            file = tempfile.mkstemp( suffix="_pyMMS%s" % extension )
             '''I am not going to use this file handle because I found in my research,
             that I need to open it with the codec module to ensure it's open as utf-8 
             file intead of whatever the default is'''
