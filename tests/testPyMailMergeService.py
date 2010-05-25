@@ -130,6 +130,5 @@ def getXML( filename, parsed=False ):
     else:
         return zip.read( "content.xml" )
     return xml
-#testtable
 if __name__ == '__main__':
     unittest.main()

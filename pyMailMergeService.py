@@ -278,62 +278,13 @@ class pyMailMergeService:
                 return self._repeatingRow( xml, key, params ) 
             elif re.match( colExp, key ):
                 #if it matches the repeat column, token modifer, then repeat the columns.
-                return self._repeatingColumn( xml, key, params )
+                return self.repeatcolumn( xml, key, params )
             else:
                 self.xml = None #need to clear the xml cache.                
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
                 exp = re.compile( '~%s~' % re.escape(key) )
                 for v in params:
                     xml = re.sub( exp, v, xml, count=1 )
-                return xml
-        def _repeatingColumn( self, xml, key, params ):
-            """
-            There is a repeat column modifier on the key, so find the column, repeat it, then 
-            remove the original. Also the table has an element called table-column, that needs 
-            to be updated with the new cell count.  Then any cells that span multiple columns 
-            needs to be increated by the number of parmas
-            @todo there is a bug, here only one cell is being repeated, not the entire column.
-            """
-            x = self._getXML( xml )
-            cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
-            if len( cols ):
-                row = cols[0].getparent()
-                #get the index of the cell
-                index = row.index( cols[0] )
-                if len( row ):
-                    table = row.getparent()
-                    while table.tag != "{%s}table" % self.ns['table']:
-                        table = table.getparent()
-                    #for some reason there is a definition in the XML describing how many columns there are, we need to ajust it
-                    tablecolumn = table.find( "{%s}table-column" % self.ns['table'] )
-                    if tablecolumn is not None:
-                        columncount = tablecolumn.get( '{%s}number-columns-repeated' % self.ns['table'] )
-                        if columncount is not None: #with out this an error was being generated
-                            tablecolumn.set( '{%s}number-columns-repeated' % self.ns['table'], "%s" % ( int( columncount ) + len( params ) - 1 ) )
-                    #if there are any columns that have col span, we need to increase that span by the number of params - 1
-                    cells = table.findall( '{%s}table-row/{%s}table-cell' % ( self.ns['table'], self.ns['table'] ) );
-                    for checkcell in cells:
-                        colspan = int( checkcell.get( '{%s}number-columns-spanned' % self.ns['table'], default=0 ) )
-                        if colspan > 0:
-                            colspan += len( params ) - 1
-                            checkcell.set( '{%s}number-columns-spanned' % self.ns['table'], "%s" % colspan )                                        
-                    colstring = etree.tostring( cols[0] )
-                    #need to escape the key because it contains a pipe (|) which is a special char in regular expressions
-                    exp = re.compile( "~%s~" % re.escape( key ) )
-                    #columns need to be placed one after the other starting from where the token was found.
-                    previouscol = cols[0]
-                    for v in params:
-                        #replace the token with the value
-                        replaced = re.sub( exp, "%s" % v, colstring )
-                        col = etree.XML( replaced )
-                        #append the new row to the cell
-                        previouscol.addnext( col )
-                        previouscol = col
-                    #remove the row that contained the original tokens
-                    row.remove( cols[0] )
-                self.xml = etree.tostring( x )
-                return self.xml
-            else:
                 return xml
         def _repeatcolumn( self, xml, key, params ):
             """
