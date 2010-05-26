@@ -213,7 +213,6 @@ class pyMailMergeService:
             tmp = None
             if startpos > 0 and closepos > 0 and value == 0:
                 tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
-                section = xml[startpos:closepos]
             if tmp is not None:
                 tmp = tmp.replace( closetoken, '' )
                 tmp = tmp.replace( starttoken, '' )
@@ -351,6 +350,8 @@ class pyMailMergeService:
             as many times as indicated by the length of the params.
             """
             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
+            if index < 0:
+                return
             oldString = etree.tostring( cells[ index ] )
             previous = cells[ index ]
             i=0
@@ -403,8 +404,12 @@ class pyMailMergeService:
                         '''this will happen if the repeating row is after a merged column 
                         causing this row to have fewer cells than the source row. 
                         The insert index will be the total number of cells, minus 
-                        the (total number of cells spanned minus the cell that will be removed)''' 
-                        return [ len(cellsb) - int( int(span_total)-1 ), None ]
+                        the (total number of cells spanned minus the cell that will be removed)'''
+                        if len(cellsb) - int( int(span_total)-1 ) < 0:
+                            #when there is a merged cell that covers the all the cells.
+                            return [ None, 0 ]
+                        else:
+                            return [ len(cellsb) - int( int(span_total)-1 ), None ]
                     if colspana == colspanb:
                         continue
                     else:
@@ -477,19 +482,28 @@ class pyMailMergeService:
             return file[1]
         def _sortparams( self, params ):
             """
-            The parameters need to be sorted a little bit; for now, I'm just going to make it so
-            that the keys with modifiers come first in the array.  This fixed a problem I had 
-            where the repeat section was repeating the section after the conent had already been
-            filled in, and therefore showing the wrong content.
+            The parameters need to be sorted a little bit; This fixed a problem I had 
+            where the repeat section was repeating the section after the conent had 
+            already been filled in, and therefore showing the wrong content.
+            Sort order is:
+                if, repeatsection, repeatcolumn, repeatrow
             """
-            sorted = []
+            other = []
+            modifiers = { 'if':[], 'repeatsection':[],'repeatcolumn':[],'repeatrow':[]}
             for key, value in params:
                 pipe   = key.find( r"|" )
                 colons = key.find( r"::" )  
                 if pipe > 0 and colons > 0 and pipe < colons :
-                    sorted.insert( 0, {key:value} )
+                    #sorted.insert( 0, {key:value} )
+                    for x in modifiers.keys():
+                        if key.find( x+"|" ) > -1:
+                            modifiers[x].append( {key:value} )
                 else:
-                    sorted.append( {key:value} )
+                    other.append( {key:value} )
+            sorted = []
+            for v in modifiers.values():
+                sorted.extend( v )
+            sorted.extend( other )
             return sorted
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
