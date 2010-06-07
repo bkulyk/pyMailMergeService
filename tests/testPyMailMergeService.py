@@ -108,6 +108,44 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEqual( 'c3', matrix[2][2] )
         self.assertEqual( 'c4', matrix[2][3] )
         self.assertEqual( 'c4', matrix[2][4] )
+    def test_get_file_extension(self):
+        pymms = pyMailMergeService( False )
+        self.assertEqual( 'odt', pymms._getFileExtension( "simple_repeat_column.odt" ) )
+        self.assertEqual( 'odt', pymms._getFileExtension( "invoice.odt" ) )
+    def test_if_section_simple_true(self):
+        xml = getXML( "if_section_simple.odt" )
+        key = "if|token::testif"
+        value = 1
+        #run method
+        pymms = pyMailMergeService( False )
+        xml = pymms._if( key, value, xml )
+        xml = etree.XML( xml )
+        #test values
+        p = xml.xpath( "//text:p[contains(.,'%s')]" % "blah blah", namespaces={'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0'} )
+        self.assertEquals( 1, len( p ) )
+        self.assertTrue( p[0].text.find( 'blah blah' ) > -1 )
+    def test_if_section_simple_false(self):
+        xml = getXML( "if_section_simple.odt" )
+        key = "if|token::testif"
+        value = 0
+        #run method
+        pymms = pyMailMergeService( False )
+        xml = pymms._if( key, value, xml )
+        xml = etree.XML( xml )
+        #test values
+        p = xml.xpath( "//text:p[contains(.,'%s')]" % "blah blah", namespaces={'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0'} )
+        self.assertEqual( 0, len( p ) )
+    def test_sortparams(self):
+        params = [ ['test::token', 0], ['if|test::if', 1], ['repeatcolumn|test::repeatcol', 2], ['repeatrow|test::repeat_row', 3], ['repeatsection|test::repeatsect', 4] ]
+        #params[ "test::token" ] = ['0']
+        #fun method
+        pymms = pyMailMergeService( False )
+        params = pymms._sortparams( params )
+        self.assertEquals( 1, params[0]['if|test::if'] )
+        self.assertEquals( 4, params[1]['repeatsection|test::repeatsect'] )
+        self.assertEquals( 2, params[2]['repeatcolumn|test::repeatcol'] )
+        self.assertEquals( 3, params[3]['repeatrow|test::repeat_row'] )
+        self.assertEquals( 0, params[4]['test::token'] )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

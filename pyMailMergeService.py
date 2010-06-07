@@ -27,21 +27,18 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-@complete: need to be able to have a modifier for an IF statement, one of our documents needs to 
-       be able to omit a section depending on a varaible that would come through the webservice
-       client.
-@complete: Modifier for repeating section.
-@todo: add support for batches of documents, ie a real mail merge
-@todo: for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
-@todo: unit tests would be good.
-@todo: turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
-@todo: the openoffice document can have modifiers, like repeatrow| or repeatcolumn| or 
-       multiparagraph| It would be really interesting, if these could be plugins or dynamically 
-       loaded modules, or something similar
-@todo: Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
-@todo: Add some logging information.  
+@complete: Add support for .doc and .docx files by converting to odt, doing the mail merge then converting to whatever
+@todo:  add support for batches of documents, ie a real mail merge
+@todo:  for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
+@todo:  unit tests would be good.
+@todo:  turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
+@todo:  Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
+@todo:  Add some logging information.  
         What types of documents are being converted
         What IPs are using the service, simple stats about client computer
+@todo:  Possible improve the doc/docx support, it seems to work good, and fast, but it 
+        would probably be better if it wasn't converting to .odt everytime, and just cached
+        the converted file.
 """
 from sys import path
 path.append( '/usr/lib/openoffice.org/program/' )
@@ -62,6 +59,8 @@ class pyMailMergeService:
               'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
         xml = None
         _params = None
+        converter = None
+        convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
         def __init__( self, connect=True ):
             """Create an instance of the document conversion class."""
             if connect:
@@ -75,7 +74,11 @@ class pyMailMergeService:
             of like a mailmerge.  Tokens are single words and start and end with at tilde (~)
             """
             '''http://docs.python.org/library/zipfile.html'''
-            odtName = param0
+            if self._getFileExtension( param0 ) == 'doc':
+                odtName = self._getTempFile( ".odt" )
+                self.converter.convert( param0, odtName )
+            else:
+                odtName = param0
             zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #get the tokens from the xml
             '''http://docs.python.org/library/re.html'''
@@ -88,6 +91,9 @@ class pyMailMergeService:
             #clean up
             zip.close()
             matches = list( set( matches ) ) #removes duplicate items from the list
+            #remove the temporary doc -> odt conversion file
+            if self._getFileExtension( param0 ) == 'doc':
+                os.unlink( odtName )
             return matches
         def pdf( self, param0, param1 ):
             """"Convert the odt provided in param0 to a pdf, using the values from param1 
@@ -105,10 +111,13 @@ class pyMailMergeService:
             because the tokens would be the same for, content.xml as styles.xml, etc.  But 
             it was remembering these from document to document (very bad)"""
             self._params = None
-            odtName = param0
+            if self._getFileExtension( param0 ) == 'doc':
+                odtName = self._getTempFile( ".odt" )
+                self.converter.convert( param0, odtName )
+            else:
+                odtName = param0
             params  = param1
             doctype = param2
-            print "Converting file: %s to type: %s" % ( odtName, doctype )
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
             #create destination zip
@@ -139,14 +148,15 @@ class pyMailMergeService:
             sourcezip.close()
             #now convert the odt to pdf
             destpdf = u"%s" % ( self._getTempFile( "."+doctype ) )
-            converter = DocumentConverter()
-            converter.convert( destodt, destpdf )
-            converter = None
+            self.converter.convert( destodt, destpdf )
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
             os.unlink( destodt ) #delete the odt file
             os.unlink( destpdf ) #delete the pdf file
+            #remove the temporary doc -> odt conversion file
+            if self._getFileExtension( param0 ) == 'doc':
+                os.unlink( odtName )
             return base64.b64encode( doc ) #pdf
         def _replaceContent( self, xml, param0 ):
             """
@@ -193,7 +203,12 @@ class pyMailMergeService:
                         continue
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
-                    xml = exp.sub( "%s" % value, xml )
+                    try:
+                        xml = exp.sub( "%s" % value, xml )
+                    except:
+                        print "problem decoding value"
+                        print key
+                        print value
             return xml
         def _if( self, key, value, xml ):
             """
@@ -501,10 +516,23 @@ class pyMailMergeService:
                 else:
                     other.append( {key:value} )
             sorted = []
-            for v in modifiers.values():
-                sorted.extend( v )
+            sorted.extend( modifiers['if'] )
+            sorted.extend( modifiers['repeatsection'] )
+            sorted.extend( modifiers['repeatcolumn'] )
+            sorted.extend( modifiers['repeatrow'] )
             sorted.extend( other )
             return sorted
+        def _getFileExtension( self, path ):
+            """
+            Get the extension of the given file path.
+            This file was copied from DocumentConverter.py
+            @param path: path of the file on the filesystem  
+            @author: Mirko Nasato
+            @copyright (C) 2008-2009 Mirko Nasato <mirko@artofsolving.com>            
+            """
+            ext = splitext(path)[1]
+            if ext is not None:
+                return ext[1:].lower()
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )
