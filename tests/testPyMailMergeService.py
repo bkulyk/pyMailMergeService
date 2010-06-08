@@ -138,14 +138,16 @@ class testPyMailMergerService( unittest.TestCase ):
     def test_sortparams(self):
         params = [ ['test::token', 0], ['if|test::if', 1], ['repeatcolumn|test::repeatcol', 2], ['repeatrow|test::repeat_row', 3], ['repeatsection|test::repeatsect', 4] ]
         #params[ "test::token" ] = ['0']
-        #fun method
+        #run method
         pymms = pyMailMergeService( False )
         params = pymms._sortparams( params )
+        #test the output
         self.assertEquals( 1, params[0]['if|test::if'] )
         self.assertEquals( 4, params[1]['repeatsection|test::repeatsect'] )
         self.assertEquals( 2, params[2]['repeatcolumn|test::repeatcol'] )
         self.assertEquals( 3, params[3]['repeatrow|test::repeat_row'] )
         self.assertEquals( 0, params[4]['test::token'] )
+        self.assertEquals( 5, len( params ) )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

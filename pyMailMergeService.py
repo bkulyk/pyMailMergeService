@@ -41,7 +41,8 @@
         the converted file.
 """
 from sys import path
-path.append( '/usr/lib/openoffice.org/program/' )
+#path.append( '/usr/lib/openoffice.org/program/' ) #for document converter
+path.append( "/usr/share/pyshared/" ) #for uno library used by DocumentConverter
 import base64                       #to be able to return the output file utf encoded
 import zipfile                      #to open odt so we can do find and replace on the xml
 import re                           #regular expressions for doing find and replace on the xml
@@ -56,47 +57,55 @@ class pyMailMergeService:
         ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
               'office':'urn:oasis:names:tc:opendocument:xmlns:office:1.0',
-              'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0' }
+              'style':'urn:oasis:names:tc:opendocument:xmlns:style:1.0',
+              'draw':'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0',
+              'xlink':'http://www.w3.org/1999/xlink' }
         xml = None
-        _params = None
         converter = None
         convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
         def __init__( self, connect=True ):
             """Create an instance of the document conversion class."""
             if connect:
                 self.converter = DocumentConverter()
-        def hello( self, param0 ):
+        def hello( self, param0='world' ):
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
         def getTokens( self, param0 ):
-            """
-            Open the odt, and parse for tokens that should be replaced with content, kind 
-            of like a mailmerge.  Tokens are single words and start and end with at tilde (~)
-            """
-            '''http://docs.python.org/library/zipfile.html'''
-            if self._getFileExtension( param0 ) == 'doc':
-                odtName = self._getTempFile( ".odt" )
-                self.converter.convert( param0, odtName )
-            else:
-                odtName = param0
-            zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
+            """Parse the odt for tokens that should be replaced with content, kind 
+            of like a mailmerge.  Tokens are in the format of ~token::name~"""
+            odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
-            '''http://docs.python.org/library/re.html'''
             exp = re.compile( r'~([a-zA-Z\|]+::\w+\|?\w*)~' )
             matches = []
             #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
             for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
                 xml = zip.read( file )
                 matches.extend( exp.findall( xml ) )
-            #clean up
-            zip.close()
+                #collect a list of all the images in the document
+            self._close_source( param0, odtName, zip )
             matches = list( set( matches ) ) #removes duplicate items from the list
+            return matches
+        def _get_source( self, param0 ):
+            """get the source document, (which may include converting a doc/docx file to odt) 
+            open the zip and return the filename and zip"""
+            #http://docs.python.org/library/zipfile.html
+            if self._getFileExtension( param0 ) == 'doc':
+                odtName = self._getTempFile( ".odt" )
+                self.converter.convert( param0, odtName )
+            else:
+                odtName = param0
+            zip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
+            return odtName, zip
+        def _close_source(self, param0, odtName, zip ):
+            """
+            close the zip file and delete the temprary odt if converted a doc/docx to odt
+            """
+            zip.close()
             #remove the temporary doc -> odt conversion file
             if self._getFileExtension( param0 ) == 'doc':
                 os.unlink( odtName )
-            return matches
         def pdf( self, param0, param1 ):
-            """"Convert the odt provided in param0 to a pdf, using the values from param1 
+            """Convert the odt provided in param0 to a pdf, using the values from param1 
             as mailmerge values."""
             return self.convert( param0, param1, 'pdf' )
         def convert( self, param0, param1, param2='pdf' ):
@@ -110,13 +119,29 @@ class pyMailMergeService:
             """NEED to clear the params because they are cached from xml file to xml file 
             because the tokens would be the same for, content.xml as styles.xml, etc.  But 
             it was remembering these from document to document (very bad)"""
-            self._params = None
             if self._getFileExtension( param0 ) == 'doc':
                 odtName = self._getTempFile( ".odt" )
                 self.converter.convert( param0, odtName )
             else:
                 odtName = param0
-            params  = param1
+            '''this has been moved here beause it's more effiecent then running multiple times, and does 
+            not cause caching problems accross multiple soap requests.  Side note: Man I love unit tests'''
+            skipMerge = False
+            try:
+                params = param1['item'] #no idea why this stuff is inside of 'item'...
+                params = self._sortparams( params )
+            except:
+                """if there is only a single value passed it will come out as a struct instead of a list"""
+                try:
+                    params = [ {} ]
+                    for k,x in param0:
+                        params[0] = dict( )
+                        params[0][ k ] = []
+                        for y in x:
+                            params[0][k].append( y )
+                except:
+                    #cant do merge, bad data given
+                    return None
             doctype = param2
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
@@ -124,25 +149,32 @@ class pyMailMergeService:
             destodt = self._getTempFile( '.odt' )
             destzip = zipfile.ZipFile( destodt, 'w' )
             #copy all file from the source zip(odt) the the destination zip
+            tmpfiles = {}
+            xmlFileList = ['content.xml', 'meta.xml', 'styles.xml']
+            """Write all of the contents of the sourcezip to the destzip if the the filename is not 
+            in the xmlFileList list"""
             for x in sourcezip.namelist():
-                if x in ['content.xml', 'meta.xml', 'styles.xml']:
-                    tmp = self._replaceContent( sourcezip.read( x ), params )
-                    '''I could not get the contents of the xml (tmp) file to write directly
-                    to the zip because of file encoding stuff with french characters, so I'm writing
-                    the contents to a utf-8 file, then putting that file into the zip archive.'''
-                    tmpFileName = "%s" % self._getTempFile()
-                    tmpFile = codecs.open( tmpFileName, 'w', 'utf-8' )
-                    try:
-                        tmpFile.write( unicode( tmp, 'utf-8' ) ) #for english
-                    except:
-                        tmpFile.write( tmp ) #for french
-                    tmpFile.close()
-                    destzip.write( tmpFileName, x )
-                    #remove file now
-                    os.unlink( tmpFileName )
-                else:
+                if x not in xmlFileList:
                     tmp = sourcezip.read( x )
                     destzip.writestr( x, tmp )
+            """these files need to be done last, in case there is any modifiers that want to 
+            change the contents of the zip, for example the image| modifier""" 
+            for x in xmlFileList: 
+                tmp = sourcezip.read( x )
+                tmp = self._replaceContent( sourcezip.read( x ), params, destzip )
+                '''I could not get the contents of the xml (tmp) file to write directly
+                to the zip because of file encoding stuff with french characters, so I'm writing
+                the contents to a utf-8 file, then putting that file into the zip archive.'''
+                tmpFileName = "%s" % self._getTempFile()
+                tmpFile = codecs.open( tmpFileName, 'w', 'utf-8' )
+                try:
+                    tmpFile.write( unicode( tmp, 'utf-8' ) ) #for english
+                except:
+                    tmpFile.write( tmp ) #for french
+                tmpFile.close()
+                destzip.write( tmpFileName, x )
+                #remove file now
+                os.unlink( tmpFileName )
             #clan up
             destzip.close()
             sourcezip.close()
@@ -158,30 +190,11 @@ class pyMailMergeService:
             if self._getFileExtension( param0 ) == 'doc':
                 os.unlink( odtName )
             return base64.b64encode( doc ) #pdf
-        def _replaceContent( self, xml, param0 ):
+        def _replaceContent( self, xml, params, zip ):
             """
             Do a regular expression find and replace for all of the params, unless the 
             param has multiple values, then do the duplicate rows stuff.
             """
-            if self._params is None: #preventing having to soft the params more than once.
-                try:
-                    params = param0['item'] #no idea why this stuff is inside of 'item'...
-                    params = self._sortparams( params )
-                except:
-                    """if there is only a single value passed it will come out as a struct instead of a list"""
-                    try:
-                        params = [ {} ]
-                        for k,x in param0:
-                            params[0] = dict( )
-                            params[0][ k ] = []
-                            for y in x:
-                                params[0][k].append( y )
-                    except:
-                        print "skipping find and replace."
-                        return xml
-                self._params = params
-            else:
-                params = self._params
             #these were moved out of the loop because compiling the re everytime would be ineffeciant
             para_exp = re.compile( '\<p\>.+\<\/p\>' )
             #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
@@ -191,6 +204,8 @@ class pyMailMergeService:
                 if type( value ).__name__ in ('instance', 'list', 'typedArrayType' ):
                     xml = self._multipleValues( xml, key, value )
                 else:
+                    if r"image|" in key:
+                        self._image( key, value, xml, zip )
                     if r'multiparagraph|' in key:
                         xml = self._multiparagraph( key, value, xml )
                     if key.find( r"if|" ) == 0:
@@ -210,6 +225,18 @@ class pyMailMergeService:
                         print key
                         print value
             return xml
+        def _image( self, key, value, xml, zip ):
+            """This modifier is for replacing the contents of an image. A good example for 
+            this would be a product where you are creating invoices on behalf of multiple 
+            companies and you need to be able to put a specific company's logo at the
+            top of the document without having to change the document it's self.  The
+            value should be a string containin the contents of the image base64 encoded."""
+            if value is not None:
+                x = self._getXML( xml )
+                drawframe = x.xpath( "//draw:frame[@draw:name='~%s~']/draw:image" % key, namespaces=self.ns )
+                if len( drawframe ):
+                    href = drawframe[0].get( '{%s}href' % self.ns['xlink'] )
+                    zip.writestr( href, base64.b64decode( value ) )
         def _if( self, key, value, xml ):
             """
             If there is a modifier tag for an if statement, only show the stuff between the if
@@ -501,10 +528,10 @@ class pyMailMergeService:
             where the repeat section was repeating the section after the conent had 
             already been filled in, and therefore showing the wrong content.
             Sort order is:
-                if, repeatsection, repeatcolumn, repeatrow
+                if, repeatsection, repeatcolumn, repeatrow, multiparagraph
             """
             other = []
-            modifiers = { 'if':[], 'repeatsection':[],'repeatcolumn':[],'repeatrow':[]}
+            modifiers = { 'if':[], 'repeatsection':[],'repeatcolumn':[],'repeatrow':[], 'multiparagraph':[], 'image':[] }
             for key, value in params:
                 pipe   = key.find( r"|" )
                 colons = key.find( r"::" )  
@@ -520,6 +547,8 @@ class pyMailMergeService:
             sorted.extend( modifiers['repeatsection'] )
             sorted.extend( modifiers['repeatcolumn'] )
             sorted.extend( modifiers['repeatrow'] )
+            sorted.extend( modifiers['multiparagraph'] )
+            sorted.extend( modifiers['image'] )
             sorted.extend( other )
             return sorted
         def _getFileExtension( self, path ):
@@ -539,4 +568,4 @@ if __name__ == "__main__":
     pyMMS = pyMailMergeService()
     namespace = 'urn:approve'
     server.registerObject( pyMMS, namespace )
-    server.serve_forever()
+    server.serve_forever()    
