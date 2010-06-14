@@ -298,9 +298,12 @@ class pyMailMergeService:
             xml structure and cause it to not parse anymore.  That would be bad.  So if the 
             xml is broken then don't use this modified version and fall back to the old."""
             try:
-                tmp = etree.XML( xml )
+                tmp = etree.XML( xml ) #if xml is busted this will throw an exception
                 return xml
             except:
+                print "repeatsection for %s is bad, reverting" % key
+                xmlbackup = xmlbackup.replace( starttoken, '' )
+                xmlbackup = xmlbackup.replace( closetoken, '' )
                 return xmlbackup
         def _multiparagraph( self, key, value, xml ):
             """

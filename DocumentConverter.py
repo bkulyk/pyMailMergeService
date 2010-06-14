@@ -121,7 +121,6 @@ class DocumentConversionException(Exception):
 
 
 class DocumentConverter:
-    
     def __init__(self, port=DEFAULT_OPENOFFICE_PORT):
         localContext = uno.getComponentContext()
         resolver = localContext.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", localContext)
@@ -141,9 +140,20 @@ class DocumentConverter:
             loadProperties.update(IMPORT_FILTER_MAP[inputExt])
         
         document = self.desktop.loadComponentFromURL(inputUrl, "_blank", 0, self._toProperties(loadProperties))
+
         try:
             document.refresh()
         except AttributeError:
+            pass
+        
+        try:
+            #I needed the table of contents to automatically update in case page 
+            #  contents had changed
+            #@author Brian Kulyk @since Jun 11, 2010
+            oIndexes = document.getDocumentIndexes()
+            for x in range( 0, oIndexes.getCount() ):
+                oIndexes.getByIndex( x ).update()
+        except:
             pass
 
         family = self._detectFamily(document)
