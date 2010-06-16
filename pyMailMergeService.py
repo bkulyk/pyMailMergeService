@@ -27,7 +27,6 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-@complete: Add support for .doc and .docx files by converting to odt, doing the mail merge then converting to whatever
 @todo:  add support for batches of documents, ie a real mail merge
 @todo:  for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
 @todo:  unit tests would be good.
@@ -116,9 +115,6 @@ class pyMailMergeService:
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
-            """NEED to clear the params because they are cached from xml file to xml file 
-            because the tokens would be the same for, content.xml as styles.xml, etc.  But 
-            it was remembering these from document to document (very bad)"""
             if self._getFileExtension( param0 ) == 'doc':
                 odtName = self._getTempFile( ".odt" )
                 self.converter.convert( param0, odtName )
@@ -264,9 +260,9 @@ class pyMailMergeService:
                 if value == 0:
                     print "\"if\" modifier failed, reverting to xml before statement"
                 return xmlbackup
-            """The removal of content in the manner that it was just done could break the 
-            xml structure and cause it to not parse anymore.  That would be bad.  So if the 
-            xml is broken then don't use this modified version and fall back to the old."""
+            #The removal of content in the manner that it was just done could break the 
+            #xml structure and cause it to not parse anymore.  That would be bad.  So if the 
+            #xml is broken then don't use this modified version and fall back to the old.
             try:
                 xml = etree.XML( tmp )
                 return tmp
@@ -294,9 +290,9 @@ class pyMailMergeService:
             xml = xml[:closepos] + allcontent + xml[closepos:]
             xml = xml.replace( starttoken, '' )
             xml = xml.replace( closetoken, '' )
-            """The removal of content in the manner that it was just done could break the 
-            xml structure and cause it to not parse anymore.  That would be bad.  So if the 
-            xml is broken then don't use this modified version and fall back to the old."""
+            #The removal of content in the manner that it was just done could break the 
+            #xml structure and cause it to not parse anymore.  That would be bad.  So if the 
+            #xml is broken then don't use this modified version and fall back to the old.
             try:
                 tmp = etree.XML( xml ) #if xml is busted this will throw an exception
                 return xml
@@ -370,9 +366,9 @@ class pyMailMergeService:
                     i=0
                     for row in table.xpath( "./table:table-row" , namespaces=self.ns ):
                         rowIndex = table.index( row )
-                        '''need to hold off on repeating the cells in the source column
-                        until last because it would mess up the column count that I need
-                        in order to make the merged cell count stuff work''' 
+                        #need to hold off on repeating the cells in the source column
+                        #until last because it would mess up the column count that I need
+                        #in order to make the merged cell count stuff work 
                         if int(sourceIndex) != int(rowIndex)+i:
                             insertIndex, fixspanned = self._repeatcolumn_getinsertindex( index, sourcerow, row )
                             cells = row.xpath( "./table:table-cell", namespaces=self.ns )
@@ -404,7 +400,7 @@ class pyMailMergeService:
                 newElement = oldString.replace( "~%s~" % key, param )
                 newElement = etree.XML( newElement )
                 previous.addnext( newElement )
-                previous = newElement
+                previous = newElement                
                 #this method gets called once for each row, however it only needs to update the columns once per column
                 if dontupdatecolumns == False: 
                     #need to updeate th table-column nodes
@@ -412,15 +408,15 @@ class pyMailMergeService:
                     stylename, stylenumber = [ stylename[:-1], stylename[-1:] ] #need to extract the number at the end.
                     tablecolumns = row.getparent().xpath( r"./table:table-column[@table:style-name='%s']" % stylename, namespaces=self.ns )
                     if len( tablecolumns ):
-                        tablecolumn = tablecolumns[0] #should only be one.
                         tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
+                        tablecolumn = tablecolumns[ len( tablecolumns )-1 ] #should only be one.
                     else: #as a last option, duplicate the first table-column
                         tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
                         tablecolumn = tablecolumns[0]
                     tablecolumnString = etree.tostring( tablecolumn )
                     tablecolumns = row.getparent().xpath( r"./table:table-column", namespaces=self.ns )
                     if len( cells ) < int( len( cells ) + i ):
-                        tablecolumns[ len( tablecolumns ) -1 ].addnext( etree.XML( tablecolumnString ) )
+                        tablecolumn.addnext( etree.XML( tablecolumnString ) )
                 i += 1
             row.remove( cells[ index ] )
         def _repeatcolumn_getinsertindex( self, index, row_a, row_b ):
@@ -446,10 +442,10 @@ class pyMailMergeService:
                     if i < len( cellsb ):
                         colspanb = cellsb[i].get( '{%s}number-columns-spanned' % self.ns['table'], default=1 )
                     else:
-                        '''this will happen if the repeating row is after a merged column 
-                        causing this row to have fewer cells than the source row. 
-                        The insert index will be the total number of cells, minus 
-                        the (total number of cells spanned minus the cell that will be removed)'''
+                        #this will happen if the repeating row is after a merged column 
+                        #causing this row to have fewer cells than the source row. 
+                        #The insert index will be the total number of cells, minus 
+                        #the (total number of cells spanned minus the cell that will be removed)
                         if len(cellsb) - int( int(span_total)-1 ) < 0:
                             #when there is a merged cell that covers the all the cells.
                             return [ None, 0 ]
@@ -520,9 +516,9 @@ class pyMailMergeService:
             way to get a tmp file name, but I havn't found one yet, so I'm using this.
             '''
             file = tempfile.mkstemp( suffix="_pyMMS%s" % extension )
-            '''I am not going to use this file handle because I found in my research,
-            that I need to open it with the codec module to ensure it's open as utf-8 
-            file intead of whatever the default is'''
+            #I am not going to use this file handle because I found in my research,
+            #that I need to open it with the codec module to ensure it's open as utf-8 
+            #file intead of whatever the default is
             os.close( file[0] )
             return file[1]
         def _sortparams( self, params ):
