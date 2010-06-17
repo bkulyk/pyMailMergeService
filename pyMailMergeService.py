@@ -200,9 +200,9 @@ class pyMailMergeService:
                 if type( value ).__name__ in ('instance', 'list', 'typedArrayType' ):
                     xml = self._multipleValues( xml, key, value )
                 else:
-                    if r"image|" in key:
+                    if key.find( r'image|' ) == 0:
                         self._image( key, value, xml, zip )
-                    if r'multiparagraph|' in key:
+                    if key.find( r'multiparagraph|' ) == 0:
                         xml = self._multiparagraph( key, value, xml )
                     if key.find( r"if|" ) == 0:
                         xml = self._if( key, value, xml )
