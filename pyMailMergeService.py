@@ -309,25 +309,28 @@ class pyMailMergeService:
             """
             self.xml = None
             x = self._getXML( xml )
-            paragraphs = x.xpath( '//text:p[contains(text(),"~%s~")]' % key, namespaces=self.ns )
+            paragraphs = x.xpath( '//text:p/*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
             if not len( paragraphs ):
                 return xml
-            parent = paragraphs[0].getparent()
+            para = paragraphs[0]
+            i=0
+            #this is here because I was having a problem where the text was actually 
+            #in a span inside the paragraph, and not directly in the paragraph 
+            while para.tag != "{%s}p" % self.ns['text'] and i < 5: #5 is arbitrary, should be enough
+                para = para.getparent()
+                i += 1
+            parent = para.getparent()
             #need to add the paragraphy style attribute (and any others) to the new p tags
-            attribs = paragraphs[0].attrib
+            attribs = para.attrib
             html = etree.XML( "<html>" + value + "</html>" )
-            previous = paragraphs[0]
+            previous = para
             for tag in html.findall( 'p' ):
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
                 p.text = tag.text
                 #need to add next instead of append because it was messing up ordering of content
                 previous.addnext( p )
                 previous = p
-                #add an extra line of blank
-                p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
-                previous.addnext( p )
-                previous = p
-            parent.remove( paragraphs[0] )
+            parent.remove( para )
             return etree.tostring( x )
         def _multipleValues( self, xml, key, params ):
             """
