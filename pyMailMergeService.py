@@ -309,7 +309,7 @@ class pyMailMergeService:
             """
             self.xml = None
             x = self._getXML( xml )
-            paragraphs = x.xpath( '//text:p/*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
+            paragraphs = x.xpath( '//*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
             if not len( paragraphs ):
                 return xml
             para = paragraphs[0]
