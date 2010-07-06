@@ -351,7 +351,10 @@ class pyMailMergeService:
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
                 exp = re.compile( '~%s~' % re.escape(key) )
                 for v in params:
-                    xml = re.sub( exp, v, xml, count=1 )
+                    if key.find( r'multiparagraph|' ) == 0:
+                        xml = self._multiparagraph( key, v, xml )
+                    else:
+                        xml = re.sub( exp, v, xml, count=1 )
                 return xml
         def _repeatcolumn( self, xml, key, params ):
             """
