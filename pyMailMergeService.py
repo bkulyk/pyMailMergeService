@@ -322,11 +322,16 @@ class pyMailMergeService:
             parent = para.getparent()
             #need to add the paragraphy style attribute (and any others) to the new p tags
             attribs = para.attrib
-            html = etree.XML( "<html>" + value + "</html>" )
+            amp = re.compile( "&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)" )
+            value = re.sub( amp, '&amp;', value )
+            try:
+                html = etree.XML( "<html>" + value + "</html>" )
+            except:
+                return xml
             previous = para
             for tag in html.findall( 'p' ):
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
-                p.text = tag.text
+                p.text =  tag.text
                 #need to add next instead of append because it was messing up ordering of content
                 previous.addnext( p )
                 previous = p
