@@ -74,7 +74,7 @@ class pyMailMergeService:
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
             odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
-            exp = re.compile( r'~([a-zA-Z\|]+::\w+\|?\w*)~' )
+            exp = re.compile( r'~([a-zA-Z\|]+::\w+[\w\|]*)~' )
             matches = []
             #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
             for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
