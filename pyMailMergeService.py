@@ -120,6 +120,7 @@ class pyMailMergeService:
                 self.converter.convert( param0, odtName )
             else:
                 odtName = param0
+            #print "Converting document: %s " % odtName
             '''this has been moved here beause it's more effiecent then running multiple times, and does 
             not cause caching problems accross multiple soap requests.  Side note: Man I love unit tests'''
             skipMerge = False
@@ -217,9 +218,11 @@ class pyMailMergeService:
                     try:
                         xml = exp.sub( "%s" % value, xml )
                     except:
-                        print "problem decoding value"
-                        print key
-                        print value
+                        #This took me hours and hours to figure out.  Apparantly sometimes when
+                        #you copy and paste french content into an odt, it does not save as proper
+                        #utf-8, so it needs a conversion before we can continue.
+                        xml = unicode( xml, "utf-8" )
+                        xml = xml.replace( "~%s~" % key, value )
             return xml
         def _image( self, key, value, xml, zip ):
             """This modifier is for replacing the contents of an image. A good example for 
