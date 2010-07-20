@@ -148,6 +148,12 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( 3, params[3]['repeatrow|test::repeat_row'] )
         self.assertEquals( 0, params[4]['test::token'] )
         self.assertEquals( 5, len( params ) )
+    def test_regex(self):
+        amp = re.compile( "&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)" ) 
+        self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah & blah" ) )
+        self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah &amp; blah" ) )
+        self.assertEquals( "blah &lt; blah", re.sub( amp, "&amp;", "blah &lt; blah" ) )
+        self.assertEquals( "blah &#8226; blah", re.sub( amp, "&amp;", "blah &#8226; blah" ) )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

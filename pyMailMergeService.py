@@ -330,7 +330,10 @@ class pyMailMergeService:
             try:
                 html = etree.XML( "<html>" + value + "</html>" )
             except:
-                return xml
+                print 'parse error for key: %s' % key
+                print '============================'
+                html = etree.XML( "<html>" + value + "</html>" )
+                print '============================'                
             previous = para
             for tag in html.findall( 'p' ):
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
