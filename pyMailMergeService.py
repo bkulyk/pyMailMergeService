@@ -62,10 +62,24 @@ class pyMailMergeService:
         xml = None
         converter = None
         convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
+        #for caching regular expressions
+        _regExString = { 'amp':"&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)",
+                         'tokens':r'~([a-zA-Z\|]+::\w+[\w\|]*)~' }
+        _regExCompiled = {}
         def __init__( self, connect=True ):
             """Create an instance of the document conversion class."""
             if connect:
                 self.converter = DocumentConverter()
+        def _getRegEx( self, regex ):
+            """
+            This is here an an effor to stop compiling the same regular expressions over and 
+            over again.  Multiple times per page hit.  Just doesn't seem very efficient.
+            """
+            if regex in self._regExCompiled.keys():
+                return self._regExCompiled[ regex ]
+            else:
+                self._regExCompiled[ regex ] = re.compile( self._regExString[ regex ] )
+                return self._regExCompiled[ regex ] 
         def hello( self, param0='world' ):
             """This is a simple 'Hello World' function to test soap calls"""
             return u"hello %s " % param0
@@ -74,7 +88,7 @@ class pyMailMergeService:
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
             odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
-            exp = re.compile( r'~([a-zA-Z\|]+::\w+[\w\|]*)~' )
+            exp = self._getRegEx( 'tokens' ) #re.compile( r'~([a-zA-Z\|]+::\w+[\w\|]*)~' )
             matches = []
             #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
             for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
@@ -198,7 +212,7 @@ class pyMailMergeService:
             for dictionary in params:
                 key = dictionary.keys()[0]
                 value = dictionary.values()[0]
-                if type( value ).__name__ in ('instance', 'list', 'typedArrayType' ):
+                if type( value ).__name__ in ( 'instance', 'list', 'typedArrayType' ):
                     xml = self._multipleValues( xml, key, value )
                 else:
                     if key.find( r'image|' ) == 0:
@@ -215,6 +229,7 @@ class pyMailMergeService:
                         continue
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
+                    value = self._cleanValue( value )
                     try:
                         xml = exp.sub( "%s" % value, xml )
                     except:
@@ -325,15 +340,11 @@ class pyMailMergeService:
             parent = para.getparent()
             #need to add the paragraphy style attribute (and any others) to the new p tags
             attribs = para.attrib
-            amp = re.compile( "&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)" )
-            value = re.sub( amp, '&amp;', value )
+            value = self._cleanValue( value )
             try:
                 html = etree.XML( "<html>" + value + "</html>" )
             except:
-                print 'parse error for key: %s' % key
-                print '============================'
                 html = etree.XML( "<html>" + value + "</html>" )
-                print '============================'                
             previous = para
             for tag in html.findall( 'p' ):
                 p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
@@ -355,13 +366,14 @@ class pyMailMergeService:
                 #if it matches the repeat row modifier, then repeat the rows.
                 return self._repeatingRow( xml, key, params ) 
             elif re.match( colExp, key ):
-                #if it matches the repeat column, token modifer, then repeat the columns.
+                #if it matches the repeat column, t    oken modifer, then repeat the columns.
                 return self._repeatcolumn( xml, key, params )
             else:
                 self.xml = None #need to clear the xml cache.                
                 #if it doesn't match any modifers then, all of the values should already be duplicated, so starting doing find an repalce, but not global
                 exp = re.compile( '~%s~' % re.escape(key) )
                 for v in params:
+                    v = self._cleanValue( v )
                     if key.find( r'multiparagraph|' ) == 0:
                         xml = self._multiparagraph( key, v, xml )
                     else:
@@ -414,7 +426,7 @@ class pyMailMergeService:
             previous = cells[ index ]
             i=0
             for param in params:
-                newElement = oldString.replace( "~%s~" % key, param )
+                newElement = oldString.replace( "~%s~" % key, self._cleanValue( param ) )
                 newElement = etree.XML( newElement )
                 previous.addnext( newElement )
                 previous = newElement                
@@ -505,6 +517,7 @@ class pyMailMergeService:
                     #need to escape the key because it contains a pipe (|) which is a special char in regular expressions
                     exp = re.compile( "~%s~" % re.escape( key ) )
                     for v in params:
+                        v = self._cleanValue( v )
                         #replace the token with the value
                         replaced = re.sub( exp, "%s" % v, rowstring )
                         row = etree.XML( replaced )
@@ -578,6 +591,14 @@ class pyMailMergeService:
             ext = splitext(path)[1]
             if ext is not None:
                 return ext[1:].lower()
+        def _cleanValue( self, value ):
+            """Sanitize the value to make sure it doesn't break the xml.  The only real problem
+            That I have found so far is the & needing to be transformed into &amp; """
+            amp = self._getRegEx( 'amp' )
+            try:
+                return re.sub( amp, u'&amp;', value )
+            except:
+                return value
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     server = SOAPServer( ( 'localhost', 8888 ) )

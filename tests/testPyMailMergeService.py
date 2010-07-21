@@ -148,9 +148,11 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( 3, params[3]['repeatrow|test::repeat_row'] )
         self.assertEquals( 0, params[4]['test::token'] )
         self.assertEquals( 5, len( params ) )
-    def test_regex(self):
-        amp = re.compile( "&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)" ) 
+    def test_AmpRegEx(self):
+        pymms = pyMailMergeService( False )
+        amp = pymms._getRegEx( 'amp'  )
         self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah & blah" ) )
+        self.assertEquals( "blah &amp; blah &amp;", re.sub( amp, "&amp;", "blah & blah &" ) )
         self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah &amp; blah" ) )
         self.assertEquals( "blah &lt; blah", re.sub( amp, "&amp;", "blah &lt; blah" ) )
         self.assertEquals( "blah &#8226; blah", re.sub( amp, "&amp;", "blah &#8226; blah" ) )
