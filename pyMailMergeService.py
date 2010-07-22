@@ -63,13 +63,17 @@ class pyMailMergeService:
         converter = None
         convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
         #for caching regular expressions
-        _regExString = { 'amp':"&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)",
-                         'tokens':r'~([a-zA-Z\|]+::\w+[\w\|]*)~' }
+        _regExString = { 'amp':r"&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)",
+                         'tokens':r'~([a-zA-Z\|]+::\w+[\w\|]*)~',
+                         'repeatrow':r"^repeatrow|",
+                         'repeatcol':r"^repeatcolumn|",
+                         'htmlparagraph':'\<p\>.+\<\/p\>'
+                         }
         _regExCompiled = {}
         def __init__( self, connect=True ):
             """Create an instance of the document conversion class."""
-            if connect:
-                self.converter = DocumentConverter()
+            #if connect:
+            #    self.converter = DocumentConverter()
         def _getRegEx( self, regex ):
             """
             This is here an an effor to stop compiling the same regular expressions over and 
@@ -86,9 +90,11 @@ class pyMailMergeService:
         def getTokens( self, param0 ):
             """Parse the odt for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
+            #if not os.path.exists( param0 ):
+            #    return "error: templatefile: %s does not exist" % param0
             odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
-            exp = self._getRegEx( 'tokens' ) #re.compile( r'~([a-zA-Z\|]+::\w+[\w\|]*)~' )
+            exp = self._getRegEx( 'tokens' )
             matches = []
             #I found that I need to look for tokens in the styles and meta fils as well, because meta has the document title, and styles has the content for the document footers and probably headers
             for file in [ u'content.xml', u'styles.xml', u'meta.xml' ]:
@@ -129,6 +135,8 @@ class pyMailMergeService:
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
+            #if not os.path.exists( param0 ):
+            #    return "error: templatefile: %s does not exist" % param0
             if self._getFileExtension( param0 ) == 'doc':
                 odtName = self._getTempFile( ".odt" )
                 self.converter.convert( param0, odtName )
@@ -191,7 +199,13 @@ class pyMailMergeService:
             sourcezip.close()
             #now convert the odt to pdf
             destpdf = u"%s" % ( self._getTempFile( "."+doctype ) )
-            self.converter.convert( destodt, destpdf )
+            try:
+                #this is now going to create an instance of converter on demand in case OpenOffice
+                #crashes and needs to restart.
+                converter = DocumentConverter()
+                converter.convert( destodt, destpdf )
+            except:
+                return "error: could not convert document, usually bad xml"
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
@@ -361,7 +375,7 @@ class pyMailMergeService:
             values.  This is like the normal find and replace, but not global.
             """
             rowExp = re.compile( "^" + re.escape( 'repeatrow|' ) )
-            colExp = re.compile( "^" + re.escape( 'repeatcolumn|' ) )            
+            colExp = re.compile( "^" + re.escape( 'repeatcolumn|' ) )
             if re.match( rowExp, key ):
                 #if it matches the repeat row modifier, then repeat the rows.
                 return self._repeatingRow( xml, key, params ) 
