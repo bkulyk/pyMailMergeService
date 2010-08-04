@@ -157,6 +157,45 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah &amp; blah" ) )
         self.assertEquals( "blah &lt; blah", re.sub( amp, "&amp;", "blah &lt; blah" ) )
         self.assertEquals( "blah &#8226; blah", re.sub( amp, "&amp;", "blah &#8226; blah" ) )
+    def test_TokenRegEX(self):
+        pymms = pyMailMergeService( False )
+        token = pymms._getRegEx( 'tokens' )
+        sampleStringOfPossibleTokens = """
+        ~blah::blah~     #should be found
+        ~blah::blah|1~   #should be found
+        ~object::method|param~    #should be found
+        ~modifier|object::method|param~    #should be found
+        ~modifier|object::method|param|param2~    #should be found
+        ~object::method2~    #should be found
+        ~object::method|param|paramwith)~    #shold be found -- this is a specific use case for my company... I know it's a little weird.
+        ~object::rightnext1~~object::rightnext2~ #should both be found
+        ~object::noclosingtilde    #should NOT work because it has no closing tilde
+        object::noopeningtilde~    #should NOT work because it has no opening tilde
+        ~::blah|12~      #should NOT be found because the object part is missing
+        ~object::method_test~    #should NOT be found
+        ~modifier|object::method|para#~    #should NOT be found
+        blahblah~object::mixedinwithothertext~blahblah  I'm just proving that this should be there because it'sm mixed in with other text
+        ~object1::method1~    #should NOT be found because it has a number in the object, which really isn't a problem unless it's first but whatever.
+        ~~    #should NOT be found
+        """
+        matches = token.findall( sampleStringOfPossibleTokens )
+        self.assertTrue( "::blah|12" not in matches )
+        self.assertTrue( "blah::blah" in matches )
+        self.assertTrue( "blah::blah|1" in matches )
+        self.assertTrue( "object::method|param" in matches )
+        self.assertTrue( "modifier|object::method|param" in matches )
+        self.assertTrue( "modifier|object::method|param|param2" in matches )
+        self.assertTrue( "modifier|object::method|para#" not in matches )
+        self.assertTrue( "object::method2" in matches )
+        self.assertTrue( 'object::mixedinwithothertext' in matches )
+        self.assertTrue( 'object::rightnext1' in matches )
+        self.assertTrue( 'object::rightnext2' in matches )
+        self.assertTrue( 'object::modifier_test' not in matches )
+        self.assertTrue( 'object::method|param|paramwith)' in matches )
+        self.assertTrue( 'object::noclosingtilde' not in matches )
+        self.assertTrue( 'object::noopeningtilde' not in matches )
+        self.assertTrue( 'object1::method1' not in matches )
+        self.assertTrue( "" not in matches )
     def test_os_path(self):
         #print os.path.abspath( __file__ )
         pass
