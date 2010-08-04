@@ -4,6 +4,7 @@ path.append( '..' )
 from pyMailMergeService import *
 import unittest
 import zipfile
+import os
 from lxml import etree
 #define unit tests
 class testPyMailMergerService( unittest.TestCase ):
@@ -156,6 +157,9 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah &amp; blah" ) )
         self.assertEquals( "blah &lt; blah", re.sub( amp, "&amp;", "blah &lt; blah" ) )
         self.assertEquals( "blah &#8226; blah", re.sub( amp, "&amp;", "blah &#8226; blah" ) )
+    def test_os_path(self):
+        #print os.path.abspath( __file__ )
+        pass
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

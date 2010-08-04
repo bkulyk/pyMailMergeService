@@ -64,7 +64,7 @@ class pyMailMergeService:
         convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
         #for caching regular expressions
         _regExString = { 'amp':r"&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)",
-                         'tokens':r'~([a-zA-Z\|]+::\w+[\w\|]*)~',
+                         'tokens':r'~([a-zA-Z\|]+::\w+[\w\|\W]*)~',
                          'repeatrow':r"^repeatrow|",
                          'repeatcol':r"^repeatcolumn|",
                          'htmlparagraph':'\<p\>.+\<\/p\>'
@@ -244,6 +244,7 @@ class pyMailMergeService:
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
                     value = self._cleanValue( value )
+                    print "replacing " + re.escape(key)
                     try:
                         xml = exp.sub( "%s" % value, xml )
                     except:
