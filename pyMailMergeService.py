@@ -199,17 +199,20 @@ class pyMailMergeService:
             sourcezip.close()
             #now convert the odt to pdf
             destpdf = u"%s" % ( self._getTempFile( "."+doctype ) )
+            unlinkODT = True
             try:
                 #this is now going to create an instance of converter on demand in case OpenOffice
                 #crashes and needs to restart.
                 converter = DocumentConverter()
                 converter.convert( destodt, destpdf )
             except:
-                return "error: could not convert document, usually bad xml"
+                unlinkODT = False
+                return "error: Could not convert document, usually bad xml.  Check ODT File: '%s'" % destodt
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
-            os.unlink( destodt ) #delete the odt file
+            if unlinkODT:
+                os.unlink( destodt ) #delete the odt file
             os.unlink( destpdf ) #delete the pdf file
             #remove the temporary doc -> odt conversion file
             if self._getFileExtension( param0 ) == 'doc':
