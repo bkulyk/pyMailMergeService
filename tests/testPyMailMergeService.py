@@ -10,6 +10,10 @@ from lxml import etree
 class testPyMailMergerService( unittest.TestCase ):
     def setUp(self):
         pass
+    def test_hello(self):
+        pymms = pyMailMergeService( enablelogging=False )
+        self.assertEquals( 'hello test', pymms.hello( 'test' ) )
+        self.assertEquals( 'hello world', pymms.hello() )
     def test_getXML( self ):
         xml = getXML( "simple_repeat_column.odt", True )
         self.assertEqual( '_Element', type( xml ).__name__ )
@@ -33,7 +37,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )
         #run methods
-        pymms = pyMailMergeService( False )        
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._repeatcolumn( xml, key, value )
         #test results
         matrix = getTableText( xml )
@@ -51,7 +55,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )
         #run methods
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._repeatcolumn( xml, key, value )
         matrix = getTableText( xml )
         self.assertEqual( 'a1', matrix[0][0] )
@@ -73,7 +77,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )
         #run methods
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._repeatcolumn( xml, key, value )
         matrix = getTableText( xml )
         self.assertEqual( 'a1', matrix[0][0] )
@@ -92,7 +96,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "repeatcolumn|token::test"
         value = ( "replace1", "replace2" )
         #run methods
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._repeatcolumn( xml, key, value )
         matrix = getTableText( xml )
         self.assertEqual( 'a1', matrix[0][0] )
@@ -110,7 +114,7 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEqual( 'c4', matrix[2][3] )
         self.assertEqual( 'c4', matrix[2][4] )
     def test_get_file_extension(self):
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         self.assertEqual( 'odt', pymms._getFileExtension( "simple_repeat_column.odt" ) )
         self.assertEqual( 'odt', pymms._getFileExtension( "invoice.odt" ) )
     def test_if_section_simple_true(self):
@@ -118,7 +122,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "if|token::testif"
         value = 1
         #run method
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._if( key, value, xml )
         xml = etree.XML( xml )
         #test values
@@ -130,7 +134,7 @@ class testPyMailMergerService( unittest.TestCase ):
         key = "if|token::testif"
         value = 0
         #run method
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         xml = pymms._if( key, value, xml )
         xml = etree.XML( xml )
         #test values
@@ -140,7 +144,7 @@ class testPyMailMergerService( unittest.TestCase ):
         params = [ ['test::token', 0], ['if|test::if', 1], ['repeatcolumn|test::repeatcol', 2], ['repeatrow|test::repeat_row', 3], ['repeatsection|test::repeatsect', 4] ]
         #params[ "test::token" ] = ['0']
         #run method
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         params = pymms._sortparams( params )
         #test the output
         self.assertEquals( 1, params[0]['if|test::if'] )
@@ -150,7 +154,7 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( 0, params[4]['test::token'] )
         self.assertEquals( 5, len( params ) )
     def test_AmpRegEx(self):
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         amp = pymms._getRegEx( 'amp'  )
         self.assertEquals( "blah &amp; blah", re.sub( amp, "&amp;", "blah & blah" ) )
         self.assertEquals( "blah &amp; blah &amp;", re.sub( amp, "&amp;", "blah & blah &" ) )
@@ -158,7 +162,7 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertEquals( "blah &lt; blah", re.sub( amp, "&amp;", "blah &lt; blah" ) )
         self.assertEquals( "blah &#8226; blah", re.sub( amp, "&amp;", "blah &#8226; blah" ) )
     def test_TokenRegEX(self):
-        pymms = pyMailMergeService( False )
+        pymms = pyMailMergeService( enablelogging=False )
         token = pymms._getRegEx( 'tokens' )
         sampleStringOfPossibleTokens = """
         ~blah::blah~     #should be found
@@ -196,9 +200,22 @@ class testPyMailMergerService( unittest.TestCase ):
         self.assertTrue( 'object::noopeningtilde' not in matches )
         self.assertTrue( 'object1::method1' not in matches )
         self.assertTrue( "" not in matches )
-    def test_os_path(self):
-        #print os.path.abspath( __file__ )
-        pass
+    def testLogging(self):
+        try:
+            #remove the file in case it exists before the test.
+            os.unlink( 'pymms.log' )
+        except:
+            pass
+        pmms = pyMailMergeService( enablelogging=False )
+        pmms.hello( 'world' )
+        #I just want to make sure the log file does not get created, if the log 
+        #does not exist then an exception will be thrown.
+        file = None
+        try:
+            file = open( 'pymms.log' )
+        except:
+            pass
+        self.assertEquals( None, file )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

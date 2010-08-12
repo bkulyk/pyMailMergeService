@@ -29,12 +29,8 @@
 """
 @todo:  add support for batches of documents, ie a real mail merge
 @todo:  for the batch support, probably need to be able to support receiving merge values from XML or JSON maybe
-@todo:  unit tests would be good.
 @todo:  turn into a package, add a setup.py http://www.packtpub.com/article/writing-a-package-in-python
 @todo:  Before writing final xml files to the new odt. Make sure there are not any macros. Marcos could cause harm to the system.
-@todo:  Add some logging information.  
-        What types of documents are being converted
-        What IPs are using the service, simple stats about client computer
 @todo:  Possible improve the doc/docx support, it seems to work good, and fast, but it 
         would probably be better if it wasn't converting to .odt everytime, and just cached
         the converted file.
@@ -51,7 +47,12 @@ from DocumentConverter import *     #to convert open office documents
 from SOAPpy import *                #soap interface
 from lxml import etree              #parsing xml
 import codecs                       #opening a file for writing as UTF-8
+import logging                      #for logging
+from logging import handlers        #to be able to do the rotating log, with formatting
 class pyMailMergeService:
+        appName = 'pyMailMergeService'
+        enablelogging = True
+        logging = None
         #NOTE: this is not all of the namespaces that are in the document, just the ones I need, plus a few.
         ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
@@ -70,28 +71,60 @@ class pyMailMergeService:
                          'htmlparagraph':'\<p\>.+\<\/p\>'
                          }
         _regExCompiled = {}
-        def __init__( self, connect=True ):
-            """Create an instance of the document conversion class."""
-            #if connect:
-            #    self.converter = DocumentConverter()
+        def __init__( self, **kwargs ):
+            """enable or disable logging"""
+            #self.soapContext = kwargs.get( 'soapContext', None )
+            self.enablelogging = kwargs.get( 'enablelogging', True )
+            if self.enablelogging:
+                self.logging = logging.getLogger( self.appName )
+                self.logging.setLevel( logging.DEBUG )
+                handler = logging.handlers.RotatingFileHandler( 'pymms.log' )
+                formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+                handler.setFormatter( formatter )
+                self.logging.addHandler( handler )
+                self.logging.info( "Starting %s listing on %s:%s" % ( self.appName, kwargs.get( 'host', '?' ), kwargs.get( 'port', '?' ) ) )
+            else:
+                self.logging = loggingVoid()
         def _getRegEx( self, regex ):
             """
-            This is here an an effor to stop compiling the same regular expressions over and 
+            This is here an an effort to stop compiling the same regular expressions over and 
             over again.  Multiple times per page hit.  Just doesn't seem very efficient.
+            This also turned out to be extremely valuable for unit testing, as it savings having to 
+            re-type/change regular expressions when testing.
             """
             if regex in self._regExCompiled.keys():
                 return self._regExCompiled[ regex ]
             else:
                 self._regExCompiled[ regex ] = re.compile( self._regExString[ regex ] )
-                return self._regExCompiled[ regex ] 
-        def hello( self, param0='world' ):
+                return self._regExCompiled[ regex ]
+        def getMethods(self):
+            x = []
+            for i in dir( self ):
+                if i[0] != '_' and i != 'getMethods':
+                    if callable( getattr( self, i ) ):
+                        x.append( i )
+                        self.logging.info( 'Exposing method for webservice consumption: "%s"' % i )
+            return x
+            #return self.soapContext
+        def _logSoapInfo( self, _SOAPContext=None ):
+            """This is a method so we can start logging some information about the reqests being made.
+            This logs the name of the method being called, and the"""
+            if _SOAPContext is not None:
+                headers = "".join(_SOAPContext.httpheaders.headers ).replace( "\n", ' ' )
+                self.logging.info( "Soap Request - %s - User-agent %s" % ( _SOAPContext.soapaction, _SOAPContext.httpheaders.dict['user-agent'] ) )
+        def hello( self, param0='world', _SOAPContext=None ):
+            self._logSoapInfo( _SOAPContext )
             """This is a simple 'Hello World' function to test soap calls"""
-            return u"hello %s " % param0
-        def getTokens( self, param0 ):
+            if self.enablelogging == True:
+                self.logging.info( 'hello method called from value: %s' % ( param0 ) )
+            return u"hello %s" % param0
+        def getTokens( self, param0, _SOAPContext=None ):
             """Parse the odt for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
+            self._logSoapInfo( _SOAPContext )
             #if not os.path.exists( param0 ):
             #    return "error: templatefile: %s does not exist" % param0
+            self.logging.info( "getting tokens for document: %s" % param0 )
             odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
             exp = self._getRegEx( 'tokens' )
@@ -123,11 +156,12 @@ class pyMailMergeService:
             #remove the temporary doc -> odt conversion file
             if self._getFileExtension( param0 ) == 'doc':
                 os.unlink( odtName )
-        def pdf( self, param0, param1 ):
+        def pdf( self, param0, param1, _SOAPContext=None ):
             """Convert the odt provided in param0 to a pdf, using the values from param1 
             as mailmerge values."""
-            return self.convert( param0, param1, 'pdf' )
-        def convert( self, param0, param1, param2='pdf' ):
+            self._logSoapInfo( _SOAPContext )
+            return self.convert( param0, param1, 'pdf', None )
+        def convert( self, param0, param1, param2, _SOAPContext=None ):
             """
             open the odt file which is really just a zip, create a new odt (zip), and copy all
             files from the first odt to the new.  If the file is the content.xml, then 
@@ -135,6 +169,8 @@ class pyMailMergeService:
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
+            self._logSoapInfo( _SOAPContext )
+            self.logging.info( "converting %s docuemnt to %s" % param0, param2 )
             #if not os.path.exists( param0 ):
             #    return "error: templatefile: %s does not exist" % param0
             if self._getFileExtension( param0 ) == 'doc':
@@ -142,7 +178,6 @@ class pyMailMergeService:
                 self.converter.convert( param0, odtName )
             else:
                 odtName = param0
-            #print "Converting document: %s " % odtName
             '''this has been moved here beause it's more effiecent then running multiple times, and does 
             not cause caching problems accross multiple soap requests.  Side note: Man I love unit tests'''
             skipMerge = False
@@ -194,7 +229,7 @@ class pyMailMergeService:
                 destzip.write( tmpFileName, x )
                 #remove file now
                 os.unlink( tmpFileName )
-            #clan up
+            #clean up
             destzip.close()
             sourcezip.close()
             #now convert the odt to pdf
@@ -207,7 +242,9 @@ class pyMailMergeService:
                 converter.convert( destodt, destpdf )
             except:
                 unlinkODT = False
-                return "error: Could not convert document, usually bad xml.  Check ODT File: '%s'" % destodt
+                errormsg = "Could not convert document, usually bad xml.  Check ODT File: '%s'" % destodt
+                self.logging.error( errormsg )
+                return "error: %s" % errormsg
             f = open( destpdf, 'r' )
             doc = f.read()
             f.close()
@@ -247,7 +284,6 @@ class pyMailMergeService:
                     #do a simple find and replace with a regular expression
                     exp = re.compile( '~%s~' % re.escape(key) )
                     value = self._cleanValue( value )
-                    print "replacing " + re.escape(key)
                     try:
                         xml = exp.sub( "%s" % value, xml )
                     except:
@@ -277,6 +313,7 @@ class pyMailMergeService:
             depth of xml nodes, which can be difficult.  This whole piece may need be be
             reworked to do the editing via XML instead of text
             """
+            self.logging.info( "if modifier found." )
             xmlbackup = xml
             starttoken = "~"+key+"~"
             closetoken = starttoken.replace( r"if|", r"endif|" ) 
@@ -293,8 +330,7 @@ class pyMailMergeService:
             else:
                 xmlbackup = xmlbackup.replace( closetoken, '' )
                 xmlbackup = xmlbackup.replace( starttoken, '' )
-                if value == 0:
-                    print "\"if\" modifier failed, reverting to xml before statement"
+                self.logging.error( "if modifier failed for token %s, value is 0.  Reverting to old XML as not to completely blow up the document." % key )
                 return xmlbackup
             #The removal of content in the manner that it was just done could break the 
             #xml structure and cause it to not parse anymore.  That would be bad.  So if the 
@@ -303,13 +339,14 @@ class pyMailMergeService:
                 xml = etree.XML( tmp )
                 return tmp
             except:
-                print "xml is bad reverting"
+                self.logging.error( "if modifier failed for token %s, XML can't parse.  Reverting to old XML as not to completely blow up the document." % key  )
                 return xmlbackup
         def _repeatsection( self, key, value, xml ):
             """
             Repeat a section of the document as many times as the value says, which should be 
             and integer.
             """
+            self.logging.info( 'repeating section found.' )
             xmlbackup = xml
             starttoken = "~"+key+"~"
             closetoken = starttoken.replace( r"repeatsection|", r"endrepeatsection|" ) 
@@ -333,7 +370,7 @@ class pyMailMergeService:
                 tmp = etree.XML( xml ) #if xml is busted this will throw an exception
                 return xml
             except:
-                print "repeatsection for %s is bad, reverting" % key
+                self.logging.error( "repeatsection for %s is bad, reverting to backed up xml" % key )
                 xmlbackup = xmlbackup.replace( starttoken, '' )
                 xmlbackup = xmlbackup.replace( closetoken, '' )
                 return xmlbackup
@@ -343,6 +380,7 @@ class pyMailMergeService:
             needs to be multiple paragrpahs, convert html <p> tags to their openoffice
             couterparts, which is still a p, but with a namespace and style attribute
             """
+            self.logging.info( "multiparagraph modifier found." )
             self.xml = None
             x = self._getXML( xml )
             paragraphs = x.xpath( '//*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
@@ -401,6 +439,7 @@ class pyMailMergeService:
             """
             Repeat an entire column of a given table, replacing values as we go.
             """
+            self.logging.info( "repeating column found" )
             x = self._getXML( xml )
             cols = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
             if len( cols ):
@@ -522,6 +561,7 @@ class pyMailMergeService:
             There is a repeat row modifier on the key, so find the rows, repeat it, then remove 
             the original.
             """
+            self.logging.info( "repeating row found." )
             x = self._getXML( xml )
             #perform an xpath search for table cells that contain the repeat row modifier
             rows = x.xpath( '//table:table-row/table:table-cell[contains(.,"%s")]' % key, namespaces=self.ns )
@@ -599,16 +639,12 @@ class pyMailMergeService:
             sorted.extend( other )
             return sorted
         def _getFileExtension( self, path ):
-            """
-            Get the extension of the given file path.
-            This file was copied from DocumentConverter.py
-            @param path: path of the file on the filesystem  
-            @author: Mirko Nasato
-            @copyright (C) 2008-2009 Mirko Nasato <mirko@artofsolving.com>            
-            """
-            ext = splitext(path)[1]
-            if ext is not None:
-                return ext[1:].lower()
+            """Get the file extension for the given path"""
+            file = splitext(path.lower())
+            if len( file ):
+                return file[1].replace( '.', '' )
+            else:
+                return path
         def _cleanValue( self, value ):
             """Sanitize the value to make sure it doesn't break the xml.  The only real problem
             That I have found so far is the & needing to be transformed into &amp; """
@@ -617,10 +653,22 @@ class pyMailMergeService:
                 return re.sub( amp, u'&amp;', value )
             except:
                 return value
+class loggingVoid:
+    def info(self, msg):
+        pass
+    def error(self, msg):
+        pass
+    def exception(self, msg):
+        pass
+    def debug(self, msg):
+        pass
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
-    server = SOAPServer( ( 'localhost', 8888 ) )
-    pyMMS = pyMailMergeService()
+    host = 'localhost'
+    port = 8889
+    server = SOAPServer( ( host, port ) )
+    pyMMS = pyMailMergeService( port=port, host=host )
     namespace = 'urn:approve'
-    server.registerObject( pyMMS, namespace )
-    server.serve_forever()    
+    for x in pyMMS.getMethods():
+        server.registerFunction( MethodSig( getattr(pyMMS,x), keywords=0, context=1 ), namespace )
+    server.serve_forever()

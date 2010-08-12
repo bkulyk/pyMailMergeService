@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
-sleep 2
-SCRIPT="/usr/bin/python /usr/share/pyMailMergeService/pyMailMergeService.py"
 while true; do
-        cd /usr/share/pyMailMergeService
-        $SCRIPT  ######## The Service that runs
-        sleep 1
+	sleep 1 #just a puase to make sure the port is released before it starts up again
+	cd /usr/share/pyMailMergeService
+	/usr/bin/env python pyMailMergeService.py
 done
