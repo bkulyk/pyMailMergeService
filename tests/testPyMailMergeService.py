@@ -216,6 +216,9 @@ class testPyMailMergerService( unittest.TestCase ):
         except:
             pass
         self.assertEquals( None, file )
+    def testOSPathExists(self):
+        self.assertTrue( os.path.exists( 'docs/if_section_simple.odt' ) )
+        self.assertFalse( not os.path.exists( 'docs/if_section_simple.odt' ) )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,

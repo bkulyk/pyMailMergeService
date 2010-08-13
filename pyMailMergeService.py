@@ -115,15 +115,15 @@ class pyMailMergeService:
         def hello( self, param0='world', _SOAPContext=None ):
             self._logSoapInfo( _SOAPContext )
             """This is a simple 'Hello World' function to test soap calls"""
-            if self.enablelogging == True:
-                self.logging.info( 'hello method called from value: %s' % ( param0 ) )
+            self.logging.info( 'hello method called from value: %s' % ( param0 ) )
             return u"hello %s" % param0
         def getTokens( self, param0, _SOAPContext=None ):
             """Parse the odt for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
             self._logSoapInfo( _SOAPContext )
-            #if not os.path.exists( param0 ):
-            #    return "error: templatefile: %s does not exist" % param0
+            if not os.path.exists( param0 ):
+                self.logging.error( "templatefile: %s does not exist" % param0 )
+                return "error: templatefile: %s does not exist" % param0
             self.logging.info( "getting tokens for document: %s" % param0 )
             odtName, zip = self._get_source( param0 )
             #get the tokens from the xml
@@ -136,6 +136,7 @@ class pyMailMergeService:
                 #collect a list of all the images in the document
             self._close_source( param0, odtName, zip )
             matches = list( set( matches ) ) #removes duplicate items from the list
+            self.logging.info( "tokens sent: %s" % len( matches ) )
             return matches
         def _get_source( self, param0 ):
             """get the source document, (which may include converting a doc/docx file to odt) 
@@ -254,6 +255,7 @@ class pyMailMergeService:
             #remove the temporary doc -> odt conversion file
             if self._getFileExtension( param0 ) == 'doc':
                 os.unlink( odtName )
+            self.logging.info( "done converting document: %s" % odtName )
             return base64.b64encode( doc ) #pdf
         def _replaceContent( self, xml, params, zip ):
             """
@@ -299,12 +301,15 @@ class pyMailMergeService:
             companies and you need to be able to put a specific company's logo at the
             top of the document without having to change the document it's self.  The
             value should be a string containin the contents of the image base64 encoded."""
+            logging.info( "image modifier found." )
             if value is not None:
                 x = self._getXML( xml )
                 drawframe = x.xpath( "//draw:frame[@draw:name='~%s~']/draw:image" % key, namespaces=self.ns )
                 if len( drawframe ):
                     href = drawframe[0].get( '{%s}href' % self.ns['xlink'] )
                     zip.writestr( href, base64.b64decode( value ) )
+            else:
+                logging.error( "no image data provdided." )
         def _if( self, key, value, xml ):
             """
             If there is a modifier tag for an if statement, only show the stuff between the if
@@ -654,6 +659,7 @@ class pyMailMergeService:
             except:
                 return value
 class loggingVoid:
+    '''This is just a dummy object that does nothing, for when we dont want to log. (unittests,etc.)'''
     def info(self, msg):
         pass
     def error(self, msg):
@@ -665,10 +671,14 @@ class loggingVoid:
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
     host = 'localhost'
-    port = 8889
+    port = 8888
     server = SOAPServer( ( host, port ) )
     pyMMS = pyMailMergeService( port=port, host=host )
     namespace = 'urn:approve'
+    #I used to just reguister the object and let SOAPpy worry about what methods can and can't get 
+    #called, but I found that there was no way to get the SOAPContext if I did that.  So I added 
+    #a method to pyMailMerge to return all of the public methods automatically and then they are
+    #registered one by one.
     for x in pyMMS.getMethods():
         server.registerFunction( MethodSig( getattr(pyMMS,x), keywords=0, context=1 ), namespace )
     server.serve_forever()
