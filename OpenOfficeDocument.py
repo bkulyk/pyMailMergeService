@@ -59,11 +59,11 @@ class OpenOfficeDocument:
         property.Value = value
         return property
     @staticmethod
-    def pdf( input, output ):
-        c = Document()
-        c.open( input )
+    def pdf( inputFile, outputFile ):
+        c = OpenOfficeDocument()
+        c.open( inputFile )
         c.refresh()
-        c.saveAs( output )
+        c.saveAs( outputFile )
         c.close() 
 #====================================================================        
 if __name__ ==  '__main__':
