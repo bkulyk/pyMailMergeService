@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import uno
 from com.sun.star.beans import PropertyValue
 #from com.sun.star.lang import XComponent
@@ -49,8 +50,6 @@ class OpenOfficeDocument:
         props = tuple( [self._makeProperty( 'FilterName', 'writer_pdf_Export' )] ) 
         #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
         self.oodocument.storeToURL( filename, props )
-        x = uno.getClass( "com.sun.star.text.TextDocument" )
-        print x
     def close( self ):
         self.oodocument.close( 1 )
     def _makeProperty( self, key, value ):
