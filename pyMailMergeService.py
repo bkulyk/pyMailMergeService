@@ -44,6 +44,7 @@ import re                           #regular expressions for doing find and repl
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
 from DocumentConverter import *     #to convert open office documents
+from OpenOfficeDocument import OpenOfficeDocument
 from SOAPpy import *                #soap interface
 from lxml import etree              #parsing xml
 import codecs                       #opening a file for writing as UTF-8
@@ -61,7 +62,6 @@ class pyMailMergeService:
               'draw':'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0',
               'xlink':'http://www.w3.org/1999/xlink' }
         xml = None
-        converter = None
         convertsionmap = { 'doc':'odt', 'docx':'odt', 'rtd':'odt', 'xls':'ods', 'xlsx':'ods' }
         #for caching regular expressions
         _regExString = { 'amp':r"&(?!amp;|#[0-9]{2,5};|[a-z]{2,5};)",
@@ -121,8 +121,8 @@ class pyMailMergeService:
             """Parse the odt for tokens that should be replaced with content, kind 
             of like a mailmerge.  Tokens are in the format of ~token::name~"""
             self._logSoapInfo( _SOAPContext )
-            if not os.path.exists( param0 ):
-                self.logging.error( "templatefile: %s does not exist" % param0 )
+            if not os.path.exists( os.path.abspath( "docs/%s" % param0 ) ):
+                self.logging.error( "templatefile: %s does not exist" % os.path.abspath( "docs/%s" % param0 ) )
                 return "error: templatefile: %s does not exist" % param0
             self.logging.info( "getting tokens for document: %s" % param0 )
             odtName, zip = self._get_source( param0 )
@@ -171,12 +171,13 @@ class pyMailMergeService:
             it can be transported via Soap.  Soap doesn't seem to like binary data.
             """
             self._logSoapInfo( _SOAPContext )
-            self.logging.info( "converting %s docuemnt to %s" % param0, param2 )
+            self.logging.info( "converting %s docuemnt to %s" % (param0, param2) )
             #if not os.path.exists( param0 ):
             #    return "error: templatefile: %s does not exist" % param0
             if self._getFileExtension( param0 ) == 'doc':
                 odtName = self._getTempFile( ".odt" )
-                self.converter.convert( param0, odtName )
+                #self.converter.convert( param0, odtName )
+                OpenOfficeDocument.convert( param0, odtName )
             else:
                 odtName = param0
             '''this has been moved here beause it's more effiecent then running multiple times, and does 
@@ -239,8 +240,9 @@ class pyMailMergeService:
             try:
                 #this is now going to create an instance of converter on demand in case OpenOffice
                 #crashes and needs to restart.
-                converter = DocumentConverter()
-                converter.convert( destodt, destpdf )
+#                converter = DocumentConverter()
+#                converter.convert( destodt, destpdf )
+                OpenOfficeDocument.convert( destodt, destpdf )
             except:
                 unlinkODT = False
                 errormsg = "Could not convert document, usually bad xml.  Check ODT File: '%s'" % destodt
