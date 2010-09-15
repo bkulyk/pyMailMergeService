@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import uno
 import os
 from sys import path
@@ -109,7 +110,7 @@ class OpenOfficeDocument:
         """Open an OpenOffice document"""
         #http://www.oooforum.org/forum/viewtopic.phtml?t=35344
         properties = []
-        properties.append( self._makeProperty( 'Hidden', True ) ) 
+        properties.append( OpenOfficeDocument._makeProperty( 'Hidden', True ) ) 
         properties = tuple( properties )
         self.oodocument = self.openoffice.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( filename ) ), "_blank", 0, properties )
     def refresh( self, refreshIndexes=True ):
@@ -139,7 +140,8 @@ class OpenOfficeDocument:
     def close( self ):
         """Close the OpenOffice document"""
         self.oodocument.close( 1 )
-    def _makeProperty( self, key, value ):
+    @staticmethod
+    def _makeProperty( key, value ):
         """Create an property for use with the OpenOffice API"""
         property = PropertyValue()
         property.Name = key
@@ -152,7 +154,7 @@ class OpenOfficeDocument:
         for x in OpenOfficeDocument.documentTypes:
             if self.oodocument.supportsService( x ):
                 if x in OpenOfficeDocument.exportFilters[ext].keys():
-                    return self._makeProperty( 'FilterName', OpenOfficeDocument.exportFilters[ext][x] )
+                    return OpenOfficeDocument._makeProperty( 'FilterName', OpenOfficeDocument.exportFilters[ext][x] )
         return None
     @staticmethod
     def _getFileExtension( filepath ):
@@ -170,3 +172,7 @@ class OpenOfficeDocument:
         c.refresh()
         c.saveAs( outputFile )
         c.close()
+if __name__ == "__main__":
+    from sys import argv, exit
+    if len( argv ) == 3:
+        OpenOfficeDocument.convert( argv[1], argv[2] )

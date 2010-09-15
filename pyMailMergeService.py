@@ -337,7 +337,6 @@ class pyMailMergeService:
             else:
                 xmlbackup = xmlbackup.replace( closetoken, '' )
                 xmlbackup = xmlbackup.replace( starttoken, '' )
-                self.logging.error( "if modifier failed for token %s, value is 0.  Reverting to old XML as not to completely blow up the document." % key )
                 return xmlbackup
             #The removal of content in the manner that it was just done could break the 
             #xml structure and cause it to not parse anymore.  That would be bad.  So if the 
@@ -387,36 +386,39 @@ class pyMailMergeService:
             needs to be multiple paragrpahs, convert html <p> tags to their openoffice
             couterparts, which is still a p, but with a namespace and style attribute
             """
-            self.logging.info( "multiparagraph modifier found." )
-            self.xml = None
-            x = self._getXML( xml )
-            paragraphs = x.xpath( '//*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
-            if not len( paragraphs ):
-                return xml
-            para = paragraphs[0]
-            i=0
-            #this is here because I was having a problem where the text was actually 
-            #in a span inside the paragraph, and not directly in the paragraph 
-            while para.tag != "{%s}p" % self.ns['text'] and i < 5: #5 is arbitrary, should be enough
-                para = para.getparent()
-                i += 1
-            parent = para.getparent()
-            #need to add the paragraphy style attribute (and any others) to the new p tags
-            attribs = para.attrib
-            value = self._cleanValue( value )
+            self.logging.info( "multiparagraph modifier found. %s" % key )
             try:
+                self.xml = None
+                x = self._getXML( xml )
+                #because a paragraph can not contain more paragraphs, we need to find the paragraph that
+                # the token is is and get it's parent to work with.
+                paragraphs = x.xpath( '//*[contains(text(),"~%s~")]' % key, namespaces=self.ns )
+                if not len( paragraphs ):
+                    return xml
+                para = paragraphs[0]
+                i=0
+                #this is here because I was having a problem where the text was actually 
+                #in a span inside the paragraph, and not directly in the paragraph 
+                while para.tag != "{%s}p" % self.ns['text'] and i < 5: #5 is arbitrary, should be enough
+                    para = para.getparent()
+                    i += 1
+                parent = para.getparent()
+                #need to add the paragraphy style attribute (and any others) to the new p tags
+                attribs = para.attrib
+                value = self._cleanValue( value )
                 html = etree.XML( "<html>" + value + "</html>" )
+                previous = para
+                for tag in html.findall( 'p' ):
+                    p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
+                    p.text =  tag.text
+                    #need to add next instead of append because it was messing up ordering of content
+                    previous.addnext( p )
+                    previous = p
+                parent.remove( para )
+                return etree.tostring( x )
             except:
-                html = etree.XML( "<html>" + value + "</html>" )
-            previous = para
-            for tag in html.findall( 'p' ):
-                p = etree.Element( "{%s}p" % self.ns['text'], nsmap=self.ns, attrib=attribs )
-                p.text =  tag.text
-                #need to add next instead of append because it was messing up ordering of content
-                previous.addnext( p )
-                previous = p
-            parent.remove( para )
-            return etree.tostring( x )
+                self.logging.info( "multiparagraph modifier failed on key %s.  Reverting to old xml and simple string replace." % key )
+                return xml.replace( "~%s~" % key, value )
         def _multipleValues( self, xml, key, params ):
             """
             There are multiple values for this key, so see if there is a modifier on the key to, 
