@@ -103,23 +103,25 @@ class pyMailMergeService:
                 if i[0] != '_' and i != 'getMethods':
                     if callable( getattr( self, i ) ):
                         x.append( i )
-                        self.logging.info( 'Exposing method for webservice consumption: "%s"' % i )
+                        self.logging.info( 'Exposing method for web-service consumption: "%s"' % i )
             return x
             #return self.soapContext
         def _logSoapInfo( self, _SOAPContext=None ):
-            """This is a method so we can start logging some information about the reqests being made.
+            """This is a method so we can start logging some information about the requests being made.
             This logs the name of the method being called, and the"""
             if _SOAPContext is not None:
                 headers = "".join(_SOAPContext.httpheaders.headers ).replace( "\n", ' ' )
                 self.logging.info( "Soap Request - %s - User-agent %s" % ( _SOAPContext.soapaction, _SOAPContext.httpheaders.dict['user-agent'] ) )
+#                for x in _SOAPContext.httpheaders.dict:
+#                    self.logging.info( "%s : %s" % ( x, _SOAPContext.httpheaders.dict[ x ] ) )
         def hello( self, param0='world', _SOAPContext=None ):
             self._logSoapInfo( _SOAPContext )
             """This is a simple 'Hello World' function to test soap calls"""
-            self.logging.info( 'hello method called from value: %s' % ( param0 ) )
+            self.logging.info( 'hello method called with value: %s' % ( param0 ) )
             return u"hello %s" % param0
         def getTokens( self, param0, _SOAPContext=None ):
             """Parse the odt for tokens that should be replaced with content, kind 
-            of like a mailmerge.  Tokens are in the format of ~token::name~"""
+            of like a mail-merge.  Tokens are in the format of ~token::name~"""
             self._logSoapInfo( _SOAPContext )
             if not os.path.exists( os.path.abspath( "docs/%s" % param0 ) ):
                 self.logging.error( "templatefile: %s does not exist" % os.path.abspath( "docs/%s" % param0 ) )
@@ -151,15 +153,55 @@ class pyMailMergeService:
             return odtName, zip
         def _close_source(self, param0, odtName, zip ):
             """
-            close the zip file and delete the temprary odt if converted a doc/docx to odt
+            close the ZIP file and delete the temporary ODT if converted a DOC/DOCX to ODT
             """
             zip.close()
             #remove the temporary doc -> odt conversion file
             if self._getFileExtension( param0 ) == 'doc':
                 os.unlink( odtName )
+        def ODTconvert( self, odtfile, destformat, _SOAPContext=None ):
+            """
+            Convert an ODT File to a PDF (etc) without doing any find and replace stuff.
+            @note: This method fills a need for the company I work for.  Kind of a stepping stone 
+            to be able to implement the rest of this thing.
+            @note: This is probably a HUGE security hole... what with imbedded macros, etc.  Then
+            the next step would be to do the find/replace stuff on this, which could lead to 
+            XML attacks, etc.
+            @param odtfile: base64 encoded ODT file to convert
+            @param destformat: format of the file the odtfile should be converted to
+            @return: str base64 encoded string containing the converted file
+            """
+            self._logSoapInfo( _SOAPContext )
+            try:
+                #write the input file
+                destodt = self._getTempFile( ".odt" )
+                outfile = codecs.open( destodt, 'w' )
+                outfile.write( base64.b64decode( odtfile ) )
+                outfile.close()
+                #get a filename for the outfile
+                destpdf = self._getTempFile( '.%s' % destformat )
+                #convert file
+                OpenOfficeDocument.convert( destodt, destpdf )
+                #read converted file
+                infile = codecs.open( destpdf, 'r' )
+                pdf = base64.b64encode( infile.read() )
+                infile.close()
+                self.logging.info( "in-file: %s - out-file: %s - format: %s" % ( destodt, destpdf, destformat ) )
+            except:
+                self.logging.error( "Error converting file to %s" % destformat )
+                return "Error converting file to %s" % destformat
+            try:
+                os.unlink( destodt )
+            except:
+                self.logging.warning( "could not remove files %s"  % destodt )
+            try:
+                os.unlink( destpdf )
+            except:
+                self.logging.warning( "could not remove files %s"  % destpdf )
+            return pdf
         def pdf( self, param0, param1, _SOAPContext=None ):
-            """Convert the odt provided in param0 to a pdf, using the values from param1 
-            as mailmerge values."""
+            """Convert the ODT provided in param0 to a PDF, using the values from param1 
+            as mail-merge values."""
             self._logSoapInfo( _SOAPContext )
             return self.convert( param0, param1, 'pdf', None )
         def convert( self, param0, param1, param2, _SOAPContext=None ):
@@ -169,9 +211,12 @@ class pyMailMergeService:
             replace the tokens from params in the xml before placing it in the new odt.
             Then create a PDF document out of the new odt, and return it base 64 encoded, so 
             it can be transported via Soap.  Soap doesn't seem to like binary data.
+            @param param0 -- filename
+            @param param1 -- tokens and values
+            @param param2 -- target file type
             """
             self._logSoapInfo( _SOAPContext )
-            self.logging.info( "converting %s docuemnt to %s" % (param0, param2) )
+            self.logging.info( "converting %s document to %s" % (param0, param2) )
             #if not os.path.exists( param0 ):
             #    return "error: templatefile: %s does not exist" % param0
             if self._getFileExtension( param0 ) == 'doc':
@@ -180,24 +225,31 @@ class pyMailMergeService:
                 OpenOfficeDocument.convert( param0, odtName )
             else:
                 odtName = param0
-            '''this has been moved here beause it's more effiecent then running multiple times, and does 
-            not cause caching problems accross multiple soap requests.  Side note: Man I love unit tests'''
+            '''this has been moved here because it's more efficient then running multiple times, and does 
+            not cause caching problems across multiple soap requests.  Side note: Man I love unit tests'''
             skipMerge = False
-            try:
-                params = param1['item'] #no idea why this stuff is inside of 'item'...
-                params = self._sortparams( params )
-            except:
-                """if there is only a single value passed it will come out as a struct instead of a list"""
+            #check to see if param1 is an XML file, if so parse it into an list or whatever
+            params = None
+            if type( param1 ).__name__ == 'str':
+                if param1[0:5] == "<?xml" :
+                    params = self._parseXMLParams( param1 )
+                    params = self._sortparams( params )
+            if params is None:
                 try:
-                    params = [ {} ]
-                    for k,x in param0:
-                        params[0] = dict( )
-                        params[0][ k ] = []
-                        for y in x:
-                            params[0][k].append( y )
+                    params = param1['item'] #no idea why this stuff is inside of 'item'...
+                    params = self._sortparams( params )
                 except:
-                    #cant do merge, bad data given
-                    return None
+                    """if there is only a single value passed it will come out as a struct instead of a list"""
+                    try:
+                        params = [ {} ]
+                        for k,x in param0:
+                            params[0] = dict( )
+                            params[0][ k ] = []
+                            for y in x:
+                                params[0][k].append( y )
+                    except:
+                        #can't do merge, bad data given
+                        return None
             doctype = param2
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
@@ -647,6 +699,21 @@ class pyMailMergeService:
             sorted.extend( modifiers['image'] )
             sorted.extend( other )
             return sorted
+        def _parseXMLParams( self, xml ):
+            xml = etree.XML( xml )
+            tokens = xml.xpath( "//tokens/token" )
+            pairs = []
+            for x in tokens:
+                tokenname = x.findall( "name" )[0].text
+                tokenvalues = x.findall( "value" )
+                if len( tokenvalues ) == 1:
+                    values = tokenvalues[0].text
+                else:
+                    values = []
+                    for x in tokenvalues:
+                        values.append( x.text )
+                pairs.append( [ tokenname, values ] )
+            return pairs
         def _getFileExtension( self, path ):
             """Get the file extension for the given path"""
             file = splitext(path.lower())
@@ -674,7 +741,7 @@ class loggingVoid:
         pass
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
-    host = 'localhost'
+    host = '192.168.28.235'#'localhost'
     port = 8888
     server = SOAPServer( ( host, port ) )
     pyMMS = pyMailMergeService( port=port, host=host )

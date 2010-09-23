@@ -219,6 +219,27 @@ class testPyMailMergerService( unittest.TestCase ):
     def testOSPathExists(self):
         self.assertTrue( os.path.exists( 'docs/if_section_simple.odt' ) )
         self.assertFalse( not os.path.exists( 'docs/if_section_simple.odt' ) )
+    def testParseXMLParams(self):
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+        <tokens>
+            <token>
+                <name>whatever::whatever</name>
+                <value>somevalue</value>
+            </token>
+            <token>
+                <name>token::multivalue</name>
+                <value>a</value>
+                <value>b</value>
+                <value>c</value>
+            </token>
+        </tokens>"""
+        pymms = pyMailMergeService( enablelogging=False )
+        params = pymms._parseXMLParams( xml )
+        params = pymms._sortparams( params )
+        self.assertEquals( "somevalue", params[0]['whatever::whatever'] )
+        self.assertEquals( "a", params[1]['token::multivalue'][0] )
+        self.assertEquals( "b", params[1]['token::multivalue'][1] )
+        self.assertEquals( "c", params[1]['token::multivalue'][2] )
 def getTableText( xml ):
     ns = {'table':"urn:oasis:names:tc:opendocument:xmlns:table:1.0", 
               'text':'urn:oasis:names:tc:opendocument:xmlns:text:1.0' ,
