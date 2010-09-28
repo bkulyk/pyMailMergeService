@@ -15,7 +15,7 @@ class MailMergeService{
 	/**
 	 * @var String $host //host name for the SOAP server.
 	 */
-	static protected $host = "http://localhost:8888/";
+	static public $host = "http://localhost:8888/";
 	/**
 	 * Get the connection object for the mail merger service
 	 * @return SoapClient
@@ -102,10 +102,58 @@ class MailMergeService{
 			}else
 				$notZip = true;
 			if( $notZip || $noContent ) 
-				throw new Exception( "File provided is not a valid ODT: $odtFilePath" );
+				throw new MMSUploadException( "File provided is not a valid ODT: $odtFilePath" );
 		}else
-			throw new Exception( "ODT file does not exist: $odtFilePath" );
+			throw new MMSUploadException( "ODT file does not exist: $odtFilePath" );
 	}
 }
-class MMSException extends Exception{ }
+/**
+ * Wrapper for the document that's returned from the MailMergeService. 
+ * I decided to include this class because it was a real pain trying to determine the correct 
+ * headers to output a file to the browser and still have it work with all browsers
+ * (specificially IE6 w/ SSL)
+ * @package MailMergeService
+ */
+class MailMergeDocument {
+	protected $document = null;
+	protected $docType = null;
+	//@todo add more document types.  This is just the bare minimum that I need
+	static protected $docTypeMap = array( "pdf"=>"application/pdf", "odt"=>"application/vnd.oasis.opendocument.text" );
+	public function __construct( $documentContent, $doctype, $base64ed=false ) {
+		$this->docType = $doctype;
+		if( $base64ed )
+			$this->document = base64_decode( $documentContent );
+		else
+			$this->document = $documentContent;
+	}
+	public function __toString() {
+		return $this->document;
+	}
+	public function output( $filename=null, $sendHeaders=true ) {
+		if( !empty( $this->document ) ) {
+			if( !empty( $filename ) && $sendHeaders ) {
+				$this->sendHeaders( $filename );
+			}
+		}
+		echo $this->document;
+	}
+	public function sendHeaders( $filename ) {
+		if( empty( $this->document ) )
+			throw new MMSDocumentException( "Cannot send headers for a document with no content." );
+		header( "Content-type: ".$this->getMime() );
+		header( "Pragma: Public", true );
+		header( "Expires: ".gmdate( "D, d M Y H:i:s", time() )." GMT", true );
+		header( "Content-disposition: attachment; filename=$filename" );
+		if( strlen( $this->document ) )
+			header( "Content-Length: ".strlen( $this->document ), true);
+	}
+	public function getMime() {
+		if( empty( $this->docType ) )
+			throw new MMSDocumentException( "Document has no docType.  Cannot determine mime type" );
+		return self::$docTypeMap[ $this->docType ];
+	}
+}
+class MMSException extends Exception {}
+class MMSDocumentException extends Exception {}
+class MMSUploadException extends Exception {}
 ?>
