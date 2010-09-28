@@ -663,6 +663,8 @@ class pyMailMergeService:
             same symlink injection problems.  I wrapped this simple command in a function 
             beause I don't want to use the file handle it creates. There maybe a more efficent
             way to get a tmp file name, but I havn't found one yet, so I'm using this.
+            @param extension:  the file extension that the temp file should have.
+            @return: str the temporary filename  
             '''
             file = tempfile.mkstemp( suffix="_pyMMS%s" % extension )
             #I am not going to use this file handle because I found in my research,
@@ -700,6 +702,11 @@ class pyMailMergeService:
             sorted.extend( other )
             return sorted
         def _parseXMLParams( self, xml ):
+            """
+            Parse the find and replace tokens and values out of an xml file.
+            @param xml: xml containing the tokens and their values
+            @return list containg a list of names and values  
+            """
             xml = etree.XML( xml )
             tokens = xml.xpath( "//tokens/token" )
             pairs = []
@@ -715,7 +722,11 @@ class pyMailMergeService:
                 pairs.append( [ tokenname, values ] )
             return pairs
         def _getFileExtension( self, path ):
-            """Get the file extension for the given path"""
+            """
+            Get the file extension for the given path
+            @param path: path of the file for which we are trying to get the extension
+            @return str the files extension
+            """
             file = splitext(path.lower())
             if len( file ):
                 return file[1].replace( '.', '' )
@@ -723,14 +734,17 @@ class pyMailMergeService:
                 return path
         def _cleanValue( self, value ):
             """Sanitize the value to make sure it doesn't break the xml.  The only real problem
-            That I have found so far is the & needing to be transformed into &amp; """
+            That I have found so far is the & needing to be transformed into &amp; 
+            @param value: value that should be cleaned
+            @return: string containing the cleansed value"""
             amp = self._getRegEx( 'amp' )
             try:
                 return re.sub( amp, u'&amp;', value )
             except:
                 return value
 class loggingVoid:
-    '''This is just a dummy object that does nothing, for when we dont want to log. (unittests,etc.)'''
+    '''This is just a dummy object that does nothing, for when we dont want to log. 
+    (unittests,etc.)'''
     def info(self, msg):
         pass
     def error(self, msg):
