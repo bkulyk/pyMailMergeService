@@ -68,7 +68,7 @@ class MailMergeService{
 			throw new MMSException( $result );
 			return false;
 		}else
-			return base64_decode( $result );
+			return new MailMergeDocument( $result, $doctype, true );
 	}
 	/**
 	 * Same as convert only the type is contrained to PDF
@@ -83,7 +83,7 @@ class MailMergeService{
 			throw new MMSException( $result );
 			return false;
 		}else
-			return base64_decode( $result );
+			return new MailMergeDocument( $result, 'pdf', true );
 	}
 	public function upload( $odtFilePath ) {
 		if( file_exists( $odtFilePath ) ) {
@@ -119,16 +119,35 @@ class MailMergeDocument {
 	protected $docType = null;
 	//@todo add more document types.  This is just the bare minimum that I need
 	static protected $docTypeMap = array( "pdf"=>"application/pdf", "odt"=>"application/vnd.oasis.opendocument.text" );
-	public function __construct( $documentContent, $doctype, $base64ed=false ) {
+	/**
+	 * The document comes back from the mail merge service as base64 encoded, because soap doesn't like
+	 * to send content that is not utf-8.  So decode it.
+	 * @param String $documentContent
+	 * @param String $doctype
+	 * @param Boolean $base64ed
+	 */
+	public function __construct( $documentContent, $doctype, $base64ed=true ) {
 		$this->docType = $doctype;
 		if( $base64ed )
 			$this->document = base64_decode( $documentContent );
 		else
 			$this->document = $documentContent;
 	}
+	/**
+	 * This is some backword compatability for the company I work for.  I had already 
+	 * written all the code to use the document as a string, so this will prevent that code 
+	 * from breaking.
+	 */
 	public function __toString() {
 		return $this->document;
 	}
+	/**
+	 * Output the file to the browser as an attachment.
+	 * @param String $filename //name of the file as it would appear on the user's pc.
+	 * @param Boolean $sendHeaders //true to send the headers for the user to download the document
+	 * as a file attachment.  The only real reason you wouldn't want to do this is if, you needed 
+	 * some custom headers, or were already sending them.
+	 */
 	public function output( $filename=null, $sendHeaders=true ) {
 		if( !empty( $this->document ) ) {
 			if( !empty( $filename ) && $sendHeaders ) {
@@ -137,6 +156,12 @@ class MailMergeDocument {
 		}
 		echo $this->document;
 	}
+	/**
+	 * Output the headers, to he browser.  These are specifiially tested so they work in all browsers.
+	 * Getting ie6 (with SSL) was a real pain in the butt.
+	 * @param String $filename
+	 * @throws MMSDocumentException
+	 */
 	public function sendHeaders( $filename ) {
 		if( empty( $this->document ) )
 			throw new MMSDocumentException( "Cannot send headers for a document with no content." );
@@ -147,6 +172,11 @@ class MailMergeDocument {
 		if( strlen( $this->document ) )
 			header( "Content-Length: ".strlen( $this->document ), true);
 	}
+	/**
+	 * Get the mime type for the file extension.
+	 * @throws MMSDocumentException
+	 * @return String
+	 */
 	public function getMime() {
 		if( empty( $this->docType ) )
 			throw new MMSDocumentException( "Document has no docType.  Cannot determine mime type" );
