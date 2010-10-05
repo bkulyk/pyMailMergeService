@@ -755,7 +755,7 @@ class loggingVoid:
         pass
 #if this module is not being included as a sub module, then start up the soap server
 if __name__ == "__main__":
-    host = '192.168.28.235'#'localhost'
+    host = 'localhost'
     port = 8888
     server = SOAPServer( ( host, port ) )
     pyMMS = pyMailMergeService( port=port, host=host )
