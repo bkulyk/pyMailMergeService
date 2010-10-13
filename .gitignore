@@ -1,3 +1,5 @@
 docs/wla*
 docs/demo
 docs/update.docs.to.qa.sh
+*.pyc
+pymms.log*
