@@ -199,6 +199,29 @@ class pyMailMergeService:
             except:
                 self.logging.warning( "could not remove files %s"  % destpdf )
             return pdf
+        # convert multiple documents and merge them together into a single pdf
+        # @param String[][] 
+        # @example [ ['odtname_1', 'xml_1'], ['odtname_2', 'xml_2'] ]
+        def batchpdf( self, param0, _SOAPContext=None ):
+            from pyPdf import PdfFileWriter, PdfFileReader
+            output = PdfFileWriter()
+            #convert each document into a pdf
+            for x in param0:
+                odtname, tokens = x
+                pdfpath = self._doConversion( odtname, tokens, 'pdf' )
+                pdf = PdfFileReader( file( pdfpath, 'rb' ) )
+                #add each page of the new pdf to the big pdf
+                for x in range( 0, pdf.getNumPages() ):
+                    output.addPage( pdf.getPage( x ) )
+            #write the merged pdf to disk
+            outfile = self._getTempFile('.pdf')
+            outputStream = file( outfile, 'wb' )
+            output.write( outputStream )
+            outputStream.close()
+            #read all the pdf back so it can be sent to the client
+            readin = open( outfile, 'r' )
+            contents = readin.read()
+            return base64.b64encode( contents ) 
         def pdf( self, param0, param1, _SOAPContext=None ):
             """Convert the ODT provided in param0 to a PDF, using the values from param1 
             as mail-merge values."""
@@ -217,6 +240,19 @@ class pyMailMergeService:
             """
             self._logSoapInfo( _SOAPContext )
             self.logging.info( "converting %s document to %s" % (param0, param2) )
+            #move the bulk of the work into a new method so it can be called again by the bactch method    
+            destpdf = self._doConversion( param0, param1, param2 )
+            #read contents so we can return to client
+            f = open( destpdf, 'r' )
+            doc = f.read()
+            f.close()
+            os.unlink( destpdf ) #delete the pdf file
+            #remove the temporary doc -> odt conversion file
+            if self._getFileExtension( param0 ) == 'doc':
+                os.unlink( odtName )
+            self.logging.info( "done converting document: %s" % odtName )
+            return base64.b64encode( doc ) #pdf
+        def _doConversion( self, param0, param1, param2 ):
             #if not os.path.exists( param0 ):
             #    return "error: templatefile: %s does not exist" % param0
             if self._getFileExtension( param0 ) == 'doc':
@@ -230,7 +266,7 @@ class pyMailMergeService:
             skipMerge = False
             #check to see if param1 is an XML file, if so parse it into an list or whatever
             params = None
-            if type( param1 ).__name__ == 'str':
+            if type( param1 ).__name__ in ( 'str', 'unicode' ):
                 if param1[0:5] == "<?xml" :
                     params = self._parseXMLParams( param1 )
                     params = self._sortparams( params )
@@ -249,6 +285,8 @@ class pyMailMergeService:
                                 params[0][k].append( y )
                     except:
                         #can't do merge, bad data given
+                        return "error: cant do merge, bad data given"
+                        self.logging.error( "cant do merge, bad data given" )
                         return None
             doctype = param2
             '''http://docs.python.org/library/shutil.html'''
@@ -288,29 +326,18 @@ class pyMailMergeService:
             sourcezip.close()
             #now convert the odt to pdf
             destpdf = u"%s" % ( self._getTempFile( "."+doctype ) )
-            unlinkODT = True
+            self.logging.info( "about to convert %s to %s" % ( destodt, destpdf ) )
             try:
                 #this is now going to create an instance of converter on demand in case OpenOffice
                 #crashes and needs to restart.
-#                converter = DocumentConverter()
-#                converter.convert( destodt, destpdf )
                 OpenOfficeDocument.convert( destodt, destpdf )
+                self.logging.info( "converted %s to %s" % ( destodt, destpdf ) )
+#                os.unlink( destodt )
             except:
-                unlinkODT = False
                 errormsg = "Could not convert document, usually bad xml.  Check ODT File: '%s'" % destodt
                 self.logging.error( errormsg )
                 return "error: %s" % errormsg
-            f = open( destpdf, 'r' )
-            doc = f.read()
-            f.close()
-            if unlinkODT:
-                os.unlink( destodt ) #delete the odt file
-            os.unlink( destpdf ) #delete the pdf file
-            #remove the temporary doc -> odt conversion file
-            if self._getFileExtension( param0 ) == 'doc':
-                os.unlink( odtName )
-            self.logging.info( "done converting document: %s" % odtName )
-            return base64.b64encode( doc ) #pdf
+            return destpdf
         def _replaceContent( self, xml, params, zip ):
             """
             Do a regular expression find and replace for all of the params, unless the 
@@ -416,7 +443,7 @@ class pyMailMergeService:
             content = xml[ startpos : closepos ]
             #duplicate the conent as many times as the value
             allcontent = ""
-            for x in range( 1,value ):
+            for x in range( 1,int(value) ):
                 allcontent = allcontent+content
             xml = xml[:closepos] + allcontent + xml[closepos:]
             xml = xml.replace( starttoken, '' )
