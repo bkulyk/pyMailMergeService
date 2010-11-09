@@ -8,6 +8,23 @@
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
 	xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" >
 	
+	<types>
+		<xs:schema>
+			<xs:complexType name='ArrayOfString'>
+				<xs:restriction base='soapenc:Array'>
+					<xs:attribute ref='soapenc:arrayType' wsdl:arrayType='xs:string[]' />
+				</xs:restriction>
+			</xs:complexType>
+			<xs:complexType name='ArrayofArrayOfString'>
+				<xs:complexContent>
+					<xs:restriction base='soapenc:Array'>
+						<xs:attribute ref='soapenc:arrayType' wsdl:arrayType='tns:ArrayOfString[]' />
+					</xs:restriction>
+				</xs:complexContent>
+			</xs:complexType>
+		</xs:schema>
+	</types>
+	
 	<!-- ==== hello ======================================================= -->
 		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="helloRequest">
 			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="xs:string" />
@@ -105,6 +122,38 @@
 		</binding>
 	<!-- ==== pdf ========================================================= -->
 	
+	<!-- ==== batchpdf ==================================================== -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="tns:ArrayOfArrayOfString" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" type="xs:string" />
+		</message>
+	
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf">
+				<input  message="tns:batchpdfRequest" />
+				<output message="tns:batchpdfResponse" />
+			</operation>
+		</portType>
+		
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfBinding" type="tns:batchpdfPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+			
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf">
+				<soap:operation soapAction="urn:approve#pdf" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== batchpdf ==================================================== -->
+	
 	<!-- ==== ODTconvert ================================================== -->
 		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvertRequest">
 			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="odtfile" type="xs:string" />
@@ -146,6 +195,9 @@
 			<soap:address location="http://192.168.28.235:8888" />
 		</port>
 		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdf" binding="tns:pdfBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf" binding="tns:batchpdfBinding">
 			<soap:address location="http://192.168.28.235:8888" />
 		</port>
 		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvert" binding="tns:ODTconvertBinding">

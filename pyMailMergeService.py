@@ -188,8 +188,8 @@ class pyMailMergeService:
                 infile.close()
                 self.logging.info( "in-file: %s - out-file: %s - format: %s" % ( destodt, destpdf, destformat ) )
             except:
-                self.logging.error( "Error converting file to %s" % destformat )
-                return "Error converting file to %s" % destformat
+                self.logging.error( "Error converting file to %s ------ in-file: %s out-file: %s" % ( destformat, destodt, destpdf ) )
+                return "error: converting file to %s" % destformat
             try:
                 os.unlink( destodt )
             except:
