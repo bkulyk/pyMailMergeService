@@ -238,7 +238,7 @@ class pyMailMergeService:
             @param param1 -- tokens and values
             @param param2 -- target file type
             """
-            odtName = param0
+	    odtName = param0
             self._logSoapInfo( _SOAPContext )
             self.logging.info( "converting %s document to %s" % (param0, param2) )
             #move the bulk of the work into a new method so it can be called again by the bactch method    
