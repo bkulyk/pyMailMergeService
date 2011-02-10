@@ -10,7 +10,23 @@ import uno
 class testOpenOfficeDocument( unittest.TestCase ):
     def setUp(self):
         pass
-    def test_RandomStuff(self):
+    def test_searchAndReplaceWithDocument( self ):
+	ood = OpenOfficeDocument()
+	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )	
+	#search = ood.oodocument.createSearchDescriptor()
+	#search.setSearchString( "search" )
+	#replace = ood.oodocument.createReplaceDescriptor()
+	#replace.setReplaceSearch( 'replace' )
+	#print search
+	#print ood.oodocument.( search )
+	replace = ood.oodocument.createReplaceDescriptor()
+	replace.setSearchString( "search" )
+	replace.setReplaceString( "replace" )
+	ood.oodocument.replaceAll( replace )
+	#instances = ood.oodocument.findAll( 'search' );
+	#instances.replaceAll( 'replace' )
+	ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/find_replaced.pdf' )
+    	'''def test_RandomStuff(self):
         """This test doen't do anything except serve as a place holder for some code, i'm not
         yet willing to delete."""
         filterFactory = uno.createUnoStruct( 'com.sun.star.document.FilterFactory' )
@@ -29,5 +45,6 @@ class testOpenOfficeDocument( unittest.TestCase ):
                 #print '%s ============= %s' % (y.Name, y.Value)
                 pass
             #print ''
+	'''
 if __name__ == '__main__':
     unittest.main()

@@ -41,7 +41,8 @@ class OpenOfficeDocument:
                                 'com.sun.star.text.GlobalDocument':'writer_globaldocument_pdf_Export'
                                 },
                         'html':{
-                                'com.sun.star.text.TextDocument':'HTML (StarWriter)',
+                                'com.sun.star.text.TextDocument':'writer8',
+                                #'com.sun.star.text.TextDocument':'HTML (StarWriter)',
                                 'com.sun.star.text.WebDocument':'HTML',
                                 'com.sun.star.text.GlobalDocument':'writerglobal8_HTML',
                                 'com.sun.star.sheet.SpreadsheetDocument':'HTML (StarCalc)',
@@ -58,7 +59,7 @@ class OpenOfficeDocument:
                         'doc':{
                                 "com.sun.star.text.TextDocument":"MS Word 97"
                                 },
-                         'docx':{
+                        'docx':{
                                 "com.sun.star.text.TextDocument":"MS Word 2007 XML"
                                 },
                         'odt':{
@@ -172,6 +173,10 @@ class OpenOfficeDocument:
         c.refresh()
         c.saveAs( outputFile )
         c.close()
+    def searchAndReplaceWithDocuemnt():
+	print uno.replaceAll
+
+	pass
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
