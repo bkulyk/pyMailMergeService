@@ -10,6 +10,16 @@ import uno
 class testOpenOfficeDocument( unittest.TestCase ):
     def setUp(self):
         pass
+    def test_searchAndCursor( self ):
+	ood = OpenOfficeDocument()
+	ood.open( "/usr/share/pyMailMergeService/tests/docs/find_replace.odt" )
+	search = ood.oodocument.createSearchDescriptor()
+	search.setSearchString( 'search' )
+	result = ood.oodocument.findFirst( search )
+	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/a.odt" )
+	result.insertDocumentFromURL( path, tuple() )
+	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/docInTheMiddle.pdf" )
+	ood.close() 
     def test_searchAndReplaceWithDocument( self ):
 	ood = OpenOfficeDocument()
 	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )	
