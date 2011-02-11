@@ -16,7 +16,7 @@ class testOpenOfficeDocument( unittest.TestCase ):
 	search = ood.oodocument.createSearchDescriptor()
 	search.setSearchString( 'search' )
 	result = ood.oodocument.findFirst( search )
-	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/a.odt" )
+	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/insertme.html" )
 	result.insertDocumentFromURL( path, tuple() )
 	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/docInTheMiddle.pdf" )
 	ood.close() 
