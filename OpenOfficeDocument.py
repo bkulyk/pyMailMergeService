@@ -174,8 +174,6 @@ class OpenOfficeDocument:
         c.saveAs( outputFile )
         c.close()
     def searchAndReplaceWithDocuemnt():
-	print uno.replaceAll
-
 	pass
 if __name__ == "__main__":
     from sys import argv, exit
