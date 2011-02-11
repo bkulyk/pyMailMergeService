@@ -10,7 +10,16 @@ import uno
 class testOpenOfficeDocument( unittest.TestCase ):
     def setUp(self):
         pass
-	'''
+    def test_searchAndCursor( self ):
+	ood = OpenOfficeDocument()
+	ood.open( "/usr/share/pyMailMergeService/tests/docs/find_replace.odt" )
+	search = ood.oodocument.createSearchDescriptor()
+	search.setSearchString( 'search' )
+	result = ood.oodocument.findFirst( search )
+	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/insertme.html" )
+	result.insertDocumentFromURL( path, tuple() )
+	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/docInTheMiddle.pdf" )
+	ood.close() 
     def test_searchAndReplaceWithDocument( self ):
 	ood = OpenOfficeDocument()
 	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )	
@@ -19,20 +28,15 @@ class testOpenOfficeDocument( unittest.TestCase ):
 	replace.setReplaceString( "replace" )
 	ood.oodocument.replaceAll( replace )
 	ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/find_replaced.pdf' )
-	'''
     def test_insertDocument( self ):
 	ood = OpenOfficeDocument()
 	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
-	
 	cursor = ood.oodocument.Text.createTextCursor()
-	
 	replace = ood.oodocument.createReplaceDescriptor()
 	replace.setSearchString( "search" )
 	replace.setReplaceString( "replace" )
 	ood.oodocument.replaceAll( replace )
-
 	ood.oodocument.Text.insertString( cursor, 'inserted', 0 )
-
 	#print ood.oodocument
 	properties = []
 	#properties.append( OpenOfficeDocument._makeProperty( "Hidden", True ) )
@@ -40,7 +44,6 @@ class testOpenOfficeDocument( unittest.TestCase ):
 	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("/usr/share/pyMailMergeService/tests/docs/insert_doc.odt"), properties )
 	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/inserted_doc.pdf" )
 	ood.close()
-
 if __name__ == '__main__':
     unittest.main()
 	
