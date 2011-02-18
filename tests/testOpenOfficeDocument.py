@@ -13,7 +13,7 @@ class testOpenOfficeDocument( unittest.TestCase ):
     def test_searchAndDuplicate( self ):
         ood = OpenOfficeDocument()
         ood.open( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.odt" )
-        ood.searchAndDuplicate( "~start~", '~end~', 1, True )
+        ood.searchAndDuplicate( "~start~", '~end~', 3, True )
         ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.pdf" )    
     def test_searchAndCursor( self ):
     	ood = OpenOfficeDocument()
