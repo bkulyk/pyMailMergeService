@@ -4,11 +4,13 @@ import os
 from sys import path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import IOException
+import uuid
 class OpenOfficeConnection:
     """Object to hold the connection to openoffice, so there is only ever one connection"""
     desktop = None
     host = "localhost"
     port = 8100
+    context = ''
     @staticmethod
     def getConnection( **kwargs ):
         """Create the connection object to open office, only ever create one."""
@@ -17,16 +19,16 @@ class OpenOfficeConnection:
         if OpenOfficeConnection.desktop is None:
             local = uno.getComponentContext()
             resolver = local.ServiceManager.createInstanceWithContext( 'com.sun.star.bridge.UnoUrlResolver', local )
-            context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
-            OpenOfficeConnection.desktop = context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', context )
+            OpenOfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
+            OpenOfficeConnection.desktop = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OpenOfficeConnection.context )
         return OpenOfficeConnection.desktop
 class OpenOfficeDocument:
-    """Represent an open office docuemnt, with some really dumbed down method names. 
-    Exaple: saveAs instead of storetourl (or whatever)"""
+    """Represent an open office document, with some really dumbed down method names. 
+    Example: saveAs instead of storetourl (or whatever)"""
     openoffice = None
     oodocument = None
     documentTypes = [ 'com.sun.star.text.TextDocument', 'com.sun.star.sheet.SpreadsheetDocument', 'com.sun.star.drawing.DrawingDocument', 'com.sun.star.presentation.PresentationDocument' ]
-    #there must be a programatic way to get this stuff instead of hardcoding, I managed to get the filter list from filterFactory... but can't figure out where to get the extensions.
+    #there must be a programmatic way to get this stuff instead of hard-coding, I managed to get the filter list from filterFactory... but can't figure out where to get the extensions.
     #list pulled from: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
     #I'm probably missing many types.
     exportFilters = { 
@@ -141,13 +143,6 @@ class OpenOfficeDocument:
     def close( self ):
         """Close the OpenOffice document"""
         self.oodocument.close( 1 )
-    @staticmethod
-    def _makeProperty( key, value ):
-        """Create an property for use with the OpenOffice API"""
-        property = PropertyValue()
-        property.Name = key
-        property.Value = value
-        return property
     def _getExportFilter( self, filename ):
         """Automatically determine to output filter depending on the file extension"""
         #self._makeProperty( 'FilterName', 'writer_pdf_Export' )
@@ -157,6 +152,61 @@ class OpenOfficeDocument:
                 if x in OpenOfficeDocument.exportFilters[ext].keys():
                     return OpenOfficeDocument._makeProperty( 'FilterName', OpenOfficeDocument.exportFilters[ext][x] )
         return None
+    def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
+        #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
+    	#cursor = self.oodocument.Text.createTextCursor()
+        #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_3_3_Search_and_Replace
+    	search = self.oodocument.createSearchDescriptor()
+    	search.setSearchString( phrase )
+    	search.SearchRegularExpression = regex
+    	result = self.oodocument.findFirst( search )
+    	path = uno.systemPathToFileURL( os.path.abspath( path ) )
+        #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_5_Inserting_Text_Files
+    	return result.insertDocumentFromURL( path, tuple() )
+    def searchAndReplace( self, phrase, replacement, regex=False ):
+        #cursor = self.oodocument.Text.createTextCursor()
+        replace = self.oodocument.createReplaceDescriptor()
+        replace.setSearchString( phrase )
+        replace.setReplaceString( replacement )
+        replace.SearchRegularExpression = regex
+        return self.oodocument.replaceAll( replace )
+    def searchAndDelete( self, phrase, regex=False ):
+        self.searchAndReplace( phrase, '', regex )
+    def _getCursorForStartAndEndPhrases( self, startPhrase, endPhrase, regex=False ):
+        #find position of start phrase
+        search = self.oodocument.createSearchDescriptor()
+        search.setSearchString( startPhrase )
+        search.SearchRegularExpression = regex
+        result = self.oodocument.findFirst( search )
+        #find position of end phrase
+        search2 = self.oodocument.createSearchDescriptor()
+        search2.setSearchString( endPhrase )
+        search2.SearchRegularExpression = regex
+        result2 = self.oodocument.findFirst( search2 )
+        #create new cursor at start of first phrase, expand to second, and return the cursor range
+        cursor = self.oodocument.Text.createTextCursorByRange( result.getStart() )
+        cursor.gotoRange( result2.getEnd(), True )
+        return cursor
+    def searchAndRemoveSection( self, startPhrase, endPhrase, regex=False ):
+        cursor = self._getCursorForStartAndEndPhrases(startPhrase, endPhrase, regex)
+        self.oodocument.Text.insertString( cursor, '', True )
+    def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
+        cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
+        cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
+        #create a new auto text container
+        autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
+        #create a unique name for the container
+        autoTextName = "%s" % uuid.uuid1()
+        autoTextName = autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
+        if autoTextContainer.hasByName( autoTextName ):
+            autoTextContainer.removeByName( autoTextName )
+        autoTextGroup = autoTextContainer.insertNewByName( autoTextName )
+        entry = autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
+        #duplicate the section as many times as indicated by count
+        for x in range( count ):
+            entry.applyTo( cursor2 )
+        autoTextContainer.removeByName( autoTextName )
+#========static methods============================================================================
     @staticmethod
     def _getFileExtension( filepath ):
         """Get the file extension for the given path"""
@@ -173,8 +223,13 @@ class OpenOfficeDocument:
         c.refresh()
         c.saveAs( outputFile )
         c.close()
-    def searchAndReplaceWithDocuemnt():
-	pass
+    @staticmethod
+    def _makeProperty( key, value ):
+        """Create an property for use with the OpenOffice API"""
+        property = PropertyValue()
+        property.Name = key
+        property.Value = value
+        return property
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
