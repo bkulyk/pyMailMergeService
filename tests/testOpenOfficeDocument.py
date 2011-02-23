@@ -10,6 +10,11 @@ import uno
 class testOpenOfficeDocument( unittest.TestCase ):
     def setUp(self):
         pass
+    def test_duplicateRow(self):
+        ood = OpenOfficeDocument()
+        ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
+        ood.duplicateRow( "~a2~", True )
+        ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.pdf' )
     def test_searchAndDuplicate( self ):
         ood = OpenOfficeDocument()
         ood.open( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.odt" )

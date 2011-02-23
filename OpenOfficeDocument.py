@@ -5,6 +5,7 @@ from sys import path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import IOException
 import uuid
+import re
 class OpenOfficeConnection:
     """Object to hold the connection to openoffice, so there is only ever one connection"""
     desktop = None
@@ -22,6 +23,28 @@ class OpenOfficeConnection:
             OpenOfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
             OpenOfficeConnection.desktop = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OpenOfficeConnection.context )
         return OpenOfficeConnection.desktop
+class AutoText:
+    autoTextName = None
+    autoTextGroup = None
+    autoTextContainer = None
+    autoTextEntry = None
+    def __init__( self, cursor ):
+        #create a new auto text container
+        self.autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
+        #create a unique name for the container
+        self.autoTextName = "%s" % uuid.uuid1()
+        self.autoTextName = self.autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
+        if self.autoTextContainer.hasByName( self.autoTextName ):
+            self.autoTextContainer.removeByName( self.autoTextName )
+        self.autoTextGroup = self.autoTextContainer.insertNewByName( self.autoTextName )
+        self.autoTextEntry = self.autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
+    def insert( self, cursor ):
+        self.autoTextEntry.applyTo( cursor )
+    def getTextContent(self):
+        return self.autoTextEntry
+    def delete( self ):
+        self.autoTextContainer.removeByName( self.autoTextName )
+        pass
 class OpenOfficeDocument:
     """Represent an open office document, with some really dumbed down method names. 
     Example: saveAs instead of storetourl (or whatever)"""
@@ -172,7 +195,15 @@ class OpenOfficeDocument:
         return self.oodocument.replaceAll( replace )
     def searchAndDelete( self, phrase, regex=False ):
         self.searchAndReplace( phrase, '', regex )
+    def _getCursorForStartPhrase(self, startPhrase, regex=False):
+        #find position of start phrase
+        search = self.oodocument.createSearchDescriptor()
+        search.setSearchString( startPhrase )
+        search.SearchRegularExpression = regex
+        result = self.oodocument.findFirst( search )
+        return result
     def _getCursorForStartAndEndPhrases( self, startPhrase, endPhrase, regex=False ):
+        '''@todo replace with _getCursorForStartPhrase x2 and test'''
         #find position of start phrase
         search = self.oodocument.createSearchDescriptor()
         search.setSearchString( startPhrase )
@@ -193,20 +224,55 @@ class OpenOfficeDocument:
     def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
         cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
         cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
-        #create a new auto text container
-        autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
-        #create a unique name for the container
-        autoTextName = "%s" % uuid.uuid1()
-        autoTextName = autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
-        if autoTextContainer.hasByName( autoTextName ):
-            autoTextContainer.removeByName( autoTextName )
-        autoTextGroup = autoTextContainer.insertNewByName( autoTextName )
-        entry = autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
-        #duplicate the section as many times as indicated by count
-        for x in range( count ):
-            entry.applyTo( cursor2 )
-        autoTextContainer.removeByName( autoTextName )
+        at = AutoText( cursor )
+        for x in xrange( count ):
+            at.insert( cursor2 )
+        at.delete()
+    def duplicateRow(self, phrase, count=1, regex=False):
+        cursor = self._getCursorForStartPhrase( phrase, regex )
+        #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
+        x = cursor.createEnumeration()
+        if x.hasMoreElements():
+            e = x.nextElement()
+            cellNames = e.getCellNames()
+            #need to find the cell with the search phrase that was provided
+            for cellName in cellNames:
+                cell = e.getCellByName( cellName )
+                text = cell.Text.getString()
+                if text == phrase:
+                    #we found the cell, now get the position of the cell ie b2
+                    rowpos, colpos = self._convertCellNameToCellPositions(cellName)
+                    rows = e.getRows()
+                    #insert new row
+                    rows.insertByIndex( rowpos, 1 )
+                    #highlight/select the entire content of the original row, so that it's content can be copied and pasted to the new row
+#                    tableCursor = e.createCursorByCellName( rowpos )
+#                    tableCursor.gotoEnd( True ) 
+                    print cell.Text.getString()
+                    
+#                    cursor = self.oodocument.Text.createTextCursor()
+#                    self.oodocument.Text.insertString( cursor, 'here', 0 )
+                    
 #========static methods============================================================================
+    @staticmethod
+    def _convertCellNameToCellPositions( cellName ):
+        matches = re.match( "(\w)+(\d)+", cellName )
+        row = matches.group(1)
+        col = matches.group(2)
+        #convert the letter to a number
+        #@todo the following will need to be adjusted for cell names like aa4 
+        
+#        
+#        newString = ""
+#        for x in row:
+#            tmp = ord( row ) - 64
+#            tmp = 
+            
+        row = ord( row ) - 64
+        return ( row, col )
+    @staticmethod
+    def _base26Decode( num ):
+        return int( num, 26 )
     @staticmethod
     def _getFileExtension( filepath ):
         """Get the file extension for the given path"""
