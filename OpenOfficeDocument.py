@@ -230,6 +230,7 @@ class OpenOfficeDocument:
         at.delete()
     def duplicateRow(self, phrase, count=1, regex=False):
         cursor = self._getCursorForStartPhrase( phrase, regex )
+        at = AutoText( cursor )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
         if x.hasMoreElements():
@@ -246,9 +247,23 @@ class OpenOfficeDocument:
                     #insert new row
                     rows.insertByIndex( rowpos, 1 )
                     #highlight/select the entire content of the original row, so that it's content can be copied and pasted to the new row
-#                    tableCursor = e.createCursorByCellName( rowpos )
+                    tableCursor = e.createCursorByCellName( rowpos )
 #                    tableCursor.gotoEnd( True ) 
                     print cell.Text.getString()
+#                    print cell
+                    print "======"
+                    
+                    cell2 = e.getCellByName( "B2" )
+                    print cell2
+                    cellCursor2 = cell2.createTextCursor()
+                    
+                    cellCursor = cell.createTextCursor()
+                    cellCursor.gotoEnd( True )
+#                    at = AutoText(cellCursor)
+                    #self.oodocument.Text.insertString( cellCursor, 'I am here', 0 )
+                    at.insert( cellCursor2 )
+                    at.delete()
+                    return
                     
 #                    cursor = self.oodocument.Text.createTextCursor()
 #                    self.oodocument.Text.insertString( cursor, 'here', 0 )
@@ -258,7 +273,7 @@ class OpenOfficeDocument:
     def _convertCellNameToCellPositions( cellName ):
         matches = re.match( "(\w)+(\d)+", cellName )
         row = matches.group(1)
-        col = matches.group(2)
+        col = int( matches.group(2) ) - 1
         #convert the letter to a number
         #@todo the following will need to be adjusted for cell names like aa4 
         
@@ -268,7 +283,7 @@ class OpenOfficeDocument:
 #            tmp = ord( row ) - 64
 #            tmp = 
             
-        row = ord( row ) - 64
+        row = ord( row ) - 65
         return ( row, col )
     @staticmethod
     def _base26Decode( num ):
