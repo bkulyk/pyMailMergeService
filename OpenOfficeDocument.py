@@ -251,26 +251,38 @@ class OpenOfficeDocument:
                     rows.insertByIndex( rowpos, 1 )
                     #highlight/select the entire content of the original row, so that it's content can be copied and pasted to the new row
                     tableCursor = e.createCursorByCellName( rowpos )
-#                    tableCursor.gotoEnd( True ) 
+#                    tableCursor.gotoEnd( True )
                     print cell.Text.getString()
 #                    print cell
-                    print "======"
+#                    print "======"
+                    self._copyCells( e, rowpos, rowpos+1 )
                     
-                    cell2 = e.getCellByName( "B2" )
-                    print cell2
-                    cellCursor2 = cell2.createTextCursor()
-                    
-                    cellCursor = cell.createTextCursor()
-                    cellCursor.gotoEnd( True )
-#                    at = AutoText(cellCursor)
-                    #self.oodocument.Text.insertString( cellCursor, 'I am here', 0 )
-                    at.insert( cellCursor2 )
-                    at.delete()
+#                    cell2 = e.getCellByName( "B2" )
+#                    print cell2
+#                    cellCursor2 = cell2.createTextCursor()
+#                    
+#                    cellCursor = cell.createTextCursor()
+#                    cellCursor.gotoEnd( True )
+#                    at.insert( cellCursor2 )
+#                    at.delete()
                     return
                     
 #                    cursor = self.oodocument.Text.createTextCursor()
 #                    self.oodocument.Text.insertString( cursor, 'here', 0 )
-                    
+    def _copyCells( self, table, fromRowIndex, toRowIndex ):
+#        print table
+        #find out how many columns are in the fromRow using the column names. ie if it's position 2, find out how many cell's names start with B  
+        print table.getCellNames()
+        
+        TableRows = table.getRows()
+        fromTableRow = TableRows.getByIndex( fromRowIndex )
+        print TableRows.getCount()
+        
+        TableColumns = table.getColumns()
+        print TableColumns.getCount()
+        
+        cell = table.getCellByPosition( fromRowIndex, 0 )
+#        print cell
 #========static methods============================================================================
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
