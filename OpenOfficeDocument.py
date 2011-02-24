@@ -29,15 +29,18 @@ class AutoText:
     autoTextContainer = None
     autoTextEntry = None
     def __init__( self, cursor ):
-        #create a new auto text container
-        self.autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
-        #create a unique name for the container
-        self.autoTextName = "%s" % uuid.uuid1()
-        self.autoTextName = self.autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
-        if self.autoTextContainer.hasByName( self.autoTextName ):
-            self.autoTextContainer.removeByName( self.autoTextName )
-        self.autoTextGroup = self.autoTextContainer.insertNewByName( self.autoTextName )
-        self.autoTextEntry = self.autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
+        try:
+            #create a new auto text container
+            self.autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
+            #create a unique name for the container
+            self.autoTextName = "%s" % uuid.uuid1()
+            self.autoTextName = self.autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
+            if self.autoTextContainer.hasByName( self.autoTextName ):
+                self.autoTextContainer.removeByName( self.autoTextName )
+            self.autoTextGroup = self.autoTextContainer.insertNewByName( self.autoTextName )
+            self.autoTextEntry = self.autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
+        except:
+            raise PermissionError( "You likely do not have premission needed to create an autotext entry. (needed for copy/paste functions)  Try running soffice as root." )
     def insert( self, cursor ):
         self.autoTextEntry.applyTo( cursor )
     def getTextContent(self):
@@ -315,3 +318,9 @@ if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
         OpenOfficeDocument.convert( argv[1], argv[2] )
+class PermissionError( Exception ):
+    value = None
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr( self.value )
