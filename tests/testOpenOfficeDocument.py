@@ -30,6 +30,11 @@ class testOpenOfficeDocument( unittest.TestCase ):
         ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
         ood.duplicateRow( "~a2~", True )
         ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.pdf' )
+    def test_duplicateColumn(self):
+        ood = OpenOfficeDocument()
+        ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
+        ood.duplicateColumn( "~a1~", True )
+        ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.2.pdf' )
     def test_searchAndDuplicate( self ):
         ood = OpenOfficeDocument()
         ood.open( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.odt" )
