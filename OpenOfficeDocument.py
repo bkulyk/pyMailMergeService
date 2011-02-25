@@ -252,7 +252,7 @@ class OpenOfficeDocument:
                     #highlight/select the entire content of the original row, so that it's content can be copied and pasted to the new row
                     tableCursor = e.createCursorByCellName( rowpos )
 #                    tableCursor.gotoEnd( True )
-                    print cell.Text.getString()
+#                    print cell.Text.getString()
 #                    print cell
 #                    print "======"
                     self._copyCells( e, rowpos, rowpos+1 )
@@ -270,6 +270,7 @@ class OpenOfficeDocument:
 #                    cursor = self.oodocument.Text.createTextCursor()
 #                    self.oodocument.Text.insertString( cursor, 'here', 0 )
     def _copyCells( self, table, fromRowIndex, toRowIndex ):
+        return
 #        print table
         #find out how many columns are in the fromRow using the column names. ie if it's position 2, find out how many cell's names start with B  
         print table.getCellNames()
@@ -336,3 +337,52 @@ class PermissionError( Exception ):
         self.value = value
     def __str__(self):
         return repr( self.value )
+class B26:
+    @staticmethod
+    def fromBase26( value ):
+        total = 0
+        pos = 0
+        for digit in value[::-1]:
+            dec = int( digit, 36 ) - 9
+            if pos == 0:
+                add = dec
+            else:
+                x = dec * pos
+                add = x * 26
+            total = total + add
+            pos = pos + 1
+        return total
+    @staticmethod
+    def toBase26( number ):
+        """
+        Convert positive integer to a base36 string.
+        I gave up trying to write this myself, and grabbed it from Wikipedia's base 36 convert example
+        http://en.wikipedia.org/wiki/Base_36#Python_Conversion_Code 
+        """
+        alphabet='0123456789ABCDEFGHIJKLMNOP'
+        if not isinstance(number, (int, long)):
+            raise TypeError('number must be an integer')
+        # Special case for zero
+        if number == 0:
+            return '0'
+        base36 = ''
+        sign = ''
+        if number < 0:
+            sign = '-'
+            number = - number
+        while number != 0:
+            number, i = divmod(number, len(alphabet))
+            base36 = alphabet[i] + base36
+        #real base 26 is 0 to P, we need it to be A-Z, so adjust each char accordingly
+        alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        c = sign + base36
+        string = ''
+        count = 0
+        for d in c[::-1]:
+            if count == 0:
+                y = alpha[ int( d, 26 )-1 ]
+            else:
+                y = alpha[ int( d, 26 )-1 ]
+            string = "%s%s" % ( y, string )
+            count = count + 1
+        return string.replace( "AZ", "Z")
