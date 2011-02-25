@@ -286,7 +286,6 @@ class OpenOfficeDocument:
 #        print cols
         return 
     def duplicateColumn( self, phrase, count=1, regex=False ):
-        print "phrase: %s" % phrase
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
@@ -300,12 +299,11 @@ class OpenOfficeDocument:
                 if text == phrase:
                     rowpos, colpos = self._convertCellNameToCellPositions(cellName)
                     cols = e.getColumns()
-                    print cellName
                     cols.insertByIndex( colpos+1, 1 )
                     self._copyColumnCells( e, cellName )
                     return
     def _copyColumnCells(self, table, cellName):
-         #start by getting the current row number
+        #start by getting the current row number
         matches = re.match( "(\w)+(\d)+", cellName )
         col = matches.group( 1 )
         #initialize values
@@ -317,7 +315,6 @@ class OpenOfficeDocument:
             matches = re.match( "(\w)+(\d)+", x )
             row = "%s" % B26.fromBase26( matches.group( 1 ) )
             col = "%s" % col
-#            print "row: %s col: %s" % (row, col)
             if matches.group( 1 ) == col:
                 currentcolumn = B26.fromBase26( matches.group(1) )
                 x = matches.group( 1 ) + "%s" % row
@@ -325,27 +322,23 @@ class OpenOfficeDocument:
                     #on first loop we need to get the cursor
                     cellCursor = table.createCursorByCellName( x )
                 else:
-                    #on every other loop we just need to move the cursor 1 position to the right
+                    #on every other loop we just need to move the cursor 1 position down
                     cellCursor.goDown( 1, False )
-                print '======='
-                print cellCursor.getRangeName()
                 matches = re.match( "(\w)+(\d)+", cellCursor.getRangeName() )
-                print matches.group( 2 )
-                print '======='
-                print "Copy cell from: col %s, row %s" % ( currentcolumn-1, int(matches.group( 2 ))-1 )
+                #get the source cell and copy content
+#                print "Copy cell from: col %s, row %s" % ( currentcolumn-1, int(matches.group( 2 ))-1 )
                 sourceCell = table.getCellByPosition( currentcolumn-1, int(matches.group( 2 ))-1 )
                 sourceCursor = sourceCell.createTextCursor()
                 sourceCursor.gotoEnd( True )
                 at = AutoText( sourceCursor )
-                
+                #get target cell and paste contents
                 targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
-                print "try to Copy cell to: col %s, row %s" % ( currentcolumn, int(matches.group( 2 ))-1 )
+#                print "try to Copy cell to: col %s, row %s" % ( currentcolumn, int(matches.group( 2 ))-1 )
                 targetCursor = targetCell.createTextCursor()
                 at.insert( targetCursor )
-                    
+                #delete the autotext entry now that we don't need it any longer
                 at.delete()
         return
-                
 #========static methods============================================================================
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
