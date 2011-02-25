@@ -232,6 +232,7 @@ class OpenOfficeDocument:
             at.insert( cursor2 )
         at.delete()
     def duplicateRow(self, phrase, count=1, regex=False):
+        print "phrase: %s" % phrase
         cursor = self._getCursorForStartPhrase( phrase, regex )
         at = AutoText( cursor )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
@@ -250,12 +251,12 @@ class OpenOfficeDocument:
                     #insert new row
                     rows.insertByIndex( rowpos, 1 )
                     #highlight/select the entire content of the original row, so that it's content can be copied and pasted to the new row
-                    tableCursor = e.createCursorByCellName( rowpos )
+#                    tableCursor = e.createCursorByCellName( rowpos )
 #                    tableCursor.gotoEnd( True )
-#                    print cell.Text.getString()
+                    print "cell string: %s" % cell.Text.getString()
 #                    print cell
 #                    print "======"
-                    self._copyCells( e, rowpos, rowpos+1 )
+                    self._copyCells( e, cellName, rowpos, rowpos+1 )
                     
 #                    cell2 = e.getCellByName( "B2" )
 #                    print cell2
@@ -269,21 +270,41 @@ class OpenOfficeDocument:
                     
 #                    cursor = self.oodocument.Text.createTextCursor()
 #                    self.oodocument.Text.insertString( cursor, 'here', 0 )
-    def _copyCells( self, table, fromRowIndex, toRowIndex ):
-        return
-#        print table
-        #find out how many columns are in the fromRow using the column names. ie if it's position 2, find out how many cell's names start with B  
-        print table.getCellNames()
+    def _copyCells( self, table, cellName, fromRowIndex, toRowIndex ):
+        print "cellname: %s" % cellName
         
-        TableRows = table.getRows()
-        fromTableRow = TableRows.getByIndex( fromRowIndex )
-        print TableRows.getCount()
+        matches = re.match( "(\w)+(\d)+", cellName )
+        row = matches.group( 2 )
         
-        TableColumns = table.getColumns()
-        print TableColumns.getCount()
+        cols = []
         
-        cell = table.getCellByPosition( fromRowIndex, 0 )
-#        print cell
+        cellCursor = None #table.createCursorByCellName( cellName ) 
+        
+        for x in table.getCellNames():
+            matches = re.match( "(\w)+(\d)+", x )
+            if matches.group( 2 ) == row:
+                if cellCursor is None:
+                    cellCursor = table.createCursorByCellName( x )
+                else:
+                    cellCursor.goRight( 1, False )
+                currentCell = table.getCellByName( cellCursor.getRangeName() )
+                textCursor = currentCell.createTextCursor()
+                textCursor.gotoEnd( True )
+                at = AutoText( textCursor )
+                cols.append( matches.group( 2 ) )
+                print "copy text from: %s" %  cellCursor.getRangeName()
+                
+                nextRow = int( matches.group(2) )+1
+                cellDown = table.getCellByName( matches.group(1)+"%s"%nextRow )
+                cellDownTextCursor = cellDown.createTextCursor()
+                at.insert( cellDownTextCursor )
+                at.delete()
+                print "copy text to: %s%s" % ( matches.group(1) , nextRow )
+                
+                
+        print cols
+        return 
+
 #========static methods============================================================================
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
