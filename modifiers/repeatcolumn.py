@@ -4,6 +4,6 @@ from modifiers import *
 import modifiers
 class __init__( modifier ):
     @staticmethod
-    def process( document, key, value ):
+    def process( document, param ):
         pass
 modifiers.modifiers.modifierOrder.append( {'name':'repeatcolumn', 'order':25 } )

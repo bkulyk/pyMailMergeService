@@ -4,6 +4,7 @@ from modifiers import *
 import modifiers
 class __init__( modifier ):
     @staticmethod
-    def process( document, key, value ):
+    def process( document, param ):
+        print "here!!!"
         pass
 modifiers.modifiers.modifierOrder.append( {'name':'if', 'order':10 } )

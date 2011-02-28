@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from OpenOfficeDocument import *
-from modifiers import modifiers
+from modifiers import *
 from lxml import etree              #for parsing xml
 import re                           #regular expressions
 import operator                     #using for sorting the params
@@ -24,8 +24,14 @@ class pyMailMerge:
     def _process(self, params):
         params = pyMailMerge._sortParams(params)
         for param in params:
-            print param['modifier']
-        pass
+            #each module has been set as a property of the modifiers class
+            mod = getattr( modifiers, "mod_%s" % param['modifier'] )
+            #so, all the modifiers have been loaded as class names called __init__ within their 
+            #respective modules, and each modifier should have a method called process
+            try:
+                mod.__init__().process( self.document, param )
+            except:
+                pass
     def _getTempFile( self, extension='' ):
         '''
         This is the replacement for os.tmpnam, it should not be suceptable to the
