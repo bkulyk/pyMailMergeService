@@ -17,14 +17,6 @@ class testOpenOfficeDocument( unittest.TestCase ):
         self.assertEquals( 2,  B26.fromBase26( 'B' ) )
         self.assertEquals( 53, B26.fromBase26( 'BA' ) )
         self.assertEquals( 54, B26.fromBase26( 'BB' ) )
-    def test_toBase26(self):
-        self.assertEquals( "A",  B26.toBase26( 1 ) )
-        self.assertEquals( "AA", B26.toBase26( 27 ) )
-        self.assertEquals( "Z",  B26.toBase26( 26 ) )
-        self.assertEquals( "B",  B26.toBase26( 2 ) )
-        self.assertEquals( "BA", B26.toBase26( 53 ) )
-        self.assertEquals( "BB", B26.toBase26( 54 ) )
-        self.assertEquals( "CC", B26.toBase26( 81 ) )
     def test_duplicateRow(self):
         ood = OpenOfficeDocument()
         ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )

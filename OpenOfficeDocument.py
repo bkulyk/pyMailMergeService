@@ -190,7 +190,6 @@ class OpenOfficeDocument:
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_5_Inserting_Text_Files
     	return result.insertDocumentFromURL( path, tuple() )
     def searchAndReplace( self, phrase, replacement, regex=False ):
-        #cursor = self.oodocument.Text.createTextCursor()
         replace = self.oodocument.createReplaceDescriptor()
         replace.setSearchString( phrase )
         replace.setReplaceString( replacement )
@@ -345,15 +344,6 @@ class OpenOfficeDocument:
         matches = re.match( "(\w)+(\d)+", cellName )
         row = matches.group(1)
         col = int( matches.group(2) ) - 1
-        #convert the letter to a number
-        #@todo the following will need to be adjusted for cell names like aa4 
-        
-#        
-#        newString = ""
-#        for x in row:
-#            tmp = ord( row ) - 64
-#            tmp = 
-            
         row = ord( row ) - 65
         return ( row, col )
     @staticmethod
@@ -407,37 +397,3 @@ class B26:
             total = total + add
             pos = pos + 1
         return total
-    @staticmethod
-    def toBase26( number ):
-        """
-        Convert positive integer to a base36 string.
-        I gave up trying to write this myself, and grabbed it from Wikipedia's base 36 convert example
-        http://en.wikipedia.org/wiki/Base_36#Python_Conversion_Code 
-        """
-        alphabet='0123456789ABCDEFGHIJKLMNOP'
-        if not isinstance(number, (int, long)):
-            raise TypeError('number must be an integer')
-        # Special case for zero
-        if number == 0:
-            return '0'
-        base36 = ''
-        sign = ''
-        if number < 0:
-            sign = '-'
-            number = - number
-        while number != 0:
-            number, i = divmod(number, len(alphabet))
-            base36 = alphabet[i] + base36
-        #real base 26 is 0 to P, we need it to be A-Z, so adjust each char accordingly
-        alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        c = sign + base36
-        string = ''
-        count = 0
-        for d in c[::-1]:
-            if count == 0:
-                y = alpha[ int( d, 26 )-1 ]
-            else:
-                y = alpha[ int( d, 26 )-1 ]
-            string = "%s%s" % ( y, string )
-            count = count + 1
-        return string.replace( "AZ", "Z")
