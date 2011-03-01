@@ -36,7 +36,7 @@ class pyMailMerge:
         '''
         This is the replacement for os.tmpnam, it should not be suceptable to the
         same symlink injection problems.  I wrapped this simple command in a function 
-        because I don't want to use the file handle it creates. There maybe a more effcient
+        because I don't want to use the file handle it creates. There maybe a more efficient
         way to get a tmp file name, but I havn't found one yet, so I'm using this.
         @param extension:  the file extension that the temp file should have.
         @return: str the temporary filename  

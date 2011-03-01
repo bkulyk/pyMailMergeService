@@ -9,6 +9,6 @@ class __init__( modifier ):
             for x in param['value']:
                 document.searchAndReplaceFirst( "~%s~" % param['token'], x )
         else:
-            print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
+            #print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
             document.searchAndReplace( "~%s~" % param['token'], param['value'] )
 modifiers.modifiers.modifierOrder.append( {'name':'multiparagraph', 'order':100 } )

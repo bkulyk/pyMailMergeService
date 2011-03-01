@@ -194,16 +194,16 @@ class OpenOfficeDocument:
         replace.setSearchString( phrase )
         replace.setReplaceString( replacement )
         replace.SearchRegularExpression = regex
-        return self.oodocument.replaceAll( replace )
+        count = self.oodocument.replaceAll( replace )
+        if count == 0:
+            print "0 matches for term: %s" % ( phrase )
+            replace.SearchStyles = True
+            count = self.oodocument.replaceAll( replace )
+        return count
     def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
-#        x = cursor.createEnumeration()
-#        if x.hasMoreElements():
-#            e = x.nextElement()
-##            self.oodocument.Text.insertString( cursor, replacement, True )
-#            print "==============="
-#            print e
-#            print "==============="
+        if cursor is not None:
+            cursor.Text.setString( replacement )
     def searchAndDelete( self, phrase, regex=False ):
         self.searchAndReplace( phrase, '', regex )
     def _getCursorForStartPhrase(self, startPhrase, regex=False):
