@@ -70,5 +70,6 @@ class testPyMailMerge( unittest.TestCase ):
                { 'token':'paid', 'value':'PAID' }
         ]
         pmm._process( x )
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
 if __name__ == '__main__':
     unittest.main()

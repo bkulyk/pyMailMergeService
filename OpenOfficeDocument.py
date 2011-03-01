@@ -195,6 +195,15 @@ class OpenOfficeDocument:
         replace.setReplaceString( replacement )
         replace.SearchRegularExpression = regex
         return self.oodocument.replaceAll( replace )
+    def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
+        cursor = self._getCursorForStartPhrase( phrase, regex )
+#        x = cursor.createEnumeration()
+#        if x.hasMoreElements():
+#            e = x.nextElement()
+##            self.oodocument.Text.insertString( cursor, replacement, True )
+#            print "==============="
+#            print e
+#            print "==============="
     def searchAndDelete( self, phrase, regex=False ):
         self.searchAndReplace( phrase, '', regex )
     def _getCursorForStartPhrase(self, startPhrase, regex=False):

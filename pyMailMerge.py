@@ -28,10 +28,10 @@ class pyMailMerge:
             mod = getattr( modifiers, "mod_%s" % param['modifier'] )
             #so, all the modifiers have been loaded as class names called __init__ within their 
             #respective modules, and each modifier should have a method called process
-            try:
-                mod.__init__().process( self.document, param )
-            except:
-                pass
+#            try:
+            mod.__init__().process( self.document, param )
+#            except:
+#                pass
     def _getTempFile( self, extension='' ):
         '''
         This is the replacement for os.tmpnam, it should not be suceptable to the
