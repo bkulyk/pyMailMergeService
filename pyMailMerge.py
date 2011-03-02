@@ -81,5 +81,4 @@ class pyMailMerge:
         all = []
         for x in modifiers.modifierOrder:
             all.extend( sorted[ x['name'] ] )
-        all.extend( sorted[ 'None' ] )
         return all            

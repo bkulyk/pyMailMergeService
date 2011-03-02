@@ -66,7 +66,7 @@ class testPyMailMerge( unittest.TestCase ):
                { 'token':'if|paid', 'value':'1' },
                { 'token':'if|notpaid', 'value':'0' },
                { 'token':'paid::date', 'value':'Jan 01, 3011' },
-               { 'token':'payment::due', 'value':'Feb 01, 3011' },
+#               { 'token':'payment::due', 'value':'Feb 01, 3011' },
                { 'token':'paid', 'value':'PAID' }
         ]
         pmm._process( x )

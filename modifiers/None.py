@@ -10,5 +10,7 @@ class __init__( modifier ):
                 document.searchAndReplaceFirst( "~%s~" % param['token'], x )
         else:
             #print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
-            document.searchAndReplace( "~%s~" % param['token'], param['value'] )
-modifiers.modifiers.modifierOrder.append( {'name':'multiparagraph', 'order':100 } )
+            count = document.searchAndReplace( "~%s~" % param['token'], param['value'] )
+            if count == 0:
+                print "%s had 0 search results" % param['token']
+modifiers.modifiers.modifierOrder.append( {'name':'None', 'order':100 } )
