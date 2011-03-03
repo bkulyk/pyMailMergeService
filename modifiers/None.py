@@ -5,12 +5,13 @@ import modifiers
 class __init__( modifier ):
     @staticmethod
     def process( document, param ):
+        key = "~%s~" % param['token']
         if isinstance( param['value'], ( list, tuple ) ):
             for x in param['value']:
-                document.searchAndReplaceFirst( "~%s~" % param['token'], x )
+                document.searchAndReplaceFirst( key, x )
         else:
             #print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
-            count = document.searchAndReplace( "~%s~" % param['token'], param['value'] )
+            count = document.searchAndReplace( key, param['value'] )
             if count == 0:
-                print "%s had 0 search results" % param['token']
+                document.drawSearchAndReplace( key, param['value'] )
 modifiers.modifiers.modifierOrder.append( {'name':'None', 'order':100 } )

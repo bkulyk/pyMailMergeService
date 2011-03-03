@@ -189,6 +189,16 @@ class OpenOfficeDocument:
     	path = uno.systemPathToFileURL( os.path.abspath( path ) )
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_5_Inserting_Text_Files
     	return result.insertDocumentFromURL( path, tuple() )
+    def drawSearchAndReplace( self, phrase, replacement ):
+        drawPage = self.oodocument.getDrawPage()
+        e = drawPage.createEnumeration()
+        count = 0
+        while e.hasMoreElements():
+            x = e.nextElement()
+            if x.getString() == phrase:
+                x.setString( replacement )
+                count += 1
+        return count
     def searchAndReplace( self, phrase, replacement, regex=False ):
         replace = self.oodocument.createReplaceDescriptor()
         replace.setSearchString( phrase )
@@ -212,6 +222,27 @@ class OpenOfficeDocument:
         search.SearchRegularExpression = regex
         result = self.oodocument.findFirst( search )
         return result
+    def _debug( self, unoobj, doPrint=False ):
+        """
+        Print(or return) all of the method and property names for an uno object6
+        Thanks to Carsten Haese for his insanely useful example fount at:
+        http://bytes.com/topic/python/answers/641662-how-do-i-get-type-methods#post2545353
+        """
+        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
+        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
+        ctx = OpenOfficeConnection.context
+        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
+        access = introspection.inspect(unoobj)
+        meths = access.getMethods(ALLMETHS)
+        props = access.getProperties(ALLPROPS)
+        if doPrint:
+            print "Object Methods:"
+            for x in meths:
+                print "---- %s" % x.getName()
+            print "Object Properties:"
+            for x in props:
+                print "---- %s" % x.Name
+        return [ x.getName() for x in meths ] + [ x.Name for x in props ]
     def _getCursorForStartAndEndPhrases( self, startPhrase, endPhrase, regex=False ):
         '''@todo replace with _getCursorForStartPhrase x2 and test'''
         #find position of start phrase
