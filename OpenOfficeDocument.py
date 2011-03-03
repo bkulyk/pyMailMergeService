@@ -269,7 +269,7 @@ class OpenOfficeDocument:
         for x in xrange( count ):
             at.insert( cursor2 )
         at.delete()
-    def duplicateRow(self, phrase, count=1, regex=False):
+    def duplicateRow(self, phrase, regex=False):
 #        print "phrase: %s" % phrase
         cursor = self._getCursorForStartPhrase( phrase, regex )
         at = AutoText( cursor )
@@ -287,17 +287,17 @@ class OpenOfficeDocument:
                     rowpos, colpos = self._convertCellNameToCellPositions(cellName)
                     rows = e.getRows()
                     #insert new row
-                    rows.insertByIndex( rowpos, 1 )
-                    self._copyRowCells( e, cellName, rowpos, rowpos+1 )
+                    rows.insertByIndex( rowpos+1, 1 )
+                    self._copyRowCells( e, cellName )
                     return
-    def _copyRowCells( self, table, cellName, fromRowIndex, toRowIndex ):
+    def _copyRowCells( self, table, cellName ):
         #start by getting the current row number
         matches = re.match( "(\w)+(\d)+", cellName )
         row = matches.group( 2 )
         #initialize values
         cols = []
         cellCursor = None 
-        #loop through all cells with this row number in the cellname
+        #loop through all cells with this row number in the cell name
         for x in table.getCellNames():
             matches = re.match( "(\w)+(\d)+", x )
             if matches.group( 2 ) == row:
@@ -311,17 +311,17 @@ class OpenOfficeDocument:
                 currentCell = table.getCellByName( cellCursor.getRangeName() )
                 textCursor = currentCell.createTextCursor()
                 textCursor.gotoEnd( True )
+                x = currentCell.Text
                 at = AutoText( textCursor )
                 cols.append( matches.group( 2 ) )
 #                print "copy text from: %s" %  cellCursor.getRangeName()
                 #get text cursor for the new cell and paste content
                 nextRow = int( matches.group(2) )+1
-                cellDown = table.getCellByName( matches.group(1)+"%s"%nextRow )
+                cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
                 cellDownTextCursor = cellDown.createTextCursor()
                 at.insert( cellDownTextCursor )
                 at.delete()
 #                print "copy text to: %s%s" % ( matches.group(1) , nextRow )
-#        print cols
         return 
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
@@ -381,9 +381,9 @@ class OpenOfficeDocument:
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
         matches = re.match( "(\w)+(\d)+", cellName )
-        row = matches.group(1)
-        col = int( matches.group(2) ) - 1
-        row = ord( row ) - 65
+        col = matches.group(1)
+        row = int( matches.group(2) ) - 1
+        col = ord( col ) - 65
         return ( row, col )
     @staticmethod
     def _base26Decode( num ):
