@@ -61,7 +61,6 @@ class testOpenOfficeDocument( unittest.TestCase ):
     	ood.oodocument.Text.insertString( cursor, 'inserted', 0 )
     	#print ood.oodocument
     	properties = []
-    	#properties.append( OpenOfficeDocument._makeProperty( "Hidden", True ) )
     	properties = tuple( properties )
     	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("/usr/share/pyMailMergeService/tests/docs/insert_doc.odt"), properties )
     	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/inserted_doc.pdf" )

@@ -222,6 +222,16 @@ class OpenOfficeDocument:
         search.SearchRegularExpression = regex
         result = self.oodocument.findFirst( search )
         return result
+    def _debugMethod( self, unoobj, methodName ):
+        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
+        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
+        ctx = OpenOfficeConnection.context
+        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
+        access = introspection.inspect(unoobj)
+        method = access.getMethod( methodName, ALLMETHS )
+        for x in method.getParameterInfos():
+            print x
+        print ""
     def _debug( self, unoobj, doPrint=False ):
         """
         Print(or return) all of the method and property names for an uno object6
@@ -321,12 +331,8 @@ class OpenOfficeDocument:
                 cellDownTextCursor = cellDown.createTextCursor()
                 cellDownTextCursor.gotoStart( False )
                 cellDownTextCursor.gotoEnd( True )
-#                self._debug( cellDown )
-#                cellDown.insertTextContent( cellDownTextCursor, x, True )
+                cellDownCellCursor = table.createCursorByCellName( "%s%s" % ( matches.group( 1 ), nextRow  ) )
                 at.insert( cellDownTextCursor )
-#                cursor2 = self._getCursorForStartPhrase( 'EOF' )
-#                cursor2.gotoEnd( False )
-#                at.insert( cursor2 )
                 at.delete()
 #                print "copy text to: %s%s" % ( matches.group(1) , nextRow )
         return 
