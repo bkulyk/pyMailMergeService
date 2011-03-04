@@ -324,17 +324,16 @@ class OpenOfficeDocument:
                 textCursor.gotoEnd( True )
                 at = AutoText( textCursor )
                 cols.append( matches.group( 2 ) )
-#                print "copy text from: %s" %  cellCursor.getRangeName()
                 #get text cursor for the new cell and paste content
                 nextRow = int( matches.group(2) )+1
                 cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
+                #this line is wicked important, without it the formatting DOES NOT work
+                cellDown.setString( '' )
                 cellDownTextCursor = cellDown.createTextCursor()
                 cellDownTextCursor.gotoStart( False )
                 cellDownTextCursor.gotoEnd( True )
-                cellDownCellCursor = table.createCursorByCellName( "%s%s" % ( matches.group( 1 ), nextRow  ) )
                 at.insert( cellDownTextCursor )
                 at.delete()
-#                print "copy text to: %s%s" % ( matches.group(1) , nextRow )
         return 
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
@@ -377,17 +376,16 @@ class OpenOfficeDocument:
                     cellCursor.goDown( 1, False )
                 matches = re.match( "(\w)+(\d)+", cellCursor.getRangeName() )
                 #get the source cell and copy content
-#                print "Copy cell from: col %s, row %s" % ( currentcolumn-1, int(matches.group( 2 ))-1 )
                 sourceCell = table.getCellByPosition( currentcolumn-1, int(matches.group( 2 ))-1 )
                 sourceCursor = sourceCell.createTextCursor()
                 sourceCursor.gotoEnd( True )
                 at = AutoText( sourceCursor )
                 #get target cell and paste contents
                 targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
-#                print "try to Copy cell to: col %s, row %s" % ( currentcolumn, int(matches.group( 2 ))-1 )
+                targetCell.setString( '' )
                 targetCursor = targetCell.createTextCursor()
                 at.insert( targetCursor )
-                #delete the autotext entry now that we don't need it any longer
+                #delete the auto text entry now that we don't need it any longer
                 at.delete()
         return
 #========static methods============================================================================
