@@ -62,7 +62,7 @@ class testPyMailMerge( unittest.TestCase ):
                { 'token':'repeatrow|product::desc', 'value':['SKU 123 - Hammer','SKU 223 - Nail'] },
                { 'token':'product::rate', 'value':['6.98','1.99'] },
                { 'token':'product::qty', 'value':[ '1', '10' ] },
-               { 'token':'product::total', 'value':[ '6.98', '19.90' ] },
+               { 'token':'product::total', 'value':['6.98', '19.90' ] },
                { 'token':'if|paid', 'value':'1' },
                { 'token':'if|notpaid', 'value':'0' },
                { 'token':'paid::date', 'value':'Jan 01, 3011' },
@@ -71,5 +71,6 @@ class testPyMailMerge( unittest.TestCase ):
         ]
         pmm._process( x )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.pdf' ) )
 if __name__ == '__main__':
     unittest.main()

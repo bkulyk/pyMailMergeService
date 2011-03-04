@@ -310,8 +310,8 @@ class OpenOfficeDocument:
                 #get text cursor for the cell and copy content
                 currentCell = table.getCellByName( cellCursor.getRangeName() )
                 textCursor = currentCell.createTextCursor()
+                textCursor.gotoStart( False )
                 textCursor.gotoEnd( True )
-                x = currentCell.Text
                 at = AutoText( textCursor )
                 cols.append( matches.group( 2 ) )
 #                print "copy text from: %s" %  cellCursor.getRangeName()
@@ -319,7 +319,14 @@ class OpenOfficeDocument:
                 nextRow = int( matches.group(2) )+1
                 cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
                 cellDownTextCursor = cellDown.createTextCursor()
+                cellDownTextCursor.gotoStart( False )
+                cellDownTextCursor.gotoEnd( True )
+#                self._debug( cellDown )
+#                cellDown.insertTextContent( cellDownTextCursor, x, True )
                 at.insert( cellDownTextCursor )
+#                cursor2 = self._getCursorForStartPhrase( 'EOF' )
+#                cursor2.gotoEnd( False )
+#                at.insert( cursor2 )
                 at.delete()
 #                print "copy text to: %s%s" % ( matches.group(1) , nextRow )
         return 
