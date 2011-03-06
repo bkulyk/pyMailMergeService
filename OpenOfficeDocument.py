@@ -186,7 +186,7 @@ class OpenOfficeDocument:
     	search.setSearchString( phrase )
     	search.SearchRegularExpression = regex
     	result = self.oodocument.findFirst( search )
-    	path = uno.systemPathToFileURL( os.path.abspath( path ) )
+    	path = uno.systemPathToFileUrl( os.path.abspath( documentPath ) )
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_5_Inserting_Text_Files
     	return result.insertDocumentFromURL( path, tuple() )
     def drawSearchAndReplace( self, phrase, replacement ):
@@ -327,8 +327,9 @@ class OpenOfficeDocument:
                 #get text cursor for the new cell and paste content
                 nextRow = int( matches.group(2) )+1
                 cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
-                #this line is wicked important, without it the formatting DOES NOT work
-                cellDown.setString( '' )
+                #this line is wicked important, without it the formatting DOES NOT work. 
+                #as it turns out, the string cannot be blank.
+                cellDown.setString( ' ' )
                 cellDownTextCursor = cellDown.createTextCursor()
                 cellDownTextCursor.gotoStart( False )
                 cellDownTextCursor.gotoEnd( True )
@@ -382,7 +383,7 @@ class OpenOfficeDocument:
                 at = AutoText( sourceCursor )
                 #get target cell and paste contents
                 targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
-                targetCell.setString( '' )
+                targetCell.setString( ' ' )
                 targetCursor = targetCell.createTextCursor()
                 at.insert( targetCursor )
                 #delete the auto text entry now that we don't need it any longer
