@@ -11,7 +11,7 @@ class __init__( modifier ):
         count = int( param['value'] )
         #repeat the section of content wrapped by the start and end keys
         document.searchAndDuplicate( startkey, endkey, count )
-        #remove the keys from the document
+        #remove the keys from the documen
         document.searchAndDelete( startkey )
         document.searchAndDelete( endkey )
 modifiers.modifiers.modifierOrder.append( {'name':'repeatsection', 'order':15 } )
