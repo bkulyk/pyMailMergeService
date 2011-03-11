@@ -78,7 +78,7 @@ class pyMailMergeService:
             if self.enablelogging:
                 self.logging = logging.getLogger( self.appName )
                 self.logging.setLevel( logging.DEBUG )
-                handler = logging.handlers.RotatingFileHandler( 'pymms.log' )
+                handler = logging.handlers.RotatingFileHandler( 'pymms.log', maxBytes=1024*1024 )
                 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
                 handler.setFormatter( formatter )
                 self.logging.addHandler( handler )
@@ -520,9 +520,11 @@ class pyMailMergeService:
                 for v in params:
                     v = self._cleanValue( v )
                     if key.find( r'multiparagraph|' ) == 0:
-                        xml = self._multiparagraph( key, v, xml )
+                        xml = self._multiparagraph( key, v.encode( 'utf-8' ), xml )
                     else:
-                        xml = re.sub( exp, v, xml, count=1 )
+                        location = xml.find( v )
+                        xml = xml.encode( 'utf-8' )
+                        xml = re.sub( exp, v.encode( 'utf-8' ), xml, count=1 )
                 return xml
         def _repeatcolumn( self, xml, key, params ):
             """
