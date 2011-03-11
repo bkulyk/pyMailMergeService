@@ -409,7 +409,8 @@ class pyMailMergeService:
             if startpos == -1 and closepos == -1:
                 return xml
             tmp = None
-            if startpos > 0 and closepos > 0 and value == 0:
+            value = '%s' % value
+            if startpos > 0 and closepos > 0 and value == '0':
                 tmp = xml[ 0:startpos ] + xml[ closepos + len( closetoken ): ]
             if tmp is not None:
                 tmp = tmp.replace( closetoken, '' )
