@@ -522,9 +522,10 @@ class pyMailMergeService:
                     if key.find( r'multiparagraph|' ) == 0:
                         xml = self._multiparagraph( key, v.encode( 'utf-8' ), xml )
                     else:
+                        v = v..encode( 'utf-8' )
                         location = xml.find( v )
                         xml = xml.encode( 'utf-8' )
-                        xml = re.sub( exp, v.encode( 'utf-8' ), xml, count=1 )
+                        xml = re.sub( exp, v, xml, count=1 )
                 return xml
         def _repeatcolumn( self, xml, key, params ):
             """
