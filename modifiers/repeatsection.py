@@ -8,7 +8,7 @@ class __init__( modifier ):
         #the value should contain the number of times to repeat the section
         startkey = "~%s~" % param['token']
         endkey = "~end%s~" % param['token']
-        count = int( param['value'] )
+        count = int( param['value'] ) - 1
         #repeat the section of content wrapped by the start and end keys
         document.searchAndDuplicate( startkey, endkey, count )
         #remove the keys from the documen

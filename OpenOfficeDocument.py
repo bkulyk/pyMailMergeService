@@ -40,7 +40,7 @@ class AutoText:
             self.autoTextGroup = self.autoTextContainer.insertNewByName( self.autoTextName )
             self.autoTextEntry = self.autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
         except:
-            raise PermissionError( "You likely do not have premission needed to create an autotext entry. (needed for copy/paste functions)  Try running soffice as root." )
+            raise PermissionError( "You likely do not have permission needed to create an autotext entry. (needed for copy/paste functions)  Try running soffice as root." )
     def insert( self, cursor ):
         self.autoTextEntry.applyTo( cursor )
     def getTextContent(self):
@@ -265,24 +265,32 @@ class OpenOfficeDocument:
         search2.setSearchString( endPhrase )
         search2.SearchRegularExpression = regex
         result2 = self.oodocument.findFirst( search2 )
-        #create new cursor at start of first phrase, expand to second, and return the cursor range
-        cursor = self.oodocument.Text.createTextCursorByRange( result.getStart() )
-        cursor.gotoRange( result2.getEnd(), True )
-        return cursor
+        try:
+            #create new cursor at start of first phrase, expand to second, and return the cursor range
+            cursor = self.oodocument.Text.createTextCursorByRange( result.getStart() )
+            cursor.gotoRange( result2.getEnd(), True )
+            return cursor
+        except:
+            return None
     def searchAndRemoveSection( self, startPhrase, endPhrase, regex=False ):
         cursor = self._getCursorForStartAndEndPhrases(startPhrase, endPhrase, regex)
         self.oodocument.Text.insertString( cursor, '', True )
     def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
         cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
-        cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
-        at = AutoText( cursor )
-        for x in xrange( count ):
-            at.insert( cursor2 )
-        at.delete()
+        if cursor is not None:
+            cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
+            if cursor2 is not None:
+                for x in xrange( count ):
+                    #look ma, no more AutoText
+                    controller = self.oodocument.getCurrentController()
+                    viewCursor = controller.getViewCursor()
+                    viewCursor.gotoRange( cursor, False )
+                    txt = controller.getTransferable()
+                    viewCursor.gotoRange( cursor2, False )
+                    controller.insertTransferable( txt )
     def duplicateRow(self, phrase, regex=False):
 #        print "phrase: %s" % phrase
         cursor = self._getCursorForStartPhrase( phrase, regex )
-        at = AutoText( cursor )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
         if x.hasMoreElements():
@@ -319,10 +327,6 @@ class OpenOfficeDocument:
                     cellCursor.goRight( 1, False )
                 #get text cursor for the cell and copy content
                 currentCell = table.getCellByName( cellCursor.getRangeName() )
-                textCursor = currentCell.createTextCursor()
-                textCursor.gotoStart( False )
-                textCursor.gotoEnd( True )
-                at = AutoText( textCursor )
                 cols.append( matches.group( 2 ) )
                 #get text cursor for the new cell and paste content
                 nextRow = int( matches.group(2) )+1
@@ -330,11 +334,12 @@ class OpenOfficeDocument:
                 #this line is wicked important, without it the formatting DOES NOT work. 
                 #as it turns out, the string cannot be blank.
                 cellDown.setString( ' ' )
-                cellDownTextCursor = cellDown.createTextCursor()
-                cellDownTextCursor.gotoStart( False )
-                cellDownTextCursor.gotoEnd( True )
-                at.insert( cellDownTextCursor )
-                at.delete()
+                controller = self.oodocument.getCurrentController()
+                viewCursor = controller.getViewCursor()
+                viewCursor.gotoRange( currentCell.Text, False )
+                txt = controller.getTransferable()
+                viewCursor.gotoRange( cellDown.Text, False )
+                controller.insertTransferable( txt )
         return 
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
@@ -378,16 +383,19 @@ class OpenOfficeDocument:
                 matches = re.match( "(\w)+(\d)+", cellCursor.getRangeName() )
                 #get the source cell and copy content
                 sourceCell = table.getCellByPosition( currentcolumn-1, int(matches.group( 2 ))-1 )
-                sourceCursor = sourceCell.createTextCursor()
-                sourceCursor.gotoEnd( True )
-                at = AutoText( sourceCursor )
                 #get target cell and paste contents
                 targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
                 targetCell.setString( ' ' )
-                targetCursor = targetCell.createTextCursor()
-                at.insert( targetCursor )
-                #delete the auto text entry now that we don't need it any longer
-                at.delete()
+                '''a HUGE thanks goes to Alessandro Dentella for this solution which allows me to get 
+                rid of the dependency on AutoText for this, which is awesome because AutoText requires 
+                root and is very slow.  AutoText also seemed to give me a bunch of segmentation faults.
+                http://stackoverflow.com/questions/4541081/openoffice-duplicating-rows-of-a-table-in-writer/4596191#4596191'''
+                controller = self.oodocument.getCurrentController()
+                viewCursor = controller.getViewCursor()
+                viewCursor.gotoRange( sourceCell.Text, False )
+                txt = controller.getTransferable()
+                viewCursor.gotoRange( targetCell.Text, False )
+                controller.insertTransferable( txt )
         return
 #========static methods============================================================================
     @staticmethod

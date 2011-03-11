@@ -68,7 +68,8 @@ class testPyMailMerge( unittest.TestCase ):
                { 'token':'paid::date', 'value':'Jan 01, 3011' },
 #               { 'token':'payment::due', 'value':'Feb 01, 3011' },
                { 'token':'paid', 'value':'PAID' },
-               { 'token':'html|notes', 'value':'<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>' }
+               { 'token':'html|notes', 'value':'<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>' },
+               { 'token':'repeatsection|repeater', 'value':'2' }
         ]
         pmm._process( x )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
