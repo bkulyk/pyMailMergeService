@@ -178,6 +178,16 @@ class OpenOfficeDocument:
                 if x in OpenOfficeDocument.exportFilters[ext].keys():
                     return OpenOfficeDocument._makeProperty( 'FilterName', OpenOfficeDocument.exportFilters[ext][x] )
         return None
+    def re_match( self, pattern ):
+        search = self.oodocument.createSearchDescriptor()
+        search.setSearchString( pattern )
+        search.SearchRegularExpression = True
+        items = self.oodocument.findAll( search )
+        list = []
+        for i in xrange( items.getCount() ):
+            x = items.getByIndex( i )
+            list.append( x.getString() )
+        return list
     def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
     	#cursor = self.oodocument.Text.createTextCursor()
@@ -289,7 +299,6 @@ class OpenOfficeDocument:
                     viewCursor.gotoRange( cursor2, False )
                     controller.insertTransferable( txt )
     def duplicateRow(self, phrase, regex=False):
-#        print "phrase: %s" % phrase
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
@@ -334,6 +343,7 @@ class OpenOfficeDocument:
                 #this line is wicked important, without it the formatting DOES NOT work. 
                 #as it turns out, the string cannot be blank.
                 cellDown.setString( ' ' )
+                #paste contents from source to targets
                 controller = self.oodocument.getCurrentController()
                 viewCursor = controller.getViewCursor()
                 viewCursor.gotoRange( currentCell.Text, False )
@@ -383,9 +393,10 @@ class OpenOfficeDocument:
                 matches = re.match( "(\w)+(\d)+", cellCursor.getRangeName() )
                 #get the source cell and copy content
                 sourceCell = table.getCellByPosition( currentcolumn-1, int(matches.group( 2 ))-1 )
-                #get target cell and paste contents
+                #get target cell
                 targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
                 targetCell.setString( ' ' )
+                #paste contents from source to targets
                 '''a HUGE thanks goes to Alessandro Dentella for this solution which allows me to get 
                 rid of the dependency on AutoText for this, which is awesome because AutoText requires 
                 root and is very slow.  AutoText also seemed to give me a bunch of segmentation faults.

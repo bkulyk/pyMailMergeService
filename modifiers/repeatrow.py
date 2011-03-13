@@ -14,4 +14,6 @@ class __init__( modifier ):
                 count += 1
             for x in param['value']:
                 document.searchAndReplaceFirst( key, x )
+        else:
+            document.searchAndReplaceFirst( key, param['value'] )
 modifiers.modifiers.modifierOrder.append( {'name':'repeatrow', 'order':20 } )

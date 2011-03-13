@@ -7,4 +7,4 @@ class __init__( modifier ):
     @staticmethod
     def process( document, param ):
         html.__init__.process( document, param )
-modifiers.modifiers.modifierOrder.append( {'name':'multiparagraph', 'order':35 } )
+modifiers.modifiers.modifierOrder.append( { 'name':'multiparagraph', 'order':35 } )

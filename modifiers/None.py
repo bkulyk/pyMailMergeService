@@ -12,6 +12,8 @@ class __init__( modifier ):
         else:
             #print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
             count = document.searchAndReplace( key, param['value'] )
-            if count == 0:
-                document.drawSearchAndReplace( key, param['value'] )
+        try:
+            document.drawSearchAndReplace( key, param['value'] )
+        except:
+            pass
 modifiers.modifiers.modifierOrder.append( {'name':'None', 'order':100 } )

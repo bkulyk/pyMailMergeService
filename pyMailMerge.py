@@ -8,20 +8,31 @@ import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
 class pyMailMerge:
     document = None
-    def __init__(self, odt):
+    def __init__( self, odt ):
         self.document = OpenOfficeDocument()
         self.document.open( odt )
     def __del__(self):
         self.document.close()
-    def getTokens(self):
+    def getTokens( self ):
+        tokens = self.document.re_match( r"~[a-zA-Z\|\:]+~" )
+        return dict(map(lambda i: (i,1),tokens)).keys()
+    def batchpdf( self, odt ):
         pass
-    def batchpdf(self, odt):
-        pass
-    def pdf(self, odt, params ):
-        pass
-    def convert(self, obj):
-        pass
-    def _process(self, params):
+    def convert( self, params, type='pdf' ):
+        params = pyMailMerge._readParamsFromXML( params )
+        #process params
+        self._process(params)
+        #get temporary out put file
+        out = self._getTempFile( '.%s' % type )
+        self.document.saveAs( out )
+        #read contents
+        file = open( out, 'r' )
+        x = file.read()
+#        os.close( file )
+        #clean up
+        os.unlink( out )
+        return x
+    def _process( self, params ):
         params = pyMailMerge._sortParams(params)
         for param in params:
             #each module has been set as a property of the modifiers class

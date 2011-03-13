@@ -4,6 +4,7 @@ path.append( '..' )
 from pyMailMerge import *
 import unittest
 import os
+import urllib2
 #define unit tests
 class testPyMailMerge( unittest.TestCase ):
     xml = r'''<tokens>
@@ -66,7 +67,7 @@ class testPyMailMerge( unittest.TestCase ):
                { 'token':'if|paid', 'value':'1' },
                { 'token':'if|notpaid', 'value':'0' },
                { 'token':'paid::date', 'value':'Jan 01, 3011' },
-#               { 'token':'payment::due', 'value':'Feb 01, 3011' },
+               { 'token':'payment::due', 'value':'Feb 01, 3011' },
                { 'token':'paid', 'value':'PAID' },
                { 'token':'html|notes', 'value':'<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>' },
                { 'token':'repeatsection|repeater', 'value':'2' }
@@ -74,5 +75,42 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.pdf' ) )
+    def test_getTokens(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.odt' ) )
+        pmm = pyMailMerge( path )
+        x = pmm.getTokens()
+        x.sort()
+        self.assertEquals( 0,  x.index( '~client::city~' ) ) 
+        self.assertEquals( 1,  x.index( '~client::company~' ) ) 
+        self.assertEquals( 2,  x.index( '~client::name~' ) )
+        self.assertEquals( 3,  x.index( '~client::postalcode~' ) ) 
+        self.assertEquals( 4,  x.index( '~client::prov~' ) )
+        self.assertEquals( 5,  x.index( '~company::city~' ) )
+        self.assertEquals( 6,  x.index( '~company::name~' ) )
+        self.assertEquals( 7,  x.index( '~company::phone~' ) )
+        self.assertEquals( 8,  x.index( '~company::prov~' ) )
+        self.assertEquals( 9,  x.index( '~endif|notpaid~' ) )
+        self.assertEquals( 10, x.index( '~endif|paid~' ) )
+        self.assertEquals( 11, x.index( '~html|notes~' ) )
+        self.assertEquals( 12, x.index( '~if|notpaid~' ) )
+        self.assertEquals( 13, x.index( '~if|paid~' ) )
+        self.assertEquals( 14, x.index( '~paid::date~' ) ) 
+        self.assertEquals( 15, x.index( '~payment::due~' ) ) 
+        self.assertEquals( 16, x.index( '~product::qty~' ) )
+        self.assertEquals( 17, x.index( '~product::rate~' ) )
+        self.assertEquals( 18, x.index( '~product::total~' ) )
+        self.assertEquals( 19, x.index( '~repeatrow|product::desc~' ) ) 
+    def test_website(self):
+        x = open( 'website.html', 'r' )
+        html = x.read()
+        params = [
+            { 'token':'html|content', 'value':html },
+            { 'token':'title', 'value':'Website Name' },
+            { 'token':'url', 'value':'http://example.com' }
+        ]
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/website.odt' ) )
+        mms = pyMailMerge( path )
+        mms._process( params )
+        mms.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/website.out.pdf' ) )
 if __name__ == '__main__':
     unittest.main()
