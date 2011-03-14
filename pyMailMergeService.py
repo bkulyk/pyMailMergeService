@@ -1,6 +1,7 @@
 import cherrypy as http
 import os.path
 from pyMailMerge import pyMailMerge
+import simplejson as json
 class rest:
     documentBase = "tests/docs/"
     @http.expose
@@ -27,15 +28,18 @@ class rest:
             message = "unknown exception"
         return self.__errorXML( number, message )
     @http.expose
-    def getTokens( self, odt='' ):
+    def getTokens( self, odt='', format='json' ):
         try:
             mms = pyMailMerge( self.documentBase + odt )
             tokens = mms.getTokens()
-            xml = """<?xml version="1.0" encoding="UTF-8"?><tokens>"""
-            for x in tokens:
-                xml += "<token>%s</token>" % x
-            xml += "</tokens>"
-            return xml
+            if format=='xml':
+                xml = """<?xml version="1.0" encoding="UTF-8"?><tokens>"""
+                for x in tokens:
+                    xml += "<token>%s</token>" % x
+                xml += "</tokens>"
+                return xml
+            else:
+                return json.dumps( tokens )
         except:
             number = "?"
             message = "unknown exception"
@@ -50,4 +54,5 @@ class rest:
             </error>
         </errors>""" % (number, message)
 if __name__ == '__main__':
-    http.quickstart( rest() )
+    http.root = rest()
+    http.server.start()
