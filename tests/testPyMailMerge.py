@@ -75,6 +75,34 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.pdf' ) )
+    def test_process(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice_readonly.odt' ) )
+        pmm = pyMailMerge( path )
+        x = [
+               { 'token':'company::name','value':'Random Company' }, 
+               { 'token':'company::address1','value':'123 Mystery Lane' }, 
+               { 'token':'company::city','value':"Winnipeg" }, 
+               { 'token':'company::prov','value':"MB" }, 
+               { 'token':'company::phone', 'value':'123-555-4567' },
+               { 'token':"client::company", "value":"Client Company" },
+               { 'token':'client::name', 'value':'Random Dude' },
+               { 'token':'client::city', 'value':'Brandon' },
+               { 'token':'client::prov', 'value':'MB' },
+               { 'token':'client::postalcode', 'value':'R3J 2U8' },
+               { 'token':'repeatrow|product::desc', 'value':['SKU 123 - Hammer','SKU 223 - Nail'] },
+               { 'token':'product::rate', 'value':['6.98','1.99'] },
+               { 'token':'product::qty', 'value':[ '1', '10' ] },
+               { 'token':'product::total', 'value':['6.98', '19.90' ] },
+               { 'token':'if|paid', 'value':'1' },
+               { 'token':'if|notpaid', 'value':'0' },
+               { 'token':'paid::date', 'value':'Jan 01, 3011' },
+               { 'token':'payment::due', 'value':'Feb 01, 3011' },
+               { 'token':'paid', 'value':'PAID' },
+               { 'token':'html|notes', 'value':'<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>' },
+               { 'token':'repeatsection|repeater', 'value':'2' }
+        ]
+        pmm._process( x )
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice_readonly.out.pdf' ) )
     def test_getTokens(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.odt' ) )
         pmm = pyMailMerge( path )
@@ -100,17 +128,17 @@ class testPyMailMerge( unittest.TestCase ):
         self.assertEquals( 17, x.index( '~product::rate~' ) )
         self.assertEquals( 18, x.index( '~product::total~' ) )
         self.assertEquals( 19, x.index( '~repeatrow|product::desc~' ) ) 
-    def test_website(self):
-        x = open( 'website.html', 'r' )
-        html = x.read()
-        params = [
-            { 'token':'html|content', 'value':html },
-            { 'token':'title', 'value':'Website Name' },
-            { 'token':'url', 'value':'http://example.com' }
-        ]
-        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/website.odt' ) )
-        mms = pyMailMerge( path )
-        mms._process( params )
-        mms.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/website.out.pdf' ) )
+#    def test_website(self):
+#        x = open( 'website.html', 'r' )
+#        html = x.read()
+#        params = [
+#            { 'token':'html|content', 'value':html },
+#            { 'token':'title', 'value':'Website Name' },
+#            { 'token':'url', 'value':'http://example.com' }
+#        ]
+#        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/website.odt' ) )
+#        mms = pyMailMerge( path )
+#        mms._process( params )
+#        mms.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/website.out.pdf' ) )
 if __name__ == '__main__':
     unittest.main()
