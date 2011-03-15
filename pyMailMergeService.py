@@ -1,58 +1,24 @@
 import cherrypy as http
-import os.path
+import os.path, sys
 from pyMailMerge import pyMailMerge
 import simplejson as json
-class rest:
-    documentBase = "tests/docs/"
-    @http.expose
-    def index(self, test='default'):
-        return """
-        <html><body>
-        <form action='/test' method='post'>
-        <h1>Hello World !</h1>
-        <input type='text' value='%s' name='var' />
-        <input type='submit' value='Submit' />
-        </form></body>
-        </html>
-        """ % test
-    @http.expose
-    def pdf( self, params='', odt='' ):
-        return self.convert(params, odt, 'pdf')
-    @http.expose
-    def convert( self, params='', odt='', type='pdf' ):
-        try:
-            mms = pyMailMerge( self.documentBase + odt )
-            return mms.convert( params, 'pdf' )
-        except:
-            number = "?"
-            message = "unknown exception"
-        return self.__errorXML( number, message )
-    @http.expose
-    def getTokens( self, odt='', format='json' ):
-        try:
-            mms = pyMailMerge( self.documentBase + odt )
-            tokens = mms.getTokens()
-            if format=='xml':
-                xml = """<?xml version="1.0" encoding="UTF-8"?><tokens>"""
-                for x in tokens:
-                    xml += "<token>%s</token>" % x
-                xml += "</tokens>"
-                return xml
-            else:
-                return json.dumps( tokens )
-        except:
-            number = "?"
-            message = "unknown exception"
-        return self.__errorXML( number, message )
-    def __errorXML( self, number, message ):
-        return """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <errors>
-            <error>
-                <number>%s</number>
-                <message>%s</message>
-            </error>
-        </errors>""" % (number, message)
-if __name__ == '__main__':
-    http.root = rest()
-    http.server.start()
+import interfaces.rest
+from daemon import Daemon
+
+class pyMailMergeServiced( Daemon ):
+    def run( self ):
+        interfaces.rest.run()
+        
+if __name__ == "__main__":
+    daemon = pyMailMergeServiced()
+    if len( sys.argv ) == 2:
+        if sys.argv[1]  == 'start':
+            daemon.start()
+        elif sys.argv[1] == 'stop':
+            daemon.stop()
+        elif sys.argv[1] == 'restart':
+            daemon.restart()
+        sys.exit(0)
+    elif len( sys.argv == 1 ):
+        print "usage: %s start|stop|restart" % sys.argv[0]
+        sys.exit( 2 )
