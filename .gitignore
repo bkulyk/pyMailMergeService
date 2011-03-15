@@ -1,5 +1,6 @@
-docs/wla*
-docs/demo
-docs/update.docs.to.qa.sh
+docs
 *.pyc
 pymms.log*
+tests/docs/*.pdf
+tests/docs/*.out.odt
+.~lock*
