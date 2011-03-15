@@ -8,7 +8,7 @@ from daemon import Daemon
 class pyMailMergeServiced( Daemon ):
     def run( self ):
         interfaces.rest.run()
-        
+
 if __name__ == "__main__":
     daemon = pyMailMergeServiced()
     if len( sys.argv ) == 2:
