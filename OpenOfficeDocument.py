@@ -23,31 +23,6 @@ class OpenOfficeConnection:
             OpenOfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
             OpenOfficeConnection.desktop = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OpenOfficeConnection.context )
         return OpenOfficeConnection.desktop
-#class AutoText:
-#    autoTextName = None
-#    autoTextGroup = None
-#    autoTextContainer = None
-#    autoTextEntry = None
-#    def __init__( self, cursor ):
-#        try:
-#            #create a new auto text container
-#            self.autoTextContainer = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.text.AutoTextContainer', OpenOfficeConnection.context )
-#            #create a unique name for the container
-#            self.autoTextName = "%s" % uuid.uuid1()
-#            self.autoTextName = self.autoTextName.replace( '-', '_' ) #will only accept a-z, A-Z spaces and underscores
-#            if self.autoTextContainer.hasByName( self.autoTextName ):
-#                self.autoTextContainer.removeByName( self.autoTextName )
-#            self.autoTextGroup = self.autoTextContainer.insertNewByName( self.autoTextName )
-#            self.autoTextEntry = self.autoTextGroup.insertNewByName( 'MAE', 'My AutoText Entry', cursor )
-#        except:
-#            raise PermissionError( "You likely do not have permission needed to create an autotext entry. (needed for copy/paste functions)  Try running soffice as root." )
-#    def insert( self, cursor ):
-#        self.autoTextEntry.applyTo( cursor )
-#    def getTextContent(self):
-#        return self.autoTextEntry
-#    def delete( self ):
-#        self.autoTextContainer.removeByName( self.autoTextName )
-#        pass
 class OpenOfficeDocument:
     """Represent an open office document, with some really dumbed down method names. 
     Example: saveAs instead of storetourl (or whatever)"""
