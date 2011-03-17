@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from OpenOfficeDocument import *
 from modifiers import *
-from lxml import etree              #for parsing xml
+from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
@@ -28,7 +28,7 @@ class pyMailMerge:
         #read contents
         file = open( out, 'r' )
         x = file.read()
-#        os.close( file )
+        file.close()
         #clean up
         os.unlink( out )
         return x

@@ -8,8 +8,7 @@ import urllib2
 import urllib
 #define unit tests
 class testRest( unittest.TestCase ):
-    def testPDF(self):
-        xml = """<?xml version="1.0" encoding="UTF-8"?>
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
         <tokens>
             <token>
                 <name>company::name</name>
@@ -105,11 +104,30 @@ class testRest( unittest.TestCase ):
                 <value><![CDATA[<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>]]></value>
             </token>
         </tokens>"""
+    def testPDF(self):
+        xml = self.xml
         try:
             data = { 'params':xml, 'odt':"invoice.odt" }
             url = "http://localhost:8080/pdf"
             x = urllib2.urlopen( url, urllib.urlencode( data ) )
             file = open( os.path.join( os.path.dirname( __file__ ), 'docs/rest.out.pdf' ), 'w' )
+            file.write( x.read() )
+            file.close()
+            allGood = True
+        except:
+            allGood = False
+        self.assertTrue( allGood )
+    def testUploadConvert(self):
+        xml = self.xml
+        odtFilename = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.odt' ) )
+        file = open( odtFilename, 'r' )
+        odt = file.read()
+        file.close()
+        try:
+            data = { 'params':xml, 'odt':odt }
+            url = "http://localhost:8080/uploadConvert"
+            x = urllib2.urlopen( url, urllib.urlencode( data ) )
+            file = open( os.path.join( os.path.dirname( __file__ ), 'docs/rest_upload_convert.out.pdf' ), 'w' )
             file.write( x.read() )
             file.close()
             allGood = True

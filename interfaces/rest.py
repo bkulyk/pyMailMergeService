@@ -2,8 +2,9 @@ import cherrypy as http
 import os.path
 from pyMailMerge import pyMailMerge
 import simplejson as json
+import tempfile                     #create temp files for writing odt file
 class rest:
-    documentBase = "../tests/docs/"
+    documentBase = "tests/docs/"
     @http.expose
     def index(self, test='default'):
         return """
@@ -14,16 +15,36 @@ class rest:
         </html>
         """ % test
     @http.expose
+    def uploadConvert( self, params='', odt='', type='pdf' ):
+        #write temporary file
+        file, fileName = tempfile.mkstemp( suffix="_pyMMS.odt" )
+        os.close( file )
+        file = open( fileName, 'w' )
+        file.write( odt )
+        file.close()
+        #do conversion
+        try:
+            mms = pyMailMerge( fileName )
+            content = mms.convert( params, type )
+            os.unlink( fileName )
+            return content
+        except:
+            number = '?'
+            message = "unknown exception"
+        return self.__errorXML( number, message )
+    @http.expose
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
     @http.expose
     def convert( self, params='', odt='', type='pdf' ):
         try:
-            mms = pyMailMerge( self.documentBase + odt )
-            return mms.convert( params, 'pdf' )
-        except Exception, e:
+            fileName = os.path.abspath( self.documentBase + odt )
+            mms = pyMailMerge( fileName )
+            return mms.convert( params, type )
+        except:
+            number = '?'
             message = "unknown exception"
-        return self.__errorXML( e.errno, e.strerror )
+        return self.__errorXML( number, message )
     @http.expose
     def getTokens( self, odt='', format='json' ):
         try:
