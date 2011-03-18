@@ -26,5 +26,5 @@ if __name__ == "__main__":
             rest.rest.run()
         sys.exit(0)
     elif len( sys.argv ) == 1:
-        print "usage: %s start|stop|restart" % sys.argv[0]
+        print "usage: %s start|stop|restart|--no-daemon" % sys.argv[0]
         sys.exit( 2 )
