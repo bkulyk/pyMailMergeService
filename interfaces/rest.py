@@ -16,11 +16,14 @@ class rest( interfaces.base ):
     def uploadConvert( self, params='', odt='', type='pdf' ):
         return interfaces.base.uploadConvert( params, odt, type )
     @http.expose
+    def batchpdf( self, batch ):
+        return interfaces.base.batchpdf( self, batch )
+    @http.expose
     def pdf( self, params='', odt='' ):
-        return interfaces.base.convert( params, odt, 'pdf' )
+        return interfaces.base.convert( self, params, odt, 'pdf' )
     @http.expose
     def convert( self, params='', odt='', type='pdf' ):
-        return interfaces.base.convert( params, odt, type )
+        return interfaces.base.convert( self, params, odt, type )
     @http.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )

@@ -12,12 +12,15 @@ class pyMailMerge:
         self.document = OpenOfficeDocument()
         self.document.open( odt )
     def __del__(self):
-        self.document.close()
+        try:
+            self.document.close()
+        except:
+            #I don't really care about any errors at this point...
+            #I should have caught them when opening or connecting
+            pass
     def getTokens( self ):
         tokens = self.document.re_match( r"~[a-zA-Z\|\:]+~" )
         return dict(map(lambda i: (i,1),tokens)).keys()
-    def batchpdf( self, odt ):
-        pass
     def convert( self, params, type='pdf' ):
         params = pyMailMerge._readParamsFromXML( params )
         #process params

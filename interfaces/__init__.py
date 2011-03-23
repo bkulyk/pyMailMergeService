@@ -34,6 +34,26 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
+    def batchpdf( self, batch ):
+        from pyPdf import PdfFileWriter, PdfFileReader
+        output = PdfFileWriter()
+        #convert each document into a pdf
+        for x in batch:
+            odtname, tokens = x
+            pdfpath = self.pdf( odtname, tokens )
+            pdf = PdfFileReader( file( pdfpath, 'rb' ) )
+            #add each page of the new pdf to the big pdf
+            for x in range( 0, pdf.getNumPages() ):
+                output.addPage( pdf.getPage( x ) )
+        #write the merged pdf to disk
+        outfile = self._getTempFile('.pdf')
+        outputStream = file( outfile, 'wb' )
+        output.write( outputStream )
+        outputStream.close()
+        #read all the pdf back so it can be sent to the client
+        readin = open( outfile, 'r' )
+        contents = readin.read()
+        return contents
     def getTokens( self, odt='', format='json' ):
         try:
             path = os.path.dirname( __file__ )

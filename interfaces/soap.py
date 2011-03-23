@@ -10,13 +10,16 @@ class soaphelper:
 class soap( interfaces.base ):
     @soaphelper.expose
     def uploadConvert( self, params='', odt='', type='pdf' ):
-        return interfaces.base.uploadConvert( params, base64.b64decode(odt), type )
+        return interfaces.base.uploadConvert( self, params, base64.b64decode(odt), type )
+    @soaphelper.expose
+    def batchpdf( self, batch ):
+        return base64.b64encode( interfaces.base.batchpdf( self, batch ) )
     @soaphelper.expose
     def pdf( self, params='', odt='' ):
-        return interfaces.base.convert(params, odt, 'pdf')
+        return self.convert( params, odt, 'pdf' )
     @soaphelper.expose
     def convert( self, params='', odt='', type='pdf' ):
-        return base64.b64encode( interfaces.base.convert( params, odt, type ) )
+        return base64.b64encode( self, interfaces.base.convert( params, odt, type ) )
     @soaphelper.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
