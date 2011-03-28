@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from sys import path
-path.append( '..' )
+path.append( '../src' )
 from pyMailMergeService import *
 import unittest
 import zipfile

@@ -19,7 +19,7 @@ class soap( interfaces.base ):
         return self.convert( params, odt, 'pdf' )
     @soaphelper.expose
     def convert( self, params='', odt='', type='pdf' ):
-        return base64.b64encode( self, interfaces.base.convert( params, odt, type ) )
+        return base64.b64encode( self, interfaces.base.convert( self, params, odt, type ) )
     @soaphelper.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )

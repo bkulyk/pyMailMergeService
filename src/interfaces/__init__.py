@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 import os, sys
 sys.path.append( ".." )
-from pyMailMerge import pyMailMerge
+from lib.pyMailMerge import pyMailMerge
 import simplejson as json
 import tempfile
 class base( object ):

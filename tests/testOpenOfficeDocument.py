@@ -2,10 +2,9 @@
 from sys import path
 from sys import exit
 path.append( '..' )
-from OpenOfficeDocument import *
-import unittest
-import os
-import uno
+path.append( '../src' )
+from OpenOfficeDocument import *#from modifiers import *
+import unittest, os, uno
 #define unit tests
 class testOpenOfficeDocument( unittest.TestCase ):
     def setUp(self):
@@ -22,16 +21,19 @@ class testOpenOfficeDocument( unittest.TestCase ):
         ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
         ood.duplicateRow( "~a2~", True )
         ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.pdf' )
+        ood.close()
     def test_duplicateColumn(self):
         ood = OpenOfficeDocument()
         ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
         ood.duplicateColumn( "~a1~", True )
         ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.2.pdf' )
+        ood.close()
     def test_searchAndDuplicate( self ):
         ood = OpenOfficeDocument()
         ood.open( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.odt" )
         ood.searchAndDuplicate( "~start~", '~end~', 3, True )
-        ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.pdf" )    
+        ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.pdf" )
+        ood.close()    
     def test_searchAndCursor( self ):
     	ood = OpenOfficeDocument()
     	ood.open( "/usr/share/pyMailMergeService/tests/docs/find_replace.odt" )
@@ -41,25 +43,26 @@ class testOpenOfficeDocument( unittest.TestCase ):
     	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/insertme.html" )
     	result.insertDocumentFromURL( path, tuple() )
     	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/docInTheMiddle.pdf" )
-    	ood.close() 
+    	ood.close()
     def test_searchAndReplaceWithDocument( self ):
     	ood = OpenOfficeDocument()
-    	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )	
+        print ood
+    	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
     	replace = ood.oodocument.createReplaceDescriptor()
     	replace.setSearchString( "search" )
     	replace.setReplaceString( "replace" )
     	ood.oodocument.replaceAll( replace )
     	ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/find_replaced.pdf' )
+        ood.close()
     def test_insertDocument( self ):
     	ood = OpenOfficeDocument()
-    	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
+        ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
     	cursor = ood.oodocument.Text.createTextCursor()
     	replace = ood.oodocument.createReplaceDescriptor()
     	replace.setSearchString( "search" )
     	replace.setReplaceString( "replace" )
     	ood.oodocument.replaceAll( replace )
     	ood.oodocument.Text.insertString( cursor, 'inserted', 0 )
-    	#print ood.oodocument
     	properties = []
     	properties = tuple( properties )
     	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("/usr/share/pyMailMergeService/tests/docs/insert_doc.odt"), properties )

@@ -3,15 +3,15 @@ import sys
 sys.path.append( ".." )
 import interfaces
 class rest( interfaces.base ):
-    @http.expose
-    def index(self, test='default'):
-        return """
-        <html><body>
-        <form action='/test' method='post'>
-        <h1>%s</h1>
-        </form></body>
-        </html>
-        """ % test
+#    @http.expose
+#    def index(self, test='default'):
+#        return """
+#        <html><body>
+#        <form action='/test' method='post'>
+#        <h1>%s</h1>
+#        </form></body>
+#        </html>
+#        """ % test
     @http.expose
     def uploadConvert( self, params='', odt='', type='pdf' ):
         return interfaces.base.uploadConvert( params, odt, type )
@@ -29,4 +29,5 @@ class rest( interfaces.base ):
         return interfaces.base.getTokens( self, odt, format )
     @staticmethod
     def run():
+	http.config.update( {'server.socket_host':'0.0.0.0', 'server.socket_port':80} )
         http.quickstart( rest() )
