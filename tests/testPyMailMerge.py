@@ -7,6 +7,7 @@ import unittest
 import os
 #define unit tests
 class testPyMailMerge( unittest.TestCase ):
+    """
     xml = r'''<tokens>
             <token>
                 <name>fake::token</name>
@@ -118,17 +119,26 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSection_readonly.out.pdf' ) )
-#    def test_websiteContent(self):
-#        x = open( 'website.html', 'r' )
-#        html = x.read()
-#        params = [
-#            { 'token':'html|content', 'value':html },
-#            { 'token':'title', 'value':'Website Name' },
-#            { 'token':'url', 'value':'http://example.com' }
+        """
+#    def testRepeatSectionTable(self):
+#        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.odt' ) )
+#        pmm = pyMailMerge( path )
+#        x = [
+#               { 'token':'repeatsection|first', 'value':'4' }
 #        ]
-#        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/website.odt' ) )
-#        mms = pyMailMerge( path )
-#        mms._process( params )
-#        mms.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/website.out.pdf' ) )
+#        pmm._process( x )
+#        pmm.document.refresh()
+#        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.out.pdf' ) )
+    def testSpreadsheet( self ):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.ods' ) )
+        pmm = pyMailMerge( path )
+        x = [
+               { 'token':'repeatrow|invoice', 'value':['1', '2', '3', '4'] },
+               { 'token':'total', 'value':['1213.23' ,'531.34', '654.21', '3123.3'] },
+               { 'token':'date', 'value':['2011-01-01','2011-01-07','2011-01-03','2011-01-02'] }
+        ]
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
 if __name__ == '__main__':
     unittest.main()

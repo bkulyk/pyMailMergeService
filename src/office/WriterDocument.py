@@ -7,24 +7,8 @@ from com.sun.star.io import IOException
 from com.sun.star.document.MacroExecMode import NEVER_EXECUTE #, FROM_LIST, ALWAYS_EXECUTE, USE_CONFIG, ALWAYS_EXECUTE_NO_WARN, USE_CONFIG_REJECT_CONFIRMATION, USE_CONFIG_APPROVE_CONFIRMATION, FROM_LIST_NO_WARN, FROM_LIST_AND_SIGNED_WARN, FROM_LIST_AND_SIGNED_NO_WARN
 #import uuid
 import re
-class OpenOfficeConnection:
-    """Object to hold the connection to openoffice, so there is only ever one connection"""
-    desktop = None
-    host = "localhost"
-    port = 8100
-    context = ''
-    @staticmethod
-    def getConnection( **kwargs ):
-        """Create the connection object to open office, only ever create one."""
-        port = kwargs.get( 'port', OpenOfficeConnection.port )
-        host = kwargs.get( 'host', OpenOfficeConnection.host )
-        if OpenOfficeConnection.desktop is None:
-            local = uno.getComponentContext()
-            resolver = local.ServiceManager.createInstanceWithContext( 'com.sun.star.bridge.UnoUrlResolver', local )
-            OpenOfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
-            OpenOfficeConnection.desktop = OpenOfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OpenOfficeConnection.context )
-        return OpenOfficeConnection.desktop
-class OpenOfficeDocument:
+from office import *
+class WriterDocument:
     """Represent an open office document, with some really dumbed down method names. 
     Example: saveAs instead of storetourl (or whatever)"""
     openoffice = None
@@ -110,14 +94,14 @@ class OpenOfficeDocument:
                     }
     def __init__(self):
         """Connect to openoffice"""
-        self.openoffice = OpenOfficeConnection.getConnection()
+        self.openoffice = OfficeConnection.getConnection()
     def open( self, filename ):
         """Open an OpenOffice document"""
         #http://www.oooforum.org/forum/viewtopic.phtml?t=35344
         properties = []
-        properties.append( OpenOfficeDocument._makeProperty( 'Hidden', True ) )
-        properties.append( OpenOfficeDocument._makeProperty( 'MacroExecutionMode', NEVER_EXECUTE ) )
-        properties.append( OpenOfficeDocument._makeProperty( 'ReadOnly', False ) )
+        properties.append( WriterDocument._makeProperty( 'Hidden', True ) )
+        properties.append( WriterDocument._makeProperty( 'MacroExecutionMode', NEVER_EXECUTE ) )
+        properties.append( WriterDocument._makeProperty( 'ReadOnly', False ) )
         properties = tuple( properties )
         self.oodocument = self.openoffice.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( filename ) ), "_blank", 0, properties )
     def refresh( self, refreshIndexes=True ):
@@ -150,11 +134,11 @@ class OpenOfficeDocument:
     def _getExportFilter( self, filename ):
         """Automatically determine to output filter depending on the file extension"""
         #self._makeProperty( 'FilterName', 'writer_pdf_Export' )
-        ext = OpenOfficeDocument._getFileExtension( filename )
-        for x in OpenOfficeDocument.documentTypes:
+        ext = WriterDocument._getFileExtension( filename )
+        for x in WriterDocument.documentTypes:
             if self.oodocument.supportsService( x ):
-                if x in OpenOfficeDocument.exportFilters[ext].keys():
-                    return OpenOfficeDocument._makeProperty( 'FilterName', OpenOfficeDocument.exportFilters[ext][x] )
+                if x in WriterDocument.exportFilters[ext].keys():
+                    return WriterDocument._makeProperty( 'FilterName', WriterDocument.exportFilters[ext][x] )
         return None
     def re_match( self, pattern ):
         search = self.oodocument.createSearchDescriptor()
@@ -204,12 +188,28 @@ class OpenOfficeDocument:
     def searchAndDelete( self, phrase, regex=False ):
         self.searchAndReplace( phrase, '', regex )  
     def _getCursorForStartPhrase(self, startPhrase, regex=False):
-        #find position of start phrase
-        search = self.oodocument.createSearchDescriptor()
-        search.setSearchString( startPhrase )
-        search.SearchRegularExpression = regex
-        result = self.oodocument.findFirst( search )
-        return result
+        try:
+            #find position of start phrase
+            search = self.oodocument.createSearchDescriptor()
+            search.setSearchString( startPhrase )
+            search.SearchRegularExpression = regex
+            result = self.oodocument.findFirst( search )
+            return result
+        except:
+            sheets = self.oodocument.getSheets().createEnumeration()
+            while sheets.hasMoreElements():
+                sheet = sheets.nextElement()
+                #find position of start phrase
+                search = sheet.createSearchDescriptor()
+                search.setSearchString( startPhrase )
+                search.SearchRegularExpression = regex
+                try:
+                    result = sheet.findFirst( search )
+                    print result
+                    return result
+                except:
+                    pass
+        return None
     def _debugMethod( self, unoobj, methodName ):
         from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
         from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
@@ -264,6 +264,36 @@ class OpenOfficeDocument:
         cursor = self._getCursorForStartAndEndPhrases(startPhrase, endPhrase, regex)
         self.oodocument.Text.insertString( cursor, '', True )
     def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
+##        try:
+#        c = self._getCursorForStartPhrase( startPhrase, regex )
+#        enum = c.createEnumeration()
+#        start = None
+#        end = None
+#        if enum.hasMoreElements():
+#            e = enum.nextElement()
+#            cellNames = e.getCellNames()
+#            for x in cellNames:
+#                cell = e.getCellByName( x )
+#                text = cell.Text.getString()
+#                matches = re.match( "\w*%s\w*" % re.escape( startPhrase ), text )
+#                if matches is not None:
+#                    start = x
+#                matches = re.match( "\w*%s\w*" % re.escape( endPhrase ), text )
+#                if matches is not None:
+#                    end = x
+#        if start is not None and end is not None:
+#            print "%s - %s" % ( start, end )
+#            startRow,dummy = self._convertCellNameToCellPositions( start )
+#            endRow,dummy = self._convertCellNameToCellPositions( end )
+#            numRowsToAdd = int(endRow) - int(startRow) + 1
+#            sourceText = []
+#            if numRowsToAdd > 1:
+#                #+1 because it was already subtracted in the modifier code, but this needs to work a little differently, than repeating a section that's not in a table
+#                for i in xrange( count+1 ):
+#                    rows = e.getRows()
+#                    rows.insertByIndex( endRow+1, numRowsToAdd )
+##        except:
+##            pass
         cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
         if cursor is not None:
             cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
@@ -410,7 +440,7 @@ class OpenOfficeDocument:
     @staticmethod
     def convert( inputFile, outputFile ):
         """Convert the given input file to whatever type of file the outputFile is."""
-        c = OpenOfficeDocument()
+        c = WriterDocument()
         c.open( inputFile )
         c.refresh()
         c.saveAs( outputFile )
@@ -425,7 +455,7 @@ class OpenOfficeDocument:
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
-        OpenOfficeDocument.convert( argv[1], argv[2] )
+        WriterDocument.convert( argv[1], argv[2] )
 class PermissionError( Exception ):
     value = None
     def __init__(self, value):
