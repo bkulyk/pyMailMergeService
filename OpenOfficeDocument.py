@@ -123,7 +123,7 @@ class OpenOfficeDocument:
             #I needed the table of contents to automatically update in case page contents had changed
             try:
                 #get all document indexes, eg. toc, or index
-                oIndexes = document.getDocumentIndexes()
+                oIndexes = self.oodocument.getDocumentIndexes()
                 for x in range( 0, oIndexes.getCount() ):
                     oIndexes.getByIndex( x ).update()
             except:
