@@ -1,109 +1,12 @@
 #!/usr/bin/env python
-import uno
-import os
+import uno, os, re
+from OfficeDocument import OfficeDocument
 from sys import path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import IOException
 from com.sun.star.document.MacroExecMode import NEVER_EXECUTE #, FROM_LIST, ALWAYS_EXECUTE, USE_CONFIG, ALWAYS_EXECUTE_NO_WARN, USE_CONFIG_REJECT_CONFIRMATION, USE_CONFIG_APPROVE_CONFIRMATION, FROM_LIST_NO_WARN, FROM_LIST_AND_SIGNED_WARN, FROM_LIST_AND_SIGNED_NO_WARN
-#import uuid
-import re
-from office import *
-class WriterDocument:
-    """Represent an open office document, with some really dumbed down method names. 
-    Example: saveAs instead of storetourl (or whatever)"""
-    openoffice = None
-    oodocument = None
-    documentTypes = [ 'com.sun.star.text.TextDocument', 'com.sun.star.sheet.SpreadsheetDocument', 'com.sun.star.drawing.DrawingDocument', 'com.sun.star.presentation.PresentationDocument' ]
-    #there must be a programmatic way to get this stuff instead of hard-coding, I managed to get the filter list from filterFactory... but can't figure out where to get the extensions.
-    #list pulled from: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
-    #I'm probably missing many types.
-    exportFilters = { 
-                     #general
-                         'pdf':{
-                                'com.sun.star.text.TextDocument':'writer_pdf_Export',
-                                'com.sun.star.sheet.SpreadsheetDocument':'calc_pdf_Export',
-                                'com.sun.star.drawing.DrawingDocument':'draw_pdf_Export',
-                                'com.sun.star.presentation.PresentationDocument':'impress_pdf_Export',
-                                'com.sun.star.text.WebDocument':'writer_web_pdf_Export',
-                                'com.sun.star.formula.FormulaProperties':'math_pdf_Export',
-                                'com.sun.star.text.GlobalDocument':'writer_globaldocument_pdf_Export'
-                                },
-                        'html':{
-                                'com.sun.star.text.TextDocument':'writer8',
-                                #'com.sun.star.text.TextDocument':'HTML (StarWriter)',
-                                'com.sun.star.text.WebDocument':'HTML',
-                                'com.sun.star.text.GlobalDocument':'writerglobal8_HTML',
-                                'com.sun.star.sheet.SpreadsheetDocument':'HTML (StarCalc)',
-                                'com.sun.star.drawing.DrawingDocument':'draw_html_Export',
-                                'com.sun.star.presentation.PresentationDocument':'impress_html_Export'
-                                },
-                        'xhtml':{
-                                 'com.sun.star.text.TextDocument':'XHTML Writer File',
-                                 'com.sun.star.sheet.SpreadsheetDocument':'XHTML Calc File',
-                                 'com.sun.star.drawing.DrawingDocument':'XHTML Draw File',
-                                 'com.sun.star.presentation.PresentationDocument':'XHTML Impress File'
-                            },
-                    #writer specific
-                        'doc':{
-                                "com.sun.star.text.TextDocument":"MS Word 97"
-                                },
-                        'docx':{
-                                "com.sun.star.text.TextDocument":"MS Word 2007 XML"
-                                },
-                        'odt':{
-                               'com.sun.star.text.TextDocument':'writer8',
-                               'com.sun.star.text.WebDocument':'writerweb8_writer',
-                               'com.sun.star.text.GlobalDocument':'writer_globaldocument_StarOffice_XML_Writer_GlobalDocument'
-                               },
-                        'wiki':{
-                                'com.sun.star.text.TextDocument':'MediaWiki',
-                                'com.sun.star.text.WebDocument':'MediaWiki_Web'
-                                },
-                        'txt':{
-                               'com.sun.star.text.TextDocument':'Text',
-                               'com.sun.star.text.WebDocument':'Text (StarWriter/Web)'
-                               },
-                        'rtf':{
-                               'com.sun.star.text.TextDocument':'Rich Text Format',
-                               'com.sun.star.sheet.SpreadsheetDocument':'Rich Text Format (StarCalc)'
-                               },
-                        'ods':{
-                               'com.sun.star.sheet.SpreadsheetDocument':'calc8'
-                               },
-                    #calc specific
-                        'xls':{
-                               'com.sun.star.sheet.SpreadsheetDocument':'MS Excel 97'
-                               },
-                        'xlsx':{
-                                'com.sun.star.sheet.SpreadsheetDocument':'Calc MS Excel 2007 XML'
-                                },
-                    #impress specific
-                        'pptx':{
-                                'com.sun.star.presentation.PresentationDocument':'Impress MS PowerPoint 2007 XML'
-                                },
-                        'ppt':{
-                               'com.sun.star.presentation.PresentationDocument':'MS PowerPoint 97'
-                               },
-                        'odp':{
-                               'com.sun.star.presentation.PresentationDocument':'impress8'
-                               },
-                        'svg':{
-                               'com.sun.star.drawing.DrawingDocument':'draw_svg_Export',
-                               'com.sun.star.presentation.PresentationDocument':'impress_svg_Export'
-                               }
-                    }
-    def __init__(self):
-        """Connect to openoffice"""
-        self.openoffice = OfficeConnection.getConnection()
-    def open( self, filename ):
-        """Open an OpenOffice document"""
-        #http://www.oooforum.org/forum/viewtopic.phtml?t=35344
-        properties = []
-        properties.append( WriterDocument._makeProperty( 'Hidden', True ) )
-        properties.append( WriterDocument._makeProperty( 'MacroExecutionMode', NEVER_EXECUTE ) )
-        properties.append( WriterDocument._makeProperty( 'ReadOnly', False ) )
-        properties = tuple( properties )
-        self.oodocument = self.openoffice.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( filename ) ), "_blank", 0, properties )
+from lib.B26 import B26
+class WriterDocument( OfficeDocument ):
     def refresh( self, refreshIndexes=True ):
         """Refresh the OpenOffice docuemnt and (optionally) it's indexes"""
         try:
@@ -228,7 +131,8 @@ class WriterDocument:
         """
         from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
         from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
-        ctx = OpenOfficeConnection.context
+        from OfficeDocument import OfficeConnection
+        ctx = OfficeConnection.context
         introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
         access = introspection.inspect(unoobj)
         meths = access.getMethods(ALLMETHS)
@@ -263,51 +167,88 @@ class WriterDocument:
     def searchAndRemoveSection( self, startPhrase, endPhrase, regex=False ):
         cursor = self._getCursorForStartAndEndPhrases(startPhrase, endPhrase, regex)
         self.oodocument.Text.insertString( cursor, '', True )
-    def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
-##        try:
-#        c = self._getCursorForStartPhrase( startPhrase, regex )
-#        enum = c.createEnumeration()
-#        start = None
-#        end = None
-#        if enum.hasMoreElements():
-#            e = enum.nextElement()
-#            cellNames = e.getCellNames()
-#            for x in cellNames:
-#                cell = e.getCellByName( x )
-#                text = cell.Text.getString()
-#                matches = re.match( "\w*%s\w*" % re.escape( startPhrase ), text )
-#                if matches is not None:
-#                    start = x
-#                matches = re.match( "\w*%s\w*" % re.escape( endPhrase ), text )
-#                if matches is not None:
-#                    end = x
-#        if start is not None and end is not None:
-#            print "%s - %s" % ( start, end )
-#            startRow,dummy = self._convertCellNameToCellPositions( start )
-#            endRow,dummy = self._convertCellNameToCellPositions( end )
-#            numRowsToAdd = int(endRow) - int(startRow) + 1
-#            sourceText = []
-#            if numRowsToAdd > 1:
-#                #+1 because it was already subtracted in the modifier code, but this needs to work a little differently, than repeating a section that's not in a table
-#                for i in xrange( count+1 ):
-#                    rows = e.getRows()
-#                    rows.insertByIndex( endRow+1, numRowsToAdd )
-##        except:
-##            pass
-        cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
-        if cursor is not None:
-            cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
-            if cursor2 is not None:
-                #copy once....
-                controller = self.oodocument.getCurrentController()
+    def searchAndDuplicateInTable( self, startPhrase, endPhrase, count, regex=False ):
+#        try:
+        #get the start and end cells
+        c = self._getCursorForStartPhrase( startPhrase, regex )
+        enum = c.createEnumeration()
+        start = None
+        end = None
+        if enum.hasMoreElements():
+            e = enum.nextElement()
+            cellNames = e.getCellNames()
+            for x in cellNames:
+                cell = e.getCellByName( x )
+                text = cell.Text.getString()
+                matches = re.match( "\w*%s\w*" % re.escape( startPhrase ), text )
+                if matches is not None:
+                    start = x
+                matches = re.match( "\w*%s\w*" % re.escape( endPhrase ), text )
+                if matches is not None:
+                    end = x
+        #now that we have the start and end cells, copy the content, duplicate and paste content
+        if start is not None and end is not None:
+            #print "%s - %s" % ( start, end )
+            startRow,dummy = self._convertCellNameToCellPositions( start )
+            endRow,dummy = self._convertCellNameToCellPositions( end )
+            numRowsToAdd = int(endRow) - int(startRow) + 1
+            #controller gets the view cursor
+            controller = self.oodocument.getCurrentController()
+            cellCursor = e.createCursorByCellName( start )
+            i = 0
+            cells = [] #hold the copied content to paste later 
+            while cellCursor is not None:
+                if i != 0:
+                    """in openoffice/libreoffice if you put your cursor in a cell and 
+                    move to the right if you are at the last cell in a row, it will move 
+                    the cursor to the first cell of the next row"""
+                    cellCursor.goRight( 1, False )
+                #copy this cell
                 viewCursor = controller.getViewCursor()
-                viewCursor.gotoRange( cursor, False )
+                currentCell = e.getCellByName( cellCursor.getRangeName() )
+                viewCursor.gotoRange( currentCell.Text, False )
                 txt = controller.getTransferable()
-                #paste multipul times
-                for x in xrange( count ):
-                    #look ma, no more AutoText
-                    viewCursor.gotoRange( cursor2, False )
-                    controller.insertTransferable( txt )
+                cells.append( txt )
+                if cellCursor.getRangeName() == end:
+                    break;
+                i += 1
+            #insert rows into table
+            if numRowsToAdd > 1:
+                for i in xrange( count ):
+                    rows = e.getRows()
+                    rows.insertByIndex( endRow+1, numRowsToAdd )
+            #paste content into new cells
+            for i in xrange( count ):
+                for x in xrange( len( cells ) ):
+                    cellCursor.goRight( 1, False )
+                    currentCell = e.getCellByName( cellCursor.getRangeName() )
+                    currentCell.setString( ' ' )
+                    self._debug( cellCursor, True )
+                    viewCursor.gotoRange( currentCell.Text, False )
+                    controller.insertTransferable( cells[x] )
+#        except:
+#            pass
+    def searchAndDuplicate( self, startPhrase, endPhrase, count, regex=False ):
+        i = 0 #track number of successful duplications
+        try:
+            cursor = self._getCursorForStartAndEndPhrases( startPhrase, endPhrase, regex )
+            if cursor is not None:
+                cursor2 = self.oodocument.Text.createTextCursorByRange( cursor.getEnd() )
+                if cursor2 is not None:
+                    #copy once...
+                    controller = self.oodocument.getCurrentController()
+                    viewCursor = controller.getViewCursor()
+                    viewCursor.gotoRange( cursor, False )
+                    txt = controller.getTransferable()
+                    #... paste multiple times
+                    for x in xrange( count ):
+                        #look ma, no more AutoText
+                        viewCursor.gotoRange( cursor2, False )
+                        controller.insertTransferable( txt )
+                        i += 1
+            return i
+        except:
+            return i
     def duplicateRow(self, phrase, regex=False):
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
@@ -445,13 +386,6 @@ class WriterDocument:
         c.refresh()
         c.saveAs( outputFile )
         c.close()
-    @staticmethod
-    def _makeProperty( key, value ):
-        """Create an property for use with the OpenOffice API"""
-        property = PropertyValue()
-        property.Name = key
-        property.Value = value
-        return property
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
@@ -462,18 +396,3 @@ class PermissionError( Exception ):
         self.value = value
     def __str__(self):
         return repr( self.value )
-class B26:
-    @staticmethod
-    def fromBase26( value ):
-        total = 0
-        pos = 0
-        for digit in value[::-1]:
-            dec = int( digit, 36 ) - 9
-            if pos == 0:
-                add = dec
-            else:
-                x = dec * pos
-                add = x * 26
-            total = total + add
-            pos = pos + 1
-        return total

@@ -1,7 +1,7 @@
 import sys
 sys.path.append( ".." )
-from OpenOfficeDocument import *
-from modifiers import *
+from OfficeDocument import OfficeDocument
+from modifiers import modifiers
 from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
@@ -9,8 +9,8 @@ import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
 class pyMailMerge:
     document = None
-    def __init__( self, odt ):
-        self.document = OpenOfficeDocument()
+    def __init__( self, odt, type='odt' ):
+        self.document = OfficeDocument.createDocument( type )
         self.document.open( odt )
     def __del__(self):
         try:
@@ -21,7 +21,7 @@ class pyMailMerge:
             pass
     def getTokens( self ):
         tokens = self.document.re_match( r"~[a-zA-Z\|\:]+~" )
-        return dict(map(lambda i: (i,1),tokens)).keys()
+        return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     def convert( self, params, type='pdf' ):
         params = pyMailMerge._readParamsFromXML( params )
         #process params

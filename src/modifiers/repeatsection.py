@@ -10,8 +10,9 @@ class __init__( modifier ):
         endkey = "~end%s~" % param['token']
         count = int( param['value'] ) - 1
         #repeat the section of content wrapped by the start and end keys
-        document.searchAndDuplicate( startkey, endkey, count )
-        #remove the keys from the documen
+        if document.searchAndDuplicate( startkey, endkey, count ) == 0:
+            document.searchAndDuplicateInTable( startkey, endkey, count )
+        #clean up (remove tokens from document)
         document.searchAndDelete( startkey )
         document.searchAndDelete( endkey )
 modifiers.modifiers.modifierOrder.append( {'name':'repeatsection', 'order':15 } )

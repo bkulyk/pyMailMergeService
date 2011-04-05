@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import cherrypy as http
 import os.path, sys
 from lib.pyMailMerge import pyMailMerge
 import simplejson as json
