@@ -1,0 +1,236 @@
+
+
+
+
+
+/*
+     FILE ARCHIVED ON 23:24:45 Feb 18, 2007 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 18:19:56 Apr 5, 2011.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+*/
+#devguide a { text-decoration: none; }
+#devguide a { text-decoration: none; }
+#devguide a:link { color: #C44B01; }
+#devguide a:visited { color: #638093; }
+#devguide a:active { color: #9DCA12; }
+#devguide 	@page { size: 19.05cm 22.86cm; margin-top: 1.905cm; margin-bottom: 1.905cm; margin-left: 2.337cm; margin-right: 1.27cm }
+#devguide 	table { border-collapse:collapse; border-spacing:0; empty-cells:show }
+#devguide 	td, th { vertical-align:top; }
+#devguide 	h1, h2, h3, h4, h5, h6 { clear:both }
+#devguide 	ol, ul { padding:0; }
+#devguide 	* { margin:0; }
+#devguide 	*.ChapterFrame { color:#000000; font-family:'Times New Roman'; font-size:12pt; vertical-align:top; text-align:left; padding:0.049cm; border-left-style:none; border-right-style:none; border-top-style:none; border-bottom-width:0.0133cm; border-bottom-style:solid; border-bottom-color:#000000; }
+#devguide 	*.Formula { color:#000000; font-family:'Times New Roman'; font-size:12pt; vertical-align:top; }
+#devguide 	*.fr1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; vertical-align:top; text-align:left; padding:0.049cm; border-left-style:none; border-right-style:none; border-top-style:none; border-bottom-width:0.018cm; border-bottom-style:solid; border-bottom-color:#000000; }
+#devguide 	*.Frame { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.201cm; margin-right:0.201cm; margin-top:0.201cm; margin-bottom:0.201cm; vertical-align:top; text-align:center; background-color:transparent; padding:0cm; border-style:none; }
+#devguide 	*.Graphics { color:#000000; font-family:'Times New Roman'; font-size:12pt; vertical-align:top; text-align:center; }
+#devguide 	*.Illustration { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; margin-top:0.499cm; margin-bottom:0.499cm; vertical-align:top; background-color:transparent; padding:0cm; border-style:none; }
+#devguide 	*.Labels { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.201cm; margin-right:0.201cm; vertical-align:top; }
+#devguide 	*.OLE { color:#000000; font-family:'Times New Roman'; font-size:12pt; vertical-align:top; text-align:center; }
+#devguide 	*.Addressee { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.349cm; font-style:italic; }
+#devguide 	*.Bibliography1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.BibliographyHeading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.BottomTitelLine { color:#000000; font-family:Helvetica; font-size:8pt; margin-top:0cm; margin-bottom:0.212cm; line-height:100%; margin-left:0cm; margin-right:0cm; text-indent:0cm; padding:0.049cm; border-left-style:none; border-right-style:none; border-top-style:none; border-bottom-width:0.0133cm; border-bottom-style:solid; border-bottom-color:#000000; }
+#devguide 	*.Caption { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-top:0.212cm; margin-bottom:0.212cm; font-style:italic; }
+#devguide 	*.ChapterText { color:#000000; font-family:Helvetica; font-size:10pt; margin-top:0.423cm; margin-bottom:0.212cm; font-style:normal; font-weight:normal; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Code { color:#000000; font-family:'Courier New'; font-size:70%; margin-top:0cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; background-color:#e6e6e6; }
+#devguide 	*.CodeInLists { color:#000000; font-family:'Courier New'; font-size:7pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.048cm; margin-right:0cm; text-indent:0cm; line-height:100%; }
+#devguide 	*.Contents1 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:2.499cm; margin-right:0cm; margin-top:0.61cm; margin-bottom:0.254cm; font-weight:bold; text-indent:-0.54cm; }
+#devguide 	*.Contents10 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:4.493cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents2 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:3.54cm; margin-right:0cm; margin-top:0cm; margin-bottom:0.279cm; font-weight:normal; text-indent:-1.041cm; }
+#devguide 	*.Contents3 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:3.54cm; margin-right:0cm; margin-top:0cm; margin-bottom:0.279cm; text-indent:-0.54cm; }
+#devguide 	*.Contents4 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:1.498cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents5 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:1.997cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents6 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:2.496cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents7 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:2.995cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents8 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:3.494cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Contents9 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:3.993cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.ContentsHeading { color:#000000; font-family:Arial; font-size:20pt; margin-top:2.499cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0.838cm; font-weight:normal; text-indent:0cm; padding:3.59cm; border-left-style:none; border-right-style:none; border-top-width:0.0133cm; border-top-style:solid; border-top-color:#ffffff; border-bottom-style:none; }
+#devguide 	*.Copyright { color:#000000; font-family:Palatino; font-size:16pt; margin-top:1cm; margin-bottom:0.4cm; font-style:normal; font-weight:bold; margin-left:0cm; margin-right:0.838cm; text-indent:0cm; }
+#devguide 	*.CopyrightText { color:#000000; font-family:Palatino; font-size:9pt; margin-left:0cm; margin-right:0cm; margin-top:0.15cm; margin-bottom:0cm; text-indent:0cm; }
+#devguide 	*.Drawing { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-top:0.212cm; margin-bottom:0.212cm; font-style:italic; }
+#devguide 	*.Endnote { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-left:0.499cm; margin-right:0cm; text-indent:-0.499cm; }
+#devguide 	*.FigureCode { color:#000000; font-family:'Courier New'; font-size:9pt; margin-top:0cm; margin-bottom:0.102cm; margin-left:0cm; margin-right:0cm; text-indent:0cm; background-color:#e6e6e6; }
+#devguide 	*.FigureCode2 { color:#000000; font-family:'Courier New'; font-size:8pt; margin-top:0cm; margin-bottom:0.051cm; margin-left:0cm; margin-right:0cm; text-indent:0cm; background-color:#e6e6e6; }
+#devguide 	*.FigureCodeMap { color:#000000; font-family:'Times New Roman'; font-size:9pt; margin-top:0cm; margin-bottom:0.102cm; margin-left:0cm; margin-right:0cm; text-indent:0cm; background-color:#e6e6e6; }
+#devguide 	*.Firstlineindent { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; text-indent:0.499cm; }
+#devguide 	*.Footer { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Footerleft { color:#000000; font-family:Helvetica; font-size:9pt; margin-left:0.199cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Footerright { color:#000000; font-family:Helvetica; font-size:8.5pt; margin-left:0cm; margin-right:0.199cm; text-align:right ! important; text-indent:0cm; }
+#devguide 	*.Footnote { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-left:0.499cm; margin-right:0cm; text-indent:-0.499cm; }
+#devguide 	*.Framecontents { color:#000000; font-family:Helvetica; font-size:18pt; margin-top:0cm; margin-bottom:0.212cm; line-height:100%; }
+#devguide 	*.Hangingindent { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; margin-left:1cm; margin-right:0cm; text-indent:-0.499cm; }
+#devguide 	*.Head1 { color:#000000; font-family:Palatino; font-size:24pt; margin-top:2.499cm; margin-bottom:0cm; font-weight:normal; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Head2 { color:#000000; font-family:Palatino; font-size:18pt; margin-top:1cm; margin-bottom:0.4cm; font-style:normal; font-weight:bold; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Head3 { color:#000000; font-family:Palatino; font-size:16pt; margin-top:1cm; margin-bottom:0.3cm; font-weight:normal; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Head4 { color:#000000; font-family:Palatino; font-size:14pt; margin-top:0.891cm; margin-bottom:0.199cm; font-style:normal; font-weight:normal; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Head5 { color:#000000; font-family:Palatino; font-size:12pt; margin-top:0.589cm; margin-bottom:0.101cm; font-weight:normal; margin-left:2.54cm; margin-right:0cm; font-style:italic; text-indent:0cm; }
+#devguide 	*.Head6 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.589cm; margin-bottom:0.101cm; font-weight:normal; margin-left:2.54cm; margin-right:0cm; font-style:italic; text-indent:0cm; }
+#devguide 	*.Header { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:2.54cm; margin-right:0cm; margin-top:0.499cm; margin-bottom:0cm; text-indent:0cm; padding:0cm; border-style:none; }
+#devguide 	*.Headerleft { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Headerright { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Heading { color:#000000; font-family:Arial; font-size:14pt; margin-top:0.423cm; margin-bottom:0.212cm; }
+#devguide 	*.Heading1 { color:#000000; font-family:Arial; font-size:115%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading10 { color:#000000; font-family:Arial; font-size:75%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading2 { color:#000000; font-family:Arial; font-size:14pt; margin-top:0.423cm; margin-bottom:0.212cm; font-style:italic; font-weight:bold; }
+#devguide 	*.Heading3 { color:#000000; font-family:Arial; font-size:14pt; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading4 { color:#000000; font-family:Arial; font-size:85%; margin-top:0.423cm; margin-bottom:0.212cm; font-style:italic; font-weight:bold; }
+#devguide 	*.Heading5 { color:#000000; font-family:Arial; font-size:85%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading6 { color:#000000; font-family:Arial; font-size:75%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading7 { color:#000000; font-family:Arial; font-size:75%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading8 { color:#000000; font-family:Arial; font-size:75%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.Heading9 { color:#000000; font-family:Arial; font-size:75%; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; }
+#devguide 	*.HeadlineIndex { color:#000000; font-family:'Times New Roman'; font-size:20pt; margin-left:2.54cm; margin-right:0cm; margin-top:0.499cm; margin-bottom:0cm; text-indent:0cm; padding:3.191cm; border-style:none; border-left-style:none; border-right-style:none; border-top-width:0.0133cm; border-top-style:solid; border-top-color:#ffffff; border-bottom-style:none; }
+#devguide 	*.HorizontalLine { color:#000000; font-family:'Times New Roman'; font-size:6pt; margin-top:0cm; margin-bottom:0.499cm; padding:0cm; border-left-style:none; border-right-style:none; border-top-style:none; border-bottom-width:0.0399cm; border-bottom-style:double; border-bottom-color:#808080; }
+#devguide 	*.Illustration { color:#000000; font-family:Palatino; font-style:italic; font-size:9pt; margin-top:0.212cm; margin-bottom:0.212cm; font-style:italic; line-height:100%; }
+#devguide 	*.IllustrationIndex1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.IllustrationIndexHeading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.Index { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Index_Head { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.Index_Level1 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:0cm; margin-right:0cm; margin-top:0.049cm; margin-bottom:0.049cm; text-indent:0cm; }
+#devguide 	*.Index_Level2 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:0.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Index_Separation { color:#000000; font-family:Helvetica; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; margin-top:0.499cm; margin-bottom:0cm; font-weight:bold; }
+#devguide 	*.Index1 { color:#000000; font-family:Palatino; font-size:9pt; margin-left:0.3cm; margin-right:0cm; margin-top:0.049cm; margin-bottom:0.049cm; text-indent:-0.3cm; }
+#devguide 	*.Index2 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Index3 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.IndexHeading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.IndexSeparator { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; }
+#devguide 	*.List1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List1Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List1End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List1Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List2 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List2Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List2End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List2Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List3 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List3Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List3End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List3Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List4 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List4Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List4End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List4Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List5 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List5Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.List5End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.List5Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.ListContents { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.998cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.ListHeading { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.ListIndent { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; margin-left:5.001cm; margin-right:0cm; text-indent:-4.5cm; }
+#devguide 	*.Listing { color:#000000; font-family:Palatino; font-size:9pt; margin-top:0.101cm; margin-bottom:0.28cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; font-style:italic; }
+#devguide 	*.Marginalia { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; margin-left:4.001cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.MethodSignatures { color:#000000; font-family:'Courier New'; font-size:7pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.039cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering1Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering1End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering1Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:1.251cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering2 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering2Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering2End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering2Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.499cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering3 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering3Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering3End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering3Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:3.75cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering4 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering4Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering4End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering4Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:5.001cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering5 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering5Cont { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Numbering5End { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Numbering5Start { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; margin-left:6.249cm; margin-right:0cm; text-indent:-0.497cm; }
+#devguide 	*.Objectindex1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Objectindexheading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.Output { color:#000000; font-family:'Courier New'; font-size:70%; margin-top:0cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; background-color:#ffffff; padding:0.049cm; border-width:0.0133cm; border-style:solid; border-color:#000000; }
+#devguide 	*.P1 { color:#ffffff; font-family:Palatino; font-size:10pt; margin-top:0.229cm; margin-bottom:0.229cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; background-color:#800000; }
+#devguide 	*.P2 { color:#000000; font-family:Helvetica; font-size:8.5pt; margin-left:0cm; margin-right:0.199cm; text-align:right ! important; text-indent:0cm; font-weight:bold; }
+#devguide 	*.P3 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.28cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; font-style:italic; text-align:left ! important; }
+#devguide 	*.P4 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0cm; margin-bottom:0.28cm; margin-left:3.05cm; margin-right:0cm; text-indent:0cm; text-align:left ! important; }
+#devguide 	*.P5 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0cm; margin-bottom:0.28cm; margin-left:3.05cm; margin-right:0cm; text-indent:0cm; font-weight:normal; }
+#devguide 	*.P6 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.229cm; margin-bottom:0.229cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; text-align:left ! important; }
+#devguide 	*.P7 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.229cm; margin-bottom:0.229cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.P8 { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.229cm; margin-bottom:0.229cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Paragraph { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.229cm; margin-bottom:0.229cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.PreformattedText { color:#000000; font-family:Courier; font-size:10pt; margin-top:0cm; margin-bottom:0cm; }
+#devguide 	*.Quotations { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:1cm; margin-right:1cm; margin-top:0cm; margin-bottom:0.349cm; text-indent:0cm; }
+#devguide 	*.Salutation { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Sender { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0cm; font-style:italic; }
+#devguide 	*.Signature { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Standard { color:#000000; font-family:'Times New Roman'; font-size:12pt; }
+#devguide 	*.Subtitle { color:#000000; font-family:Arial; font-size:14pt; margin-top:0.423cm; margin-bottom:0.212cm; font-style:italic; text-align:center ! important; }
+#devguide 	*.Table { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-top:0.212cm; margin-bottom:0.212cm; font-style:italic; }
+#devguide 	*.Table_Note { color:#000000; font-family:Palatino; font-size:8pt; margin-top:0.079cm; margin-bottom:0cm; margin-left:2.799cm; margin-right:0cm; text-indent:-0.259cm; font-style:normal; }
+#devguide 	*.TableCode { color:#000000; font-family:'Courier New'; font-size:90%; margin-top:0.28cm; margin-bottom:0.28cm; }
+#devguide 	*.TableContents { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; }
+#devguide 	*.TableFootnote { color:#000000; font-family:Palatino; font-size:8pt; margin-top:0.079cm; margin-bottom:0cm; margin-left:2.799cm; margin-right:0cm; text-indent:-0.259cm; }
+#devguide 	*.TableHead { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0cm; margin-bottom:0.212cm; font-style:normal; font-weight:bold; text-align:left ! important; }
+#devguide 	*.TableHeading { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; font-style:italic; font-weight:bold; text-align:center ! important; }
+#devguide 	*.TableHeadLeft { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0cm; margin-bottom:0.212cm; font-style:normal; font-weight:bold; text-align:left ! important; margin-left:0.3cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Tableindex1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.Tableindexheading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.Text { color:#000000; font-family:'Times New Roman'; font-size:10pt; margin-top:0.212cm; margin-bottom:0.212cm; font-style:italic; }
+#devguide 	*.Textbody { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; }
+#devguide 	*.Textbodyindent { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-top:0cm; margin-bottom:0.212cm; margin-left:0.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.TextInTable { color:#000000; font-family:Palatino; font-size:9pt; margin-top:0.28cm; margin-bottom:0.28cm; }
+#devguide 	*.TipInTable { color:#000000; font-family:Palatino; font-size:9pt; margin-top:0.28cm; margin-bottom:0.28cm; }
+#devguide 	*.Title { color:#000000; font-family:Arial; font-size:18pt; margin-top:0.423cm; margin-bottom:0.212cm; font-weight:bold; text-align:left ! important; }
+#devguide 	*.TitledListBody { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0cm; margin-bottom:0.28cm; margin-left:3.05cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.TitledListCode { color:#000000; font-family:'Courier New'; font-size:70%; margin-top:0cm; margin-bottom:0cm; margin-left:3.05cm; margin-right:0cm; text-indent:0cm; background-color:#e6e6e6; }
+#devguide 	*.TitledListHead { color:#000000; font-family:Palatino; font-size:10pt; margin-top:0.28cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0cm; text-indent:0cm; font-style:italic; }
+#devguide 	*.TOC_Head { color:#000000; font-family:Palatino; font-size:20pt; margin-top:0cm; margin-bottom:0cm; margin-left:2.54cm; margin-right:0.838cm; font-weight:normal; text-indent:0cm; padding:0cm; border-left-style:none; border-right-style:none; border-top-width:0.0133cm; border-top-style:solid; border-top-color:#ffffff; border-bottom-style:none; border-style:none; }
+#devguide 	*.TOC_Level1 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:2.499cm; margin-right:0cm; margin-top:0.61cm; margin-bottom:0.254cm; font-weight:bold; text-indent:-0.54cm; }
+#devguide 	*.TOC_Level2 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:3.54cm; margin-right:0cm; margin-top:0cm; margin-bottom:0.279cm; font-weight:normal; text-indent:-1.041cm; }
+#devguide 	*.TOC_Level3 { color:#000000; font-family:Palatino; font-size:10pt; margin-left:3.54cm; margin-right:0cm; margin-top:0cm; margin-bottom:0.279cm; text-indent:-0.54cm; }
+#devguide 	*.Under_Head1 { color:#000000; font-family:'Times New Roman'; font-size:9.5pt; padding:0.15cm; border-left-style:none; border-right-style:none; border-top-style:none; border-bottom-width:0.0133cm; border-bottom-style:solid; border-bottom-color:#000000; }
+#devguide 	*.UserIndex1 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex10 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:4.493cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex2 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.499cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex3 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:0.998cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex4 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:1.498cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex5 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:1.997cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex6 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:2.496cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex7 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:2.995cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex8 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:3.494cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndex9 { color:#000000; font-family:'Times New Roman'; font-size:12pt; margin-left:3.993cm; margin-right:0cm; text-indent:0cm; }
+#devguide 	*.UserIndexHeading { color:#000000; font-family:Arial; font-size:16pt; margin-top:0.423cm; margin-bottom:0.212cm; margin-left:0cm; margin-right:0cm; font-weight:bold; text-indent:0cm; }
+#devguide 	*.BulletSymbols { font-family:ZapfDingbats; font-size:6pt; }
+#devguide 	*.ButtonsMenus { font-weight:bold; }
+#devguide 	*.Captioncharacters { }
+#devguide 	*.ChapterRef { font-style:italic; }
+#devguide 	*.CODE { font-family:'Courier New'; }
+#devguide 	*.Codeintext { color:#000000; font-family:'Courier New'; font-size:9pt; }
+#devguide 	*.CODEComment { font-family:'Courier New'; color:#008000; }
+#devguide 	*.CodeEmphasis { font-family:'Courier New'; font-size:7pt; font-weight:bold; }
+#devguide 	*.CODEEmphasis { font-family:'Courier New'; font-size:7pt; font-weight:bold; }
+#devguide 	*.CODEKeyWord { font-family:'Courier New'; color:#000000; font-size:9pt; }
+#devguide 	*.CODEString { font-family:'Courier New'; color:#008080; }
+#devguide 	*.DefaultCode { font-family:'Courier New'; font-size:7pt; }
+#devguide 	*.DefaultParagraph { font-family:Palatino; font-size:10pt; }
+#devguide 	*.Definition { }
+#devguide 	*.Emphasis { font-style:italic; }
+#devguide 	*.Example { font-family:'Courier New'; }
+#devguide 	*.Footnoteanchor { vertical-align:sup; }
+#devguide 	*.FootnoteSymbol { }
+#devguide 	*.Internetlink { color:#000080; text-decoration:underline; }
+#devguide 	*.MethodSignatureEmphasis { font-family:'Courier New'; font-size:7pt; font-weight:bold; }
+#devguide 	*.NumberingSymbols { }
+#devguide 	*.PageNumber { font-family:Helvetica; font-size:9pt; font-weight:bold; }
+#devguide 	*.Placeholder { color:#008080; text-decoration:underline; }
+#devguide 	*.Reference { font-style:italic; }
+#devguide 	*.SourceText { font-family:'Courier New'; }
+#devguide 	*.StrongEmphasis { font-weight:bold; }
+#devguide 	*.T1 { font-weight:normal; }
+#devguide 	*.T2 { font-weight:normal; }
+#devguide 	*.T3 { font-style:italic; }
+#devguide 	*.T4 { font-weight:bold; font-style:normal; }
+#devguide 	*.T5 { font-style:normal; }
+#devguide 	*.UserEntry { font-family:'Courier New'; }
+#devguide 	*.VisitedInternetLink { color:#800000; text-decoration:underline; }
+#devguide 	*.White { }
+#devguide 	*.wwwftpemail { font-style:italic; }

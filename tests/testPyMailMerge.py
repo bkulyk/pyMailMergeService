@@ -129,16 +129,16 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.out.pdf' ) )
-#    def testSpreadsheet( self ):
-#        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.ods' ) )
-#        pmm = pyMailMerge( path )
-#        x = [
-#               { 'token':'repeatrow|invoice', 'value':['1', '2', '3', '4'] },
-#               { 'token':'total', 'value':['1213.23' ,'531.34', '654.21', '3123.3'] },
-#               { 'token':'date', 'value':['2011-01-01','2011-01-07','2011-01-03','2011-01-02'] }
-#        ]
-#        pmm._process( x )
-#        pmm.document.refresh()
-#        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
+    def testSpreadsheet( self ):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.ods' ) )
+        pmm = pyMailMerge( path, 'ods' )
+        x = [
+               { 'token':'repeatrow|invoice', 'value':['1', '2', '3', '4'] },
+               { 'token':'total', 'value':['1213.23' ,'531.34', '654.21', '3123.3'] },
+               { 'token':'date', 'value':['2011-01-01','2011-01-07','2011-01-03','2011-01-02'] }
+        ]
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
 if __name__ == '__main__':
     unittest.main()

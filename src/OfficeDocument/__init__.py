@@ -117,6 +117,27 @@ class OfficeDocument:
         properties.append( OfficeDocument._makeProperty( 'ReadOnly', False ) )
         properties = tuple( properties )
         self.oodocument = self.openoffice.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( filename ) ), "_blank", 0, properties )
+    def saveAs( self, filename ):
+        """Save the open office document to a new file, and possibly filetype. 
+        The type of document is parsed out of the file extension of the filename given."""
+        filename = uno.systemPathToFileUrl( os.path.abspath( filename ) )
+        #filterlist: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
+        exportFilter = self._getExportFilter( filename )
+        props = exportFilter, 
+        #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
+        self.oodocument.storeToURL( filename, props )
+    def close( self ):
+        """Close the OpenOffice document"""
+        self.oodocument.close( 1 )
+    def _getExportFilter( self, filename ):
+        """Automatically determine to output filter depending on the file extension"""
+        #self._makeProperty( 'FilterName', 'writer_pdf_Export' )
+        ext = OfficeDocument._getFileExtension( filename )
+        for x in OfficeDocument.documentTypes:
+            if self.oodocument.supportsService( x ):
+                if x in OfficeDocument.exportFilters[ext].keys():
+                    return OfficeDocument._makeProperty( 'FilterName', OfficeDocument.exportFilters[ext][x] )
+        return None
     @staticmethod
     def createDocument( type ):
         if type == 'odt':
@@ -132,3 +153,53 @@ class OfficeDocument:
         property.Name = key
         property.Value = value
         return property
+    @staticmethod
+    def _getFileExtension( filepath ):
+        """Get the file extension for the given path"""
+        file = os.path.splitext(filepath.lower())
+        if len( file ):
+            return file[1].replace( '.', '' )
+        else:
+            return filepath
+    @staticmethod
+    def convert( inputFile, outputFile ):
+        """Convert the given input file to whatever type of file the outputFile is."""
+        c = WriterDocument()
+        c.open( inputFile )
+        c.refresh()
+        c.saveAs( outputFile )
+        c.close()
+    def _debug( self, unoobj, doPrint=False ):
+        """
+        Print(or return) all of the method and property names for an uno object6
+        Thanks to Carsten Haese for his insanely useful example fount at:
+        http://bytes.com/topic/python/answers/641662-how-do-i-get-type-methods#post2545353
+        """
+        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
+        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
+        from OfficeDocument import OfficeConnection
+        ctx = OfficeConnection.context
+        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
+        access = introspection.inspect(unoobj)
+        meths = access.getMethods(ALLMETHS)
+        props = access.getProperties(ALLPROPS)
+        if doPrint:
+            print "Object Methods:"
+            for x in meths:
+                print "---- %s" % x.getName()
+            print "Object Properties:"
+            for x in props:
+                print "---- %s" % x.Name
+        #return [ x.getName() for x in meths ], [ x.Name for x in props ]
+        return ( [x.getName() for x in meths], [x.Name for x in props] )
+    def _debugMethod( self, unoobj, methodName ):
+        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
+        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
+        ctx = OfficeConnection.context
+        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
+        access = introspection.inspect(unoobj)
+        method = access.getMethod( methodName, ALLMETHS )
+        for x in method.getParameterInfos():
+            print x
+            print ""
+        print ""

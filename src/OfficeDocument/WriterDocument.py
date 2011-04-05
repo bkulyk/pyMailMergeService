@@ -2,13 +2,12 @@
 import uno, os, re
 from OfficeDocument import OfficeDocument
 from sys import path
-from com.sun.star.beans import PropertyValue
-from com.sun.star.io import IOException
-from com.sun.star.document.MacroExecMode import NEVER_EXECUTE #, FROM_LIST, ALWAYS_EXECUTE, USE_CONFIG, ALWAYS_EXECUTE_NO_WARN, USE_CONFIG_REJECT_CONFIRMATION, USE_CONFIG_APPROVE_CONFIRMATION, FROM_LIST_NO_WARN, FROM_LIST_AND_SIGNED_WARN, FROM_LIST_AND_SIGNED_NO_WARN
+#from com.sun.star.beans import PropertyValue
+#from com.sun.star.io import IOException
 from lib.B26 import B26
 class WriterDocument( OfficeDocument ):
     def refresh( self, refreshIndexes=True ):
-        """Refresh the OpenOffice docuemnt and (optionally) it's indexes"""
+        """Refresh the OpenOffice document and (optionally) it's indexes"""
         try:
             self.oodocument.refresh()
         except:
@@ -22,27 +21,6 @@ class WriterDocument( OfficeDocument ):
                     oIndexes.getByIndex( x ).update()
             except:
                 pass
-    def saveAs( self, filename ):
-        """Save the open office document to a new file, and possibly filetype. 
-        The type of document is parsed out of the file extension of the filename given."""
-        filename = uno.systemPathToFileUrl( os.path.abspath( filename ) )
-        #filterlist: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
-        exportFilter = self._getExportFilter( filename )
-        props = exportFilter, 
-        #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
-        self.oodocument.storeToURL( filename, props )
-    def close( self ):
-        """Close the OpenOffice document"""
-        self.oodocument.close( 1 )
-    def _getExportFilter( self, filename ):
-        """Automatically determine to output filter depending on the file extension"""
-        #self._makeProperty( 'FilterName', 'writer_pdf_Export' )
-        ext = WriterDocument._getFileExtension( filename )
-        for x in WriterDocument.documentTypes:
-            if self.oodocument.supportsService( x ):
-                if x in WriterDocument.exportFilters[ext].keys():
-                    return WriterDocument._makeProperty( 'FilterName', WriterDocument.exportFilters[ext][x] )
-        return None
     def re_match( self, pattern ):
         search = self.oodocument.createSearchDescriptor()
         search.setSearchString( pattern )
@@ -91,60 +69,12 @@ class WriterDocument( OfficeDocument ):
     def searchAndDelete( self, phrase, regex=False ):
         self.searchAndReplace( phrase, '', regex )  
     def _getCursorForStartPhrase(self, startPhrase, regex=False):
-        try:
-            #find position of start phrase
-            search = self.oodocument.createSearchDescriptor()
-            search.setSearchString( startPhrase )
-            search.SearchRegularExpression = regex
-            result = self.oodocument.findFirst( search )
-            return result
-        except:
-            sheets = self.oodocument.getSheets().createEnumeration()
-            while sheets.hasMoreElements():
-                sheet = sheets.nextElement()
-                #find position of start phrase
-                search = sheet.createSearchDescriptor()
-                search.setSearchString( startPhrase )
-                search.SearchRegularExpression = regex
-                try:
-                    result = sheet.findFirst( search )
-                    print result
-                    return result
-                except:
-                    pass
-        return None
-    def _debugMethod( self, unoobj, methodName ):
-        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
-        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
-        ctx = OpenOfficeConnection.context
-        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
-        access = introspection.inspect(unoobj)
-        method = access.getMethod( methodName, ALLMETHS )
-        for x in method.getParameterInfos():
-            print x
-        print ""
-    def _debug( self, unoobj, doPrint=False ):
-        """
-        Print(or return) all of the method and property names for an uno object6
-        Thanks to Carsten Haese for his insanely useful example fount at:
-        http://bytes.com/topic/python/answers/641662-how-do-i-get-type-methods#post2545353
-        """
-        from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
-        from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
-        from OfficeDocument import OfficeConnection
-        ctx = OfficeConnection.context
-        introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
-        access = introspection.inspect(unoobj)
-        meths = access.getMethods(ALLMETHS)
-        props = access.getProperties(ALLPROPS)
-        if doPrint:
-            print "Object Methods:"
-            for x in meths:
-                print "---- %s" % x.getName()
-            print "Object Properties:"
-            for x in props:
-                print "---- %s" % x.Name
-        return [ x.getName() for x in meths ] + [ x.Name for x in props ]
+        #find position of start phrase
+        search = self.oodocument.createSearchDescriptor()
+        search.setSearchString( startPhrase )
+        search.SearchRegularExpression = regex
+        result = self.oodocument.findFirst( search )
+        return result
     def _getCursorForStartAndEndPhrases( self, startPhrase, endPhrase, regex=False ):
         '''@todo replace with _getCursorForStartPhrase x2 and test'''
         #find position of start phrase
@@ -223,7 +153,6 @@ class WriterDocument( OfficeDocument ):
                     cellCursor.goRight( 1, False )
                     currentCell = e.getCellByName( cellCursor.getRangeName() )
                     currentCell.setString( ' ' )
-                    self._debug( cellCursor, True )
                     viewCursor.gotoRange( currentCell.Text, False )
                     controller.insertTransferable( cells[x] )
 #        except:
@@ -370,22 +299,6 @@ class WriterDocument( OfficeDocument ):
     @staticmethod
     def _base26Decode( num ):
         return int( num, 26 )
-    @staticmethod
-    def _getFileExtension( filepath ):
-        """Get the file extension for the given path"""
-        file = os.path.splitext(filepath.lower())
-        if len( file ):
-            return file[1].replace( '.', '' )
-        else:
-            return filepath
-    @staticmethod
-    def convert( inputFile, outputFile ):
-        """Convert the given input file to whatever type of file the outputFile is."""
-        c = WriterDocument()
-        c.open( inputFile )
-        c.refresh()
-        c.saveAs( outputFile )
-        c.close()
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
