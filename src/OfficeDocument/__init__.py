@@ -192,6 +192,12 @@ class OfficeDocument:
                 print "---- %s" % x.Name
         #return [ x.getName() for x in meths ], [ x.Name for x in props ]
         return ( [x.getName() for x in meths], [x.Name for x in props] )
+    def easydebug( self, obj ):
+        meths, props = self._debug( obj )
+        meths.sort()
+        for x in meths:
+            print '----- ' + x
+        print ''
     def _debugMethod( self, unoobj, methodName ):
         from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
         from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
@@ -203,3 +209,18 @@ class OfficeDocument:
             print x
             print ""
         print ""
+    def refresh( self, refreshIndexes=True ):
+        """Refresh the OpenOffice document and (optionally) it's indexes"""
+        try:
+            self.oodocument.refresh()
+        except:
+            pass
+        if refreshIndexes:
+            #I needed the table of contents to automatically update in case page contents had changed
+            try:
+                #get all document indexes, eg. toc, or index
+                oIndexes = self.oodocument.getDocumentIndexes()
+                for x in range( 0, oIndexes.getCount() ):
+                    oIndexes.getByIndex( x ).update()
+            except:
+                pass

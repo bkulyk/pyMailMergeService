@@ -44,13 +44,20 @@ class CalcDocument( OfficeDocument ):
         rangeToPaste = sheet.getCellRangeByPosition( address.StartColumn, address.StartRow+1, maxaddress.EndColumn, address.StartRow+1 )
         #copy data from first row to second row
         rangeToPaste.setDataArray( rangeToCopy.getDataArray() )
-    def easydebug( self, obj ):
-        meths, props = self._debug( obj )
-        meths.sort()
-        for x in meths:
-            print '----- ' + x
-        print ''
     def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
-        pass
+        cell = self._getCellForStartPhrase( phrase )
+        '''if I don't convert numbers into numbers than formula don't work, and 
+        Excel gives warnings about numbers being formatted as strings'''
+        try:
+            #with throw an exception for floating points and strings
+            replacement = int(replacement)
+        except:
+            try:
+                #will throw an exception for strings
+                replacement = float(replacement)
+            except:
+                pass
+        replacementArray = ( replacement, ),
+        cell.setDataArray( replacementArray )
     def refresh(self):
         pass
