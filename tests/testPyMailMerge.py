@@ -139,6 +139,6 @@ class testPyMailMerge( unittest.TestCase ):
         ]
         pmm._process( x )
         pmm.document.refresh()
-        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.pdf' ) )
 if __name__ == '__main__':
     unittest.main()

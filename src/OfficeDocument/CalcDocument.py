@@ -28,14 +28,28 @@ class CalcDocument( OfficeDocument ):
         cell = self._getCellForStartPhrase( phrase )
         address = cell.getRangeAddress()
         #create a cell range
-        sheet = self._getSheets()[ 0 ]
-        range = sheet.getCellRangeByPosition( address.StartRow, address.StartColumn, address.EndRow, address.EndColumn )
+        sheet = self._getSheets()[ address.Sheet ]
+        range = sheet.getCellRangeByPosition( address.StartColumn, address.StartRow,address.StartColumn, address.StartRow )# address.EndColumn, address.EndColumn )
         #get the rows
         rows = sheet.getRows()
         #add new row after the ending of the search term
         rows.insertByIndex( address.EndRow+1, 1 )
-        #now copy contents of original row to new row
-        #@todo
+        #get max used area
+        cursor = sheet.createCursor()
+        cursor.gotoEndOfUsedArea( False )
+        maxaddress = cursor.getRangeAddress()
+        #get the entire row
+        rangeToCopy = sheet.getCellRangeByPosition( address.StartColumn, address.StartRow, maxaddress.EndColumn, address.StartRow )
+        #get entire next row
+        rangeToPaste = sheet.getCellRangeByPosition( address.StartColumn, address.StartRow+1, maxaddress.EndColumn, address.StartRow+1 )
+        #copy data from first row to second row
+        rangeToPaste.setDataArray( rangeToCopy.getDataArray() )
+    def easydebug( self, obj ):
+        meths, props = self._debug( obj )
+        meths.sort()
+        for x in meths:
+            print '----- ' + x
+        print ''
     def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
         pass
     def refresh(self):
