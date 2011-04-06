@@ -130,12 +130,15 @@ class testPyMailMerge( unittest.TestCase ):
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.out.pdf' ) )
     def testSpreadsheet( self ):
+        import datetime
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.ods' ) )
         pmm = pyMailMerge( path, 'ods' )
         x = [
                { 'token':'repeatrow|invoice', 'value':['1', '2', '3', '4'] },
                { 'token':'total', 'value':['1213.23' ,'531.34', '654.21', '3123.3'] },
-               { 'token':'date', 'value':['2011-01-01','2011-01-07','2011-01-03','2011-01-02'] }
+               { 'token':'date', 'value':['2011-01-01','2011-01-07','2011-01-03','2011-01-02'] },
+               { 'token':'today', 'value':today }
         ]
         pmm._process( x )
         pmm.document.refresh()

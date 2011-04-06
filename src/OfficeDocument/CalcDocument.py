@@ -25,7 +25,7 @@ class CalcDocument( OfficeDocument ):
         return None
     def duplicateRow( self, phrase, regex=False ):
         #get the cell address 
-        cell = self._getCellForStartPhrase( phrase )
+        cell = self._getCellForStartPhrase( phrase )        
         address = cell.getRangeAddress()
         #create a cell range
         sheet = self._getSheets()[ address.Sheet ]
@@ -59,5 +59,15 @@ class CalcDocument( OfficeDocument ):
                 pass
         replacementArray = ( replacement, ),
         cell.setDataArray( replacementArray )
+    def searchAndReplace( self, phrase, replacement, regex=False ):
+        sheets = self._getSheets()
+        count = 0
+        for sheet in sheets:
+            replace = sheet.createReplaceDescriptor()
+            replace.setSearchString( phrase )
+            replace.setReplaceString( replacement )
+            replace.SearchRegularExpression = regex
+            count += sheet.replaceAll( replace )
+        return count
     def refresh(self):
         pass
