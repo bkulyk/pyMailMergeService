@@ -5,6 +5,9 @@ from sys import path
 #from com.sun.star.beans import PropertyValue
 #from com.sun.star.io import IOException
 from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER
+from com.sun.star.style.NumberingType import ARABIC
+from com.sun.star.text.PageNumberType import CURRENT
+from com.sun.star.style.ParagraphAdjust import RIGHT
 from lib.B26 import B26
 class WriterDocument( OfficeDocument ):
     def re_match( self, pattern ):
@@ -23,10 +26,24 @@ class WriterDocument( OfficeDocument ):
             cursor.gotoEnd( False )
             if pageBreak:
                 cursor.BreakType = PAGE_BEFORE
-            print documentUrl
             cursor.insertDocumentFromURL( uno.systemPathToFileUrl( os.path.abspath( documentUrl ) ), () )
             return True
         return False
+    def applyPageNumberFooterToDefaultStyle( self ):
+        style = self.oodocument.StyleFamilies.getByName('PageStyles').getByName('Standard')
+        style.FooterIsOn = True
+        PageCount = self.oodocument.createInstance("com.sun.star.text.textfield.PageCount")
+        PageCount.NumberingType = ARABIC
+        PageNumber = self.oodocument.createInstance("com.sun.star.text.textfield.PageNumber")
+        PageNumber.NumberingType = ARABIC
+        PageNumber.SubType = CURRENT
+        FooterCursor = style.FooterTextLeft.Text.createTextCursor()
+        style.FooterTextLeft.String = ""
+        style.FooterTextLeft.Text.insertString(FooterCursor, "Page ", False)
+        style.FooterTextLeft.Text.insertTextContent(FooterCursor, PageNumber, False)
+        style.FooterTextLeft.Text.insertString(FooterCursor, " of ", False)
+        style.FooterTextLeft.Text.insertTextContent(FooterCursor, PageCount, False)
+        FooterCursor.setPropertyValue("ParaAdjust", RIGHT)
     def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
     	#cursor = self.oodocument.Text.createTextCursor()

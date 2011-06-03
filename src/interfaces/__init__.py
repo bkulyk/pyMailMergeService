@@ -3,6 +3,7 @@ sys.path.append( ".." )
 from lib.pyMailMerge import pyMailMerge
 import simplejson as json
 import tempfile
+from com.sun.star.task import ErrorCodeIOException
 class base( object ):
     documentBase = "../tests/docs/"
     def uploadConvert( self, params='', odt='', type='pdf' ):
@@ -22,7 +23,7 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
-    def joinDocuments( self, odt, fileNames ):
+    def joinDocuments( self, odt, fileNames, addPageNumbers=False ):
         try:
             outputFileName = os.path.abspath( self.documentBase + odt )
             print outputFileName
@@ -32,8 +33,13 @@ class base( object ):
                 inputFileName = os.path.abspath( self.documentBase + x )
                 print inputFileName
                 mms.joinDocumentToEnd( inputFileName )
-            mms.document.saveAs(outputFileName)
+            if addPageNumbers != False:
+                mms.document.applyPageNumberFooterToDefaultStyle()
+            mms.document.saveAs( outputFileName )
             return "Ok"
+        except ErrorCodeIOException:
+            number = "500"
+            message = "Could not write completed file"
         except:
             number = '?'
             message = "unknown exception"
