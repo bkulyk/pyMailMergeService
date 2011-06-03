@@ -4,6 +4,7 @@ from OfficeDocument import OfficeDocument
 from sys import path
 #from com.sun.star.beans import PropertyValue
 #from com.sun.star.io import IOException
+from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER
 from lib.B26 import B26
 class WriterDocument( OfficeDocument ):
     def re_match( self, pattern ):
@@ -16,6 +17,16 @@ class WriterDocument( OfficeDocument ):
             x = items.getByIndex( i )
             list.append( x.getString() )
         return list
+    def addDocumentToEnd( self, documentUrl, pageBreak=True ):
+        cursor = self.oodocument.Text.createTextCursor()
+        if cursor:
+            cursor.gotoEnd( False )
+            if pageBreak:
+                cursor.BreakType = PAGE_BEFORE
+            print documentUrl
+            cursor.insertDocumentFromURL( uno.systemPathToFileUrl( os.path.abspath( documentUrl ) ), () )
+            return True
+        return False
     def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
     	#cursor = self.oodocument.Text.createTextCursor()

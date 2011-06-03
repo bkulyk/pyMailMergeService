@@ -22,6 +22,22 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
+    def joinDocuments( self, odt, fileNames ):
+        try:
+            outputFileName = os.path.abspath( self.documentBase + odt )
+            print outputFileName
+            mms = pyMailMerge()
+            mms.document.createNew()
+            for x in fileNames.split( ':' ):
+                inputFileName = os.path.abspath( self.documentBase + x )
+                print inputFileName
+                mms.joinDocumentToEnd( inputFileName )
+            mms.document.saveAs(outputFileName)
+            return "Ok"
+        except:
+            number = '?'
+            message = "unknown exception"
+        return self.__errorXML( number, message )
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
     def convert( self, params='', odt='', type='pdf' ):

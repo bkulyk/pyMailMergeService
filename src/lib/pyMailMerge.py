@@ -9,9 +9,10 @@ import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
 class pyMailMerge:
     document = None
-    def __init__( self, odt, type='odt' ):
+    def __init__( self, odt='', type='odt' ):
         self.document = OfficeDocument.createDocument( type )
-        self.document.open( odt )
+        if odt != '':
+            self.document.open( odt )
     def __del__(self):
         try:
             self.document.close()
@@ -22,6 +23,8 @@ class pyMailMerge:
     def getTokens( self ):
         tokens = self.document.re_match( r"~[a-zA-Z\|\:]+~" )
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
+    def joinDocumentToEnd( self, fileName ):
+        return self.document.addDocumentToEnd( fileName )
     def convert( self, params, type='pdf' ):
         params = pyMailMerge._readParamsFromXML( params )
         #process params

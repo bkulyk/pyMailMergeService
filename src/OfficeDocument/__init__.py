@@ -108,15 +108,20 @@ class OfficeDocument:
     def __init__( self ):
         """Connect to openoffice"""
         self.openoffice = OfficeConnection.getConnection()
+    def createNew( self ):
+        """Creates a new OpenOffice document"""
+        return self.openUrl( "private:factory/swriter" )
     def open( self, filename ):
         """Open an OpenOffice document"""
+        return self.openUrl( uno.systemPathToFileUrl( os.path.abspath( filename ) ) )
+    def openUrl( self, url ):
         #http://www.oooforum.org/forum/viewtopic.phtml?t=35344
         properties = []
         properties.append( OfficeDocument._makeProperty( 'Hidden', True ) )
         properties.append( OfficeDocument._makeProperty( 'MacroExecutionMode', NEVER_EXECUTE ) )
         properties.append( OfficeDocument._makeProperty( 'ReadOnly', False ) )
         properties = tuple( properties )
-        self.oodocument = self.openoffice.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( filename ) ), "_blank", 0, properties )
+        self.oodocument = self.openoffice.loadComponentFromURL( url, "_blank", 0, properties )
     def saveAs( self, filename ):
         """Save the open office document to a new file, and possibly filetype. 
         The type of document is parsed out of the file extension of the filename given."""
