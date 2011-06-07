@@ -26,16 +26,15 @@ class base( object ):
     def joinDocuments( self, odt, fileNames, addPageNumbers=False ):
         try:
             outputFileName = os.path.abspath( self.documentBase + odt )
-            print outputFileName
             mms = pyMailMerge()
             mms.document.createNew()
             for x in fileNames.split( ':' ):
                 inputFileName = os.path.abspath( self.documentBase + x )
-                print inputFileName
                 mms.joinDocumentToEnd( inputFileName )
             if addPageNumbers != False:
                 mms.document.applyPageNumberFooterToDefaultStyle()
             mms.document.saveAs( outputFileName )
+            mms.document.close()
             return "Ok"
         except ErrorCodeIOException:
             number = "500"
@@ -46,11 +45,11 @@ class base( object ):
         return self.__errorXML( number, message )
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
-    def convert( self, params='', odt='', type='pdf' ):
+    def convert( self, params='', odt='', type='pdf', resave=False, saveExport=False ):
         try:
             fileName = os.path.abspath( self.documentBase + odt )
             mms = pyMailMerge( fileName )
-            return mms.convert( params, type )
+            return mms.convert( params, type, resave, saveExport )
         except:
             number = '?'
             message = "unknown exception"
@@ -76,11 +75,10 @@ class base( object ):
         contents = readin.read()
         return contents
     def getTokens( self, odt='', format='json' ):
-        try:
-            path = os.path.dirname( __file__ )
-            path = os.path.join( path, self.documentBase, odt )
-            print os.path.abspath( path )
-            mms = pyMailMerge( os.path.abspath( path ) )
+        #try:
+            path = os.path.abspath( self.documentBase + odt )
+            print path
+            mms = pyMailMerge( path )
             tokens = mms.getTokens()
             if format=='xml':
                 xml = """<?xml version="1.0" encoding="UTF-8"?><tokens>"""
@@ -90,8 +88,8 @@ class base( object ):
                 return xml
             else:
                 return json.dumps( tokens )
-        except:
-            return self.__errorXML( '?', 'could not get tokens' )
+        #except:
+        #    return self.__errorXML( '?', 'could not get tokens' )
     def __errorXML( self, number, message ):
         return """
         <?xml version="1.0" encoding="UTF-8"?>

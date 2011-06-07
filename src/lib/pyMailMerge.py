@@ -25,14 +25,28 @@ class pyMailMerge:
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     def joinDocumentToEnd( self, fileName ):
         return self.document.addDocumentToEnd( fileName )
-    def convert( self, params, type='pdf' ):
+    def convert( self, params, type='pdf', resave=False, saveExport=False ):
         params = pyMailMerge._readParamsFromXML( params )
+
         #process params
         self._process(params)
+
+        if resave != False:
+            self.document.save()
+
+        if saveExport != False:
+            filename = self.document.getFilename()
+            if filename != '':
+                basename, extension = os.path.splitext(filename)
+                filename = filename.replace(extension, '.' + type)
+                self.document.refresh()
+                self.document.saveAs( filename )
+
         #get temporary out put file
         out = self._getTempFile( '.%s' % type )
         self.document.refresh()
         self.document.saveAs( out )
+
         #read contents
         file = open( out, 'r' )
         x = file.read()

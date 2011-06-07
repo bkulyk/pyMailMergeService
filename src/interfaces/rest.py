@@ -25,8 +25,8 @@ class rest( interfaces.base ):
     def pdf( self, params='', odt='' ):
         return interfaces.base.convert( self, params, odt, 'pdf' )
     @http.expose
-    def convert( self, params='', odt='', type='pdf' ):
-        return interfaces.base.convert( self, params, odt, type )
+    def convert( self, params='', odt='', type='pdf', resave=False, saveExport=False ):
+        return interfaces.base.convert( self, params, odt, type, resave, saveExport )
     @http.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )

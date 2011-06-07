@@ -10,6 +10,7 @@ class OfficeConnection:
     host = "localhost"
     port = 8100
     context = ''
+    filename = ''
     @staticmethod
     def getConnection( **kwargs ):
         """Create the connection object to open office, only ever create one."""
@@ -113,7 +114,8 @@ class OfficeDocument:
         return self.openUrl( "private:factory/swriter" )
     def open( self, filename ):
         """Open an OpenOffice document"""
-        return self.openUrl( uno.systemPathToFileUrl( os.path.abspath( filename ) ) )
+        self.filename = os.path.abspath( filename )
+        return self.openUrl( uno.systemPathToFileUrl( self.filename ) )
     def openUrl( self, url ):
         #http://www.oooforum.org/forum/viewtopic.phtml?t=35344
         properties = []
@@ -122,15 +124,22 @@ class OfficeDocument:
         properties.append( OfficeDocument._makeProperty( 'ReadOnly', False ) )
         properties = tuple( properties )
         self.oodocument = self.openoffice.loadComponentFromURL( url, "_blank", 0, properties )
+    def getFilename( self ):
+        return self.filename
+    def save( self ):
+        self.oodocument.store()
+        return self.getFilename()
     def saveAs( self, filename ):
         """Save the open office document to a new file, and possibly filetype. 
         The type of document is parsed out of the file extension of the filename given."""
-        filename = uno.systemPathToFileUrl( os.path.abspath( filename ) )
+        self.filename = os.path.abspath( filename )
+        filename = uno.systemPathToFileUrl( self.filename )
         #filterlist: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
         exportFilter = self._getExportFilter( filename )
         props = exportFilter, 
         #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
         self.oodocument.storeToURL( filename, props )
+        return self.getFilename()
     def close( self ):
         """Close the OpenOffice document"""
         self.oodocument.close( 1 )
