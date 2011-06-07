@@ -31,6 +31,6 @@ class rest( interfaces.base ):
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
     @staticmethod
-    def run():
-	http.config.update( {'server.socket_host':'0.0.0.0', 'server.socket_port':80} )
-        http.quickstart( rest() )
+    def run( options={} ):
+        http.config.update( {'server.socket_host':'0.0.0.0', 'server.socket_port':8080} )
+        http.quickstart( rest( options ) )

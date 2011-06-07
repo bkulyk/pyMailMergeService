@@ -5,7 +5,12 @@ import simplejson as json
 import tempfile
 from com.sun.star.task import ErrorCodeIOException
 class base( object ):
-    documentBase = "../tests/docs/"
+    outputDir = stubsDir = documentBase = "../tests/docs/"
+    def __init__( self, options={} ):
+        if 'outputDir' in options:
+            self.outputDir = options['outputDir'] + "/"
+        if 'stubsDir' in options:
+            self.stubsDir = options['stubsDir'] + "/"
     def uploadConvert( self, params='', odt='', type='pdf' ):
         #write temporary file
         file, fileName = tempfile.mkstemp( suffix="_pyMMS.odt" )
@@ -25,11 +30,12 @@ class base( object ):
         return self.__errorXML( number, message )
     def joinDocuments( self, odt, fileNames, addPageNumbers=False ):
         try:
-            outputFileName = os.path.abspath( self.documentBase + odt )
+            outputFileName = os.path.abspath( self.outputDir + odt )
+            print outputFileName
             mms = pyMailMerge()
             mms.document.createNew()
             for x in fileNames.split( ':' ):
-                inputFileName = os.path.abspath( self.documentBase + x )
+                inputFileName = os.path.abspath( self.stubsDir + x )
                 mms.joinDocumentToEnd( inputFileName )
             if addPageNumbers != False:
                 mms.document.applyPageNumberFooterToDefaultStyle()
@@ -47,7 +53,7 @@ class base( object ):
         return self.convert(params, odt, 'pdf')
     def convert( self, params='', odt='', type='pdf', resave=False, saveExport=False ):
         try:
-            fileName = os.path.abspath( self.documentBase + odt )
+            fileName = os.path.abspath( self.outputDir + odt )
             mms = pyMailMerge( fileName )
             return mms.convert( params, type, resave, saveExport )
         except:
@@ -76,7 +82,7 @@ class base( object ):
         return contents
     def getTokens( self, odt='', format='json' ):
         #try:
-            path = os.path.abspath( self.documentBase + odt )
+            path = os.path.abspath( self.outputDir + odt )
             print path
             mms = pyMailMerge( path )
             tokens = mms.getTokens()
