@@ -21,7 +21,7 @@ class pyMailMerge:
             #I should have caught them when opening or connecting
             pass
     def getTokens( self ):
-        tokens = self.document.re_match( r"~[a-zA-Z\|\:]+~" )
+        tokens = self.document.re_match( r"~[a-zA-Z_\|\:\.]+~" )
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     def joinDocumentToEnd( self, fileName ):
         return self.document.addDocumentToEnd( fileName )
@@ -93,7 +93,10 @@ class pyMailMerge:
             else:
                 values = []
                 for x in tokenvalues:
-                    values.append( x.text )
+                    if x.text is None:
+                        values.append ( "" )
+                    else:
+                        values.append( x.text )
             params.append( { 'token':tokenname, 'value':values } )
         return params
     @staticmethod
@@ -104,7 +107,9 @@ class pyMailMerge:
             sorted[ x['name'] ] = []
         #now place each key in the right spot in sorted
         for x in params:
-            result = re.match( r"(?P<modifier>^[A-Za-z]+\|)*(?P<token>[A-Za-z\:\|]+)", x['token'] )
+            print x['token']
+            result = re.match( r"(?P<modifier>^[A-Za-z\._]+\|)*(?P<token>[A-Za-z\._\:\|]+)", x['token'] )
+            print result
             mod = "%s" % result.group( 'modifier' )
             mod = mod.replace( '|', '' )
             #add the modifier to the dictionary, this will save some effor later
