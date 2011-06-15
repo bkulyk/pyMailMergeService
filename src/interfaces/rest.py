@@ -16,8 +16,8 @@ class rest( interfaces.base ):
     def uploadConvert( self, params='', odt='', type='pdf' ):
         return interfaces.base.uploadConvert( params, odt, type )
     @http.expose
-    def joinDocuments( self, odt, fileNames, addPageNumbers=False ):
-        return interfaces.base.joinDocuments( self, odt, fileNames, addPageNumbers )
+    def joinDocuments( self, odt, fileNames, addPageNumbers=False, appendToExistingDoc=False ):
+        return interfaces.base.joinDocuments( self, odt, fileNames, addPageNumbers, appendToExistingDoc )
     @http.expose
     def batchpdf( self, batch ):
         return interfaces.base.batchpdf( self, batch )

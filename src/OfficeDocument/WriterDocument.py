@@ -4,7 +4,8 @@ from OfficeDocument import OfficeDocument
 from sys import path
 #from com.sun.star.beans import PropertyValue
 #from com.sun.star.io import IOException
-from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER
+from com.sun.star.text.ControlCharacter import PARAGRAPH_BREAK
+from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER, NONE
 from com.sun.star.style.NumberingType import ARABIC
 from com.sun.star.text.PageNumberType import CURRENT
 from com.sun.star.style.ParagraphAdjust import RIGHT
@@ -26,6 +27,7 @@ class WriterDocument( OfficeDocument ):
             cursor.gotoEnd( False )
             if pageBreak:
                 cursor.BreakType = PAGE_BEFORE
+                #self.oodocument.getText().insertControlCharacter( cursor, PARAGRAPH_BREAK, False )
             cursor.insertDocumentFromURL( uno.systemPathToFileUrl( os.path.abspath( documentUrl ) ), () )
             return True
         return False
@@ -74,7 +76,7 @@ class WriterDocument( OfficeDocument ):
         return count
     def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
-        if cursor is not None:
+        if cursor is not None and replacement is not None:
             cursor.Text.setString( replacement )
             return 1
         else:

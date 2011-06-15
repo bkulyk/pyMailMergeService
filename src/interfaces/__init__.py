@@ -28,18 +28,27 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
-    def joinDocuments( self, odt, fileNames, addPageNumbers=False ):
+    def joinDocuments( self, odt, fileNames, addPageNumbers=False, appendToExistingDoc=False ):
         try:
             outputFileName = os.path.abspath( self.outputDir + odt )
-            print outputFileName
             mms = pyMailMerge()
-            mms.document.createNew()
+
+            if appendToExistingDoc:
+                mms.document.open( outputFileName )
+            else:
+                mms.document.createNew()
+
             for x in fileNames.split( ':' ):
                 inputFileName = os.path.abspath( self.stubsDir + x )
                 mms.joinDocumentToEnd( inputFileName )
             if addPageNumbers != False:
                 mms.document.applyPageNumberFooterToDefaultStyle()
-            mms.document.saveAs( outputFileName )
+
+            if appendToExistingDoc:
+                mms.document.save()
+            else:
+                mms.document.saveAs( outputFileName )
+
             mms.document.close()
             return "Ok"
         except ErrorCodeIOException:
