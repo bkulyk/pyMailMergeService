@@ -31,21 +31,6 @@ class WriterDocument( OfficeDocument ):
             cursor.insertDocumentFromURL( uno.systemPathToFileUrl( os.path.abspath( documentUrl ) ), () )
             return True
         return False
-    def applyPageNumberFooterToDefaultStyle( self ):
-        style = self.oodocument.StyleFamilies.getByName('PageStyles').getByName('Standard')
-        style.FooterIsOn = True
-        PageCount = self.oodocument.createInstance("com.sun.star.text.textfield.PageCount")
-        PageCount.NumberingType = ARABIC
-        PageNumber = self.oodocument.createInstance("com.sun.star.text.textfield.PageNumber")
-        PageNumber.NumberingType = ARABIC
-        PageNumber.SubType = CURRENT
-        FooterCursor = style.FooterTextLeft.Text.createTextCursor()
-        style.FooterTextLeft.String = ""
-        style.FooterTextLeft.Text.insertString(FooterCursor, "Page ", False)
-        style.FooterTextLeft.Text.insertTextContent(FooterCursor, PageNumber, False)
-        style.FooterTextLeft.Text.insertString(FooterCursor, " of ", False)
-        style.FooterTextLeft.Text.insertTextContent(FooterCursor, PageCount, False)
-        FooterCursor.setPropertyValue("ParaAdjust", RIGHT)
     def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
     	#cursor = self.oodocument.Text.createTextCursor()
