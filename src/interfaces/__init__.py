@@ -3,6 +3,7 @@ sys.path.append( ".." )
 from lib.pyMailMerge import pyMailMerge
 import simplejson as json
 import tempfile
+import shutil
 from com.sun.star.task import ErrorCodeIOException
 class base( object ):
     outputDir = stubsDir = documentBase = "../tests/docs/"
@@ -54,6 +55,19 @@ class base( object ):
         except ErrorCodeIOException:
             number = "500"
             message = "Could not write completed file"
+        except:
+            number = '?'
+            message = "unknown exception"
+        return self.__errorXML( number, message )
+    def copyDocument( self, target, source ):
+        try:
+            sourceFileName = os.path.abspath( self.stubsDir + source )
+            outputFileName = os.path.abspath( self.outputDir + target )
+            shutil.copy(sourceFileName, outputFileName)
+            return "Ok"
+        except IOError, e:
+            number = "500"
+            message = "Unable to copy file: %s" % e
         except:
             number = '?'
             message = "unknown exception"

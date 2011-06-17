@@ -19,6 +19,9 @@ class rest( interfaces.base ):
     def joinDocuments( self, odt, fileNames, addPageNumbers=False, appendToExistingDoc=False ):
         return interfaces.base.joinDocuments( self, odt, fileNames, addPageNumbers, appendToExistingDoc )
     @http.expose
+    def copyDocument( self, target, source ):
+        return interfaces.base.copyDocument( self, target, source )
+    @http.expose
     def batchpdf( self, batch ):
         return interfaces.base.batchpdf( self, batch )
     @http.expose
