@@ -222,14 +222,15 @@ class WriterDocument( OfficeDocument ):
                 cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
                 #this line is wicked important, without it the formatting DOES NOT work. 
                 #as it turns out, the string cannot be blank.
-                cellDown.setString( ' ' )
-                #paste contents from source to targets
-                controller = self.oodocument.getCurrentController()
-                viewCursor = controller.getViewCursor()
-                viewCursor.gotoRange( currentCell.Text, False )
-                txt = controller.getTransferable()
-                viewCursor.gotoRange( cellDown.Text, False )
-                controller.insertTransferable( txt )
+                if cellDown:
+                    cellDown.setString( ' ' )
+                    #paste contents from source to targets
+                    controller = self.oodocument.getCurrentController()
+                    viewCursor = controller.getViewCursor()
+                    viewCursor.gotoRange( currentCell.Text, False )
+                    txt = controller.getTransferable()
+                    viewCursor.gotoRange( cellDown.Text, False )
+                    controller.insertTransferable( txt )
         return 
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
