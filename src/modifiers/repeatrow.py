@@ -8,10 +8,7 @@ class __init__( modifier ):
         key = '~%s~' % param['token']
         count = 0
         if isinstance( param['value'], ( list, tuple ) ):
-            for x in param['value']:
-                if count > 0: #first row already exists so we don't need to duplicate it
-                    document.duplicateRow( key )
-                count += 1
+            document.duplicateRow( key, len( param['value'] )-1 )
             for x in param['value']:
                 document.searchAndReplaceFirst( key, x )
         else:

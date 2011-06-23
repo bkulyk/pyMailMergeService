@@ -71,3 +71,19 @@ class CalcDocument( OfficeDocument ):
         return count
     def refresh(self):
         pass
+    def getNamedRanges(self):
+        return self.oodocument.NamedRanges.ElementNames
+    def getNamedRangeData( self, rangeName ):
+        namedRange = self.oodocument.NamedRanges.getByName( rangeName )
+        sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
+        sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
+        sheet = self.oodocument.getSheets().getByName( sheetName )
+        range = sheet.getCellRangeByName( sheetAndRangeDesc )
+        data = list( range.getData() )
+        #if there is many rows and only one column, make the data a list of values, instead of tuple of tuples
+        i = 0
+        for x in data:
+            if len( x ) == 1:
+                data[i] = x[0]
+            i += 1
+        return tuple( data ) 

@@ -7,7 +7,6 @@ import unittest
 import os
 #define unit tests
 class testPyMailMerge( unittest.TestCase ):
-    """
     xml = r'''<tokens>
             <token>
                 <name>fake::token</name>
@@ -47,7 +46,7 @@ class testPyMailMerge( unittest.TestCase ):
         self.assertEquals( 'second', x[1]['value'][1] )
         self.assertEquals( 'token::fake', x[2]['token'] )
         self.assertEquals( 'value2', x[2]['value'] )
-    def test_process(self):
+    """def test_process(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.odt' ) )
         pmm = pyMailMerge( path )
         x = [
@@ -76,6 +75,7 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.odt' ) )
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.out.pdf' ) )
+    """
     def test_getTokens(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/invoice.odt' ) )
         pmm = pyMailMerge( path )
@@ -101,6 +101,8 @@ class testPyMailMerge( unittest.TestCase ):
         self.assertEquals( 17, x.index( '~product::rate~' ) )
         self.assertEquals( 18, x.index( '~product::total~' ) )
         self.assertEquals( 19, x.index( '~repeatrow|product::desc~' ) ) 
+    """
+    #this odt file is missing... Will have to re-create
     def testRepeatSection(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSection.odt' ) )
         pmm = pyMailMerge( path )
@@ -110,6 +112,9 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSection.out.pdf' ) )
+    """
+    """
+    #this odt file is missing... Will have to re-create
     def testRepeatSectionReadOnly(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSection_readonly.odt' ) )
         pmm = pyMailMerge( path )
@@ -119,7 +124,7 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSection_readonly.out.pdf' ) )
-        """
+    """
     def testRepeatSectionTable(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.odt' ) )
         pmm = pyMailMerge( path )
@@ -129,7 +134,7 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatSectionTable.out.pdf' ) )
-    def testSpreadsheet( self ):
+    '''def testSpreadsheet( self ):
         import datetime
         today = datetime.datetime.now().strftime("%Y-%m-%d")
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.ods' ) )
@@ -143,5 +148,66 @@ class testPyMailMerge( unittest.TestCase ):
         pmm._process( x )
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
+    '''
+    xmlFromTed = """<?xml version="1.0" encoding="UTF-8"?>
+        <tokens>
+            <token>
+                <name>competition:name</name>
+                <value>Manulife Financial</value>
+            </token>
+            <token>
+                <name>comparison_view:competition</name>
+                <value> - </value>
+                <value>10000</value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+            </token>
+            <token>
+                <name>repeatrow|comparison_view:benefit</name>
+                <value>Life Benefit</value>
+                <value>Officers</value>
+                <value>Owners/Officers/Managers</value>
+                <value>Dental Benefit</value>
+                <value>Employees</value>
+                <value>Officers</value>
+                <value>Health Benefit</value>
+                <value>Officers</value>
+                <value>LTD Benefit</value>
+                <value>Officers</value>
+                <value>Weekly Income Benefit</value>
+                <value>Officers</value>
+            </token>
+            <token>
+                <name>comparison_view:wla</name>
+                <value> - </value>
+                <value>10000</value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+                <value> - </value>
+                <value>10000</value>
+            </token>
+        </tokens>
+    """
+    def test_repeatrow_test_for_ted(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatrow_test_for_ted.odt' ) )
+        pmm = pyMailMerge( path )
+        x = pyMailMerge._readParamsFromXML( self.xmlFromTed )
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatrow_test_for_ted.out.pdf' ) )
 if __name__ == '__main__':
     unittest.main()

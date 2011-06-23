@@ -3,7 +3,8 @@ from sys import path
 from sys import exit
 path.append( '..' )
 path.append( '../src' )
-from office.WriterDocument import *
+path.append( '../src/OfficeDocument' )
+from OfficeDocument.WriterDocument import *
 import unittest, os, uno
 #define unit tests
 class testWriterDocument( unittest.TestCase ):

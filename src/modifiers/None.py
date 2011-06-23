@@ -10,7 +10,6 @@ class __init__( modifier ):
             for x in param['value']:
                 document.searchAndReplaceFirst( key, x )
         else:
-            #print "searching and replacing all %s --- value: %s" % ( param['token'], param['value'] )
             count = document.searchAndReplace( key, param['value'] )
         try:
             document.drawSearchAndReplace( key, param['value'] )

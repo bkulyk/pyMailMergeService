@@ -107,9 +107,7 @@ class pyMailMerge:
             sorted[ x['name'] ] = []
         #now place each key in the right spot in sorted
         for x in params:
-            print x['token']
             result = re.match( r"(?P<modifier>^[A-Za-z\._]+\|)*(?P<token>[A-Za-z\._\:\|]+)", x['token'] )
-            print result
             mod = "%s" % result.group( 'modifier' )
             mod = mod.replace( '|', '' )
             #add the modifier to the dictionary, this will save some effor later
