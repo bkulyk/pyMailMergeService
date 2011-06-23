@@ -153,7 +153,7 @@ class testPyMailMerge( unittest.TestCase ):
         <tokens>
             <token>
                 <name>competition:name</name>
-                <value>Manulife Financial</value>
+                <value>Financial</value>
             </token>
             <token>
                 <name>comparison_view:competition</name>
