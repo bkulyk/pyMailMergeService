@@ -178,60 +178,39 @@ class WriterDocument( OfficeDocument ):
             return i
         except:
             return i
-    def duplicateRow(self, phrase, regex=False):
+    def duplicateRow( self, phrase, count, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
         if x.hasMoreElements():
-            e = x.nextElement()
-            cellNames = e.getCellNames()
+            table = x.nextElement()
+            cellNames = table.getCellNames()
             #need to find the cell with the search phrase that was provided
             for cellName in cellNames:
-                cell = e.getCellByName( cellName )
+                cell = table.getCellByName( cellName )
                 text = cell.Text.getString()
                 if text == phrase:
-                    #we found the cell, now get the position of the cell ie b2
-                    rowpos, colpos = self._convertCellNameToCellPositions(cellName)
-                    rows = e.getRows()
-                    #insert new row
-                    rows.insertByIndex( rowpos+1, 1 )
-                    self._copyRowCells( e, cellName )
-                    return
-    def _copyRowCells( self, table, cellName ):
-        #start by getting the current row number
-        matches = re.match( "(\w)+(\d)+", cellName )
-        row = matches.group( 2 )
-        #initialize values
-        cols = []
-        cellCursor = None 
-        #loop through all cells with this row number in the cell name
-        for x in table.getCellNames():
-            matches = re.match( "(\w)+(\d)+", x )
-            if matches.group( 2 ) == row:
-                if cellCursor is None:
-                    #on first loop we need to get the cursor
-                    cellCursor = table.createCursorByCellName( x )
-                else:
-                    #on every other loop we just need to move the cursor 1 position to the right
-                    cellCursor.goRight( 1, False )
-                #get text cursor for the cell and copy content
-                currentCell = table.getCellByName( cellCursor.getRangeName() )
-                cols.append( matches.group( 2 ) )
-                #get text cursor for the new cell and paste content
-                nextRow = int( matches.group(2) )+1
-                cellDown = table.getCellByName( matches.group(1)+"%s" % nextRow )
-                #this line is wicked important, without it the formatting DOES NOT work. 
-                #as it turns out, the string cannot be blank.
-                if cellDown:
-                    cellDown.setString( ' ' )
-                    #paste contents from source to targets
-                    controller = self.oodocument.getCurrentController()
-                    viewCursor = controller.getViewCursor()
-                    viewCursor.gotoRange( currentCell.Text, False )
-                    txt = controller.getTransferable()
-                    viewCursor.gotoRange( cellDown.Text, False )
-                    controller.insertTransferable( txt )
-        return 
+                    #we found the source row, copy the cell contents, and insert new row and paste contents
+                    ##copy contents
+                    sourceRow = self._convertCellNameToCellPositions( cellName )[0]
+                    row = table.Rows.getByIndex( sourceRow )
+                    sourceCols = []
+                    for colIndex in xrange( table.Columns.getCount() ):
+                        cell = table.getCellByPosition( colIndex, sourceRow )
+                        #get cell contents
+                        controller = self.oodocument.getCurrentController()
+                        viewCursor = controller.getViewCursor()
+                        viewCursor.gotoRange( cell.Text, False )
+                        txt = controller.getTransferable()
+                        sourceCols.append( txt )
+                    #now insert new row and paste content into said row.
+                    rows = table.getRows()
+                    for i in xrange( count ):
+                        rows.insertByIndex( sourceRow+1, 1 )
+                        for colIndex in xrange( table.Columns.getCount() ):
+                            cell = table.getCellByPosition( colIndex, sourceRow+1 )
+                            viewCursor.gotoRange( cell.Text, False )
+                            controller.insertTransferable( sourceCols[ colIndex ] )                        
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting

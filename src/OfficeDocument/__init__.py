@@ -183,7 +183,7 @@ class OfficeDocument:
         c.refresh()
         c.saveAs( outputFile )
         c.close()
-    def _debug( self, unoobj, doPrint=False ):
+    def _debug( self, unoobj, doPrint=False, type='both' ):
         """
         Print(or return) all of the method and property names for an uno object6
         Thanks to Carsten Haese for his insanely useful example fount at:
@@ -198,12 +198,14 @@ class OfficeDocument:
         meths = access.getMethods(ALLMETHS)
         props = access.getProperties(ALLPROPS)
         if doPrint:
-            print "Object Methods:"
-            for x in meths:
-                print "---- %s" % x.getName()
-            print "Object Properties:"
-            for x in props:
-                print "---- %s" % x.Name
+            if type == 'both' or type == 'methods':
+                print "Object Methods:"
+                for x in meths:
+                    print "---- %s" % x.getName()
+            if type == 'both' or type == 'properties':
+                print "Object Properties:"
+                for x in props:
+                    print "---- %s" % x.Name
         #return [ x.getName() for x in meths ], [ x.Name for x in props ]
         return ( [x.getName() for x in meths], [x.Name for x in props] )
     def easydebug( self, obj ):
