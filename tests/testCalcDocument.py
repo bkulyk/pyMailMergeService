@@ -44,13 +44,17 @@ class testWriterDocument( unittest.TestCase ):
         self.assertEquals( (1, 4, 7, 10), values )
         doc.close()
                 
-#    def test_getFormattedRangeData( self ):
-#        doc = CalcDocument()
-#        path = os.path.dirname( os.path.abspath( __file__ ) ) + "/docs/getNamedRanges.ods"
-#        doc.open( path )
-#        names = doc.getNamedRanges()
-#        print doc.getNamedRangeData( names[2] )
-#        doc.close()
+    def test_getRangeStrings( self ):
+        doc = CalcDocument()
+        path = os.path.dirname( os.path.abspath( __file__ ) ) + "/docs/getNamedRanges.ods"
+        doc.open( path )
+        values = doc.getNamedRangeStrings( 'first' )
+        doc.close()
+        expected = [ [ '1', '2', '3' ],
+                     [ '4', 'Friday, June 24, 2011', '6' ],
+                     [ '7', '8', '9' ],
+                     [ '10', '11', '12' ] ]
+        self.assertEqual( expected, values )
 
 if __name__ == "__main__":
     unittest.main()
