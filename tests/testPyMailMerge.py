@@ -2,9 +2,11 @@
 from sys import path
 path.append( '../src' )
 path.append( '../src/lib' )
+path.append( '../src/OfficeDocument' )
 from pyMailMerge import *
 import unittest
 import os
+from OfficeDocument import WriterDocument
 #define unit tests
 class testPyMailMerge( unittest.TestCase ):
     xml = r'''<tokens>
@@ -149,65 +151,78 @@ class testPyMailMerge( unittest.TestCase ):
         pmm.document.refresh()
         pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/spreadsheet.out.xls' ) )
     '''
-    xmlFromTed = """<?xml version="1.0" encoding="UTF-8"?>
-        <tokens>
-            <token>
-                <name>competition:name</name>
-                <value>Financial</value>
-            </token>
-            <token>
-                <name>comparison_view:competition</name>
-                <value> - </value>
-                <value>10000</value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-            </token>
-            <token>
-                <name>repeatrow|comparison_view:benefit</name>
-                <value>Life Benefit</value>
-                <value>Officers</value>
-                <value>Owners/Officers/Managers</value>
-                <value>Dental Benefit</value>
-                <value>Employees</value>
-                <value>Officers</value>
-                <value>Health Benefit</value>
-                <value>Officers</value>
-                <value>LTD Benefit</value>
-                <value>Officers</value>
-                <value>Weekly Income Benefit</value>
-                <value>Officers</value>
-            </token>
-            <token>
-                <name>comparison_view:wla</name>
-                <value> - </value>
-                <value>10000</value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-                <value> - </value>
-                <value>10000</value>
-            </token>
-        </tokens>
-    """
+
     def test_repeatrow_test_for_ted(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeatrow_test_for_ted.odt' ) )
+        outFile = os.path.join( os.path.dirname( __file__ ), 'docs/repeatrow_test_for_ted.out.odt' )
         pmm = pyMailMerge( path )
-        x = pyMailMerge._readParamsFromXML( self.xmlFromTed )
+        
+        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/repeatrow_test_for_ted.xml' ) ) )
+
+        x = pyMailMerge._readParamsFromXML( f.read() )
         pmm._process( x )
         pmm.document.refresh()
-        pmm.document.saveAs( os.path.join( os.path.dirname( __file__ ), 'docs/repeatrow_test_for_ted.out.pdf' ) )
+        pmm.document.saveAs( outFile )
+        
+        tableData = self._getFirstTableData( outFile )
+        
+        expectedOutcome = [ [ 'Benefit', 'Assurance', 'Financial'], 
+                            [ 'Life Benefit', ' - ', ' - '],
+                            [ 'Officers', '10000', '10000' ],
+                            [ 'Owners/Officers/Managers', '10000', '10000' ],
+                            [ 'Dental Benefit', ' - ', ' - ' ], 
+                            [ 'Employees', '10000', '10000' ], 
+                            [ 'Officers', '10000', '10000' ],
+                            [ 'Health Benefit', ' - ', ' - ' ],
+                            [ 'Officers', '10000', '10000' ],
+                            [ 'LTD Benefit', ' - ', ' - ' ],
+                            [ 'Officers', '10000', '10000' ],
+                            [ 'Weekly Income Benefit', ' - ', ' - ' ],
+                            [ 'Officers', '10000', '10000' ]
+                          ]
+        
+        self.assertEquals( expectedOutcome, tableData )
+        self.assertEquals( 13, len( tableData ) )
+
+    def test_repeatrow_and_repeatcolumn(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/repeat_row_and_column.odt' ) )
+        outFile = os.path.join( os.path.dirname( __file__ ), 'docs/repeat_row_and_column.out.odt' )
+        pmm = pyMailMerge( path )
+        
+        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/repeatrow_and_repeatcolumn.xml' ) ) )
+
+        x = pyMailMerge._readParamsFromXML( f.read() )
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( outFile )
+        
+        tableData = self._getFirstTableData( outFile )
+        
+        expectedOutcome = [ [ 'Name', 'name', 'life_benefit', 'life', 'add', 'dep_life', 
+                            'crit_illness', 'eap', 'wi_benefit', 'wi', 'ltd_benefit', 'ltd',
+                            'ehb', 'dental', 'total', "Total" ],
+                           [u'Test User', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'Test User 2', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' '],
+                           [u'Another User', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ', u' ']
+                          ]
+        
+        self.assertEquals( expectedOutcome, tableData )
+
+    def _getFirstTableData( self, outFile ):
+        #open file
+        od = WriterDocument.WriterDocument()
+        od.open( outFile )
+        #get table
+        tables = od.oodocument.getTextTables()
+        strings = od.getTextTableStrings( tables.getByIndex( 0 ) )
+        od.close()
+        return strings
 if __name__ == '__main__':
     unittest.main()

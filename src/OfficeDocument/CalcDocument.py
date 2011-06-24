@@ -86,4 +86,18 @@ class CalcDocument( OfficeDocument ):
             if len( x ) == 1:
                 data[i] = x[0]
             i += 1
-        return tuple( data ) 
+        return tuple( data )
+    def getNamedRangeStrings( self, rangeName ):
+        namedRange = self.oodocument.NamedRanges.getByName( rangeName )
+        sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
+        sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
+        sheet = self.oodocument.getSheets().getByName( sheetName )
+        range = sheet.getCellRangeByName( sheetAndRangeDesc )
+        data = []
+        for row in xrange( range.getRows().getCount() ):
+            rowdata = []
+            for col in xrange( range.getColumns().getCount() ):
+                cell = range.getCellByPosition( col, row )
+                rowdata.append( cell.Text.getString() )
+            data.append( rowdata )
+        return data
