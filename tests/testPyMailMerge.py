@@ -224,5 +224,45 @@ class testPyMailMerge( unittest.TestCase ):
         strings = od.getTextTableStrings( tables.getByIndex( 0 ) )
         od.close()
         return strings
+    
+    def test__readNamedRangesFromXML(self):
+        #should convert the xml into a list of named ranges
+        fixture = f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/namedRanges.xml' ) ) )
+        x = pyMailMerge._readNamedRangesFromXML( fixture.read() )
+        expected = [ 'first', 'second', 'third', 'all' ]
+        self.assertEquals( expected, x )
+        
+        #if a list of named ranges was passed, the same list should be returned
+        x = None
+        x = pyMailMerge._readNamedRangesFromXML( expected )
+        self.assertEquals( expected, x )
+        
+        #if a tuple of named ranges was passed, the same tuple should be returned
+        expected = ( 'first', 'second', 'third', 'all' )
+        x = None
+        x = pyMailMerge._readNamedRangesFromXML( expected )
+        self.assertEquals( expected, x )
+        
+    def test_calculatorXML(self):
+        fixture = f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
+        params = pyMailMerge._readParamsFromXML( fixture.read() )
+        
+        self.assertEqual( [ { 'token':'title', 'value':'Calculator' } ], params )
+        
+    def test_calculator(self):    
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/calculator.ods' ) )
+        outFile = os.path.join( os.path.dirname( __file__ ), 'docs/calculator.out.ods' )
+        pmm = pyMailMerge( path, 'ods' )
+        
+        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
+        
+        results = pmm.calculator( f.read() )
+                
+        expected = { 'totals':[ '1514', '1668', '910' ],
+                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ]
+                   }
+        
+        self.assertEqual( expected, results ) 
+    
 if __name__ == '__main__':
     unittest.main()

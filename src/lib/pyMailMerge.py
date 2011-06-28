@@ -7,15 +7,24 @@ import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
+import shutil
 class pyMailMerge:
     document = None
+    documentPath = None
     def __init__( self, odt='', type='odt' ):
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
-            self.document.open( odt )
+            #copy filt to temporary document, becasuse two webservice users using the same file causes problems
+            os.path.exists( odt )
+            self.documentPath = self._getTempFile( type )
+            shutil.copyfile( odt, self.documentPath )
+            self.document.open( self.documentPath )
     def __del__(self):
         try:
             self.document.close()
+            if self.documentPath is not None:
+                if os.path.exists( self.documentPath ):
+                    os.unlink( self.documentPath )
         except:
             #I don't really care about any errors at this point...
             #I should have caught them when opening or connecting
@@ -25,6 +34,41 @@ class pyMailMerge:
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     def joinDocumentToEnd( self, fileName ):
         return self.document.addDocumentToEnd( fileName )
+
+    def calculator(self, xml):
+        #process the document, just like a conversion
+        params = pyMailMerge._readParamsFromXML( xml )
+        
+        xml = etree.XML( xml )
+        
+        #process like normal mail merge 
+        self._process( params )
+
+        #for each input namedrange set the values
+        for x in xml.xpath( "//input/namedranges/namedrange" ):
+            #get the name, could be attribute or sub element
+            name = x.get( 'name' )
+            if name is None:
+                name = x.findall( "name" )[0].text
+            values = []
+            for value in x.findall( 'value' ):
+                #check to see if the value is supposed to be a number or a string
+                if x.get( 'numeric' ) in ( 'true', 'True', 'numeric', 'yes', 'Yes', 1, '1' ):
+                    values.append( pyMailMerge.toNumber( value.text ) )
+                else:
+                    values.append( value.text )
+            
+            #set the range values
+            self.document.setNamedRangeStrings( name, values )
+        
+        self.document.refresh()
+        
+        data = {}    
+        #extraced the data for the named ranges requested in the 'output' node
+        for x in xml.xpath( "//output/namedrange" ):
+            data[ x.text ] = self.document.getNamedRangeStrings( x.text )
+        return data
+    
     def convert( self, params, type='pdf', resave=False, saveExport=False ):
         params = pyMailMerge._readParamsFromXML( params )
 
@@ -100,6 +144,17 @@ class pyMailMerge:
             params.append( { 'token':tokenname, 'value':values } )
         return params
     @staticmethod
+    def _readNamedRangesFromXML( xml ):
+        if isinstance( xml, ( list, tuple ) ):
+            #not actually xml
+            return xml
+        data = []
+        xml = etree.XML( xml )
+        namedRanges = xml.xpath( "//namedranges/name" )
+        for x in namedRanges:
+            data.append( x.text )
+        return data
+    @staticmethod
     def _sortParams(params):
         #break up by token, so they can be sorted later 
         sorted = { 'None':[] }
@@ -117,4 +172,15 @@ class pyMailMerge:
         all = []
         for x in modifiers.modifierOrder:
             all.extend( sorted[ x['name'] ] )
-        return all            
+        return all
+    @staticmethod 
+    def toNumber( number ):
+        try:
+            return float( number )
+        except:
+            pass
+        try:
+            return int( number )
+        except:
+            pass
+        return numnber

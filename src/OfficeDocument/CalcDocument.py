@@ -87,6 +87,7 @@ class CalcDocument( OfficeDocument ):
                 data[i] = x[0]
             i += 1
         return tuple( data )
+    
     def getNamedRangeStrings( self, rangeName ):
         namedRange = self.oodocument.NamedRanges.getByName( rangeName )
         sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
@@ -100,4 +101,33 @@ class CalcDocument( OfficeDocument ):
                 cell = range.getCellByPosition( col, row )
                 rowdata.append( cell.Text.getString() )
             data.append( rowdata )
+        if len( data ) == 1:
+            return data[0]
         return data
+    
+    def setNamedRangeStrings( self, rangeName, values ):
+        namedRange = self.oodocument.NamedRanges.getByName( rangeName )
+        sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
+        sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
+        sheet = self.oodocument.getSheets().getByName( sheetName )
+        range = sheet.getCellRangeByName( sheetAndRangeDesc )
+        
+        rowcount = range.getRows().getCount()
+        for row in xrange( rowcount ):
+            colcount = range.getColumns().getCount()
+            for col in xrange( colcount ):
+                cell = range.getCellByPosition( col, row )
+                if colcount > 1 and rowcount > 1:
+                    value = values[ col ][ row ]
+                elif colcount == 1 and rowcount > 1:
+                    value = values[ row ]
+                elif rowcount == 1 and colcount > 1:
+                    value = values[ col ]
+                if CalcDocument.isNumber( value ):
+                    cell.setValue( value )
+                else:
+                    cell.Text.setString( value )
+
+    @staticmethod
+    def isNumber( value ):
+        return isinstance( value, ( int, float ) )

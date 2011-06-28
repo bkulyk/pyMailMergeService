@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<calculator>
+	<input>
+		<namedranges>
+			<namedrange name='first' numeric='true'>
+				<value>124</value>
+				<value>548</value>
+				<value>464</value>
+			</namedrange>
+			<namedrange name='second' numeric='true'>
+				<value>548</value>
+				<value>497</value>
+				<value>135</value>
+			</namedrange>
+			<namedrange numeric='true'>
+				<name>third</name>
+				<value>842</value>
+				<value>623</value>
+				<value>311</value>
+			</namedrange>
+		</namedranges>
+		<tokens>
+			<token>
+				<name>title</name>
+				<value>Calculator</value>
+			</token>
+		</tokens>
+	</input>
+	<output>
+		<namedrange>totals</namedrange>
+		<namedrange>test</namedrange>
+	</output>
+</calculator>

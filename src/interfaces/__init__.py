@@ -70,6 +70,12 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
+    def calculator( self, params, rangeNames, docPath='' ):
+        filename = os.paht.abspath( self.outputDir + docPath )
+        mms = pyMailMerge( filename )
+        values = mms.calculator( params, rangeNames )
+        return json.dumps( values )
+                
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
     def convert( self, params='', odt='', type='pdf', resave=False, saveExport=False ):
