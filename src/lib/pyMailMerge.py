@@ -15,16 +15,17 @@ class pyMailMerge:
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
             #copy filt to temporary document, becasuse two webservice users using the same file causes problems
-            os.path.exists( odt )
-            self.documentPath = self._getTempFile( type )
-            shutil.copyfile( odt, self.documentPath )
-            self.document.open( self.documentPath )
+            #os.path.exists( odt )
+            #self.documentPath = self._getTempFile( type )
+            #shutil.copyfile( odt, self.documentPath )
+            #self.document.open( self.documentPath )
+            self.document.open( odt )
     def __del__(self):
         try:
             self.document.close()
-            if self.documentPath is not None:
-                if os.path.exists( self.documentPath ):
-                    os.unlink( self.documentPath )
+           # if self.documentPath is not None:
+           #     if os.path.exists( self.documentPath ):
+           #         os.unlink( self.documentPath )
         except:
             #I don't really care about any errors at this point...
             #I should have caught them when opening or connecting
@@ -165,9 +166,7 @@ class pyMailMerge:
             sorted[ x['name'] ] = []
         #now place each key in the right spot in sorted
         for x in params:
-            print x['token']
             result = re.match( r"(?P<modifier>^[0-9A-Za-z\._]+\|)*(?P<token>[0-9A-Za-z\._\:\|]+)", x['token'] )
-            print result
             mod = "%s" % result.group( 'modifier' )
             mod = mod.replace( '|', '' )
             #add the modifier to the dictionary, this will save some effor later
