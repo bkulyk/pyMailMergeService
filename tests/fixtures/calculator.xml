@@ -18,6 +18,11 @@
 				<value>623</value>
 				<value>311</value>
 			</namedrange>
+			<namedrange numeric='true' name='factors'>
+				<value>10</value>
+				<value>5</value>
+				<value>2</value>
+			</namedrange>
 		</namedranges>
 		<tokens>
 			<token>
@@ -29,5 +34,7 @@
 	<output>
 		<namedrange>totals</namedrange>
 		<namedrange>test</namedrange>
+		<namedrange>results</namedrange>
+		<namedrange>more</namedrange>
 	</output>
 </calculator>

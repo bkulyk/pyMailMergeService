@@ -259,7 +259,9 @@ class testPyMailMerge( unittest.TestCase ):
         results = pmm.calculator( f.read() )
                 
         expected = { 'totals':[ '1514', '1668', '910' ],
-                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ]
+                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ],
+                    'results':[ '151.4', '333.6', '455' ],
+                    'more':[ '124', '548', '464' ]
                    }
         
         self.assertEqual( expected, results ) 

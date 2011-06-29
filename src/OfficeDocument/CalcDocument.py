@@ -44,6 +44,7 @@ class CalcDocument( OfficeDocument ):
         rangeToPaste = sheet.getCellRangeByPosition( address.StartColumn, address.StartRow+1, maxaddress.EndColumn, address.StartRow+1 )
         #copy data from first row to second row
         rangeToPaste.setDataArray( rangeToCopy.getDataArray() )
+    
     def searchAndReplaceFirst( self, phrase, replacement, regex=False ):
         cell = self._getCellForStartPhrase( phrase )
         '''if I don't convert numbers into numbers than formula don't work, and 
@@ -59,6 +60,7 @@ class CalcDocument( OfficeDocument ):
                 pass
         replacementArray = ( replacement, ),
         cell.setDataArray( replacementArray )
+    
     def searchAndReplace( self, phrase, replacement, regex=False ):
         sheets = self._getSheets()
         count = 0
@@ -69,10 +71,13 @@ class CalcDocument( OfficeDocument ):
             replace.SearchRegularExpression = regex
             count += sheet.replaceAll( replace )
         return count
+    
     def refresh(self):
         pass
+    
     def getNamedRanges(self):
         return self.oodocument.NamedRanges.ElementNames
+    
     def getNamedRangeData( self, rangeName ):
         namedRange = self.oodocument.NamedRanges.getByName( rangeName )
         sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
@@ -94,6 +99,8 @@ class CalcDocument( OfficeDocument ):
         sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
         sheet = self.oodocument.getSheets().getByName( sheetName )
         range = sheet.getCellRangeByName( sheetAndRangeDesc )
+        
+        #extract strings
         data = []
         for row in xrange( range.getRows().getCount() ):
             rowdata = []
@@ -101,8 +108,17 @@ class CalcDocument( OfficeDocument ):
                 cell = range.getCellByPosition( col, row )
                 rowdata.append( cell.Text.getString() )
             data.append( rowdata )
+            
+        #if there is only one row, only return a list instead of a list of lists
         if len( data ) == 1:
             return data[0]
+        
+        #if there is only one column, only return a list instead of a list of lists
+        if len( rowdata ) == 1:
+            i = 0
+            for x in data:
+                data[i] = data[i][0]
+                i += 1
         return data
     
     def setNamedRangeStrings( self, rangeName, values ):
@@ -117,12 +133,14 @@ class CalcDocument( OfficeDocument ):
             colcount = range.getColumns().getCount()
             for col in xrange( colcount ):
                 cell = range.getCellByPosition( col, row )
+                
                 if colcount > 1 and rowcount > 1:
                     value = values[ col ][ row ]
                 elif colcount == 1 and rowcount > 1:
                     value = values[ row ]
                 elif rowcount == 1 and colcount > 1:
                     value = values[ col ]
+                    
                 if CalcDocument.isNumber( value ):
                     cell.setValue( value )
                 else:
