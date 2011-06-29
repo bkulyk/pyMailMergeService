@@ -1,13 +1,32 @@
 #!/usr/bin/env python
 from sys import path
-path.append( '../src' )
-from pyMailMerge import *
 import unittest
 import os
 import urllib2
 import urllib
+import subprocess, time
+import signal
+import simplejson as json
+from lxml import etree
 #define unit tests
 class testRest( unittest.TestCase ):
+    process = None
+    startRest = True
+    devnull = None
+    def setUp(self):
+        if self.startRest:
+            self.devnull = open('/dev/null')
+            path = os.path.dirname( os.path.abspath( os.path.join( os.path.dirname( __file__ ) ) ) )
+            path = os.path.join( path, 'src/mmsd.py' )
+
+            self.process = subprocess.Popen( [ '/usr/bin/env', 'python', path, '--no-daemon' ], stdout=self.devnull, stderr=self.devnull )
+            time.sleep( 1 )
+        
+    def tearDown(self):
+        if self.startRest:
+            self.process.kill()
+            self.devnull.close()
+    
     xml = """<?xml version="1.0" encoding="UTF-8"?>
         <tokens>
             <token>
@@ -104,7 +123,7 @@ class testRest( unittest.TestCase ):
                 <value><![CDATA[<div style="font-family: Arial;"><h3>Terms:</h3><ol><li>Payment due in <strong>30</strong> days.</li><li>No refunds</li></ol></div>]]></value>
             </token>
         </tokens>"""
-    def testPDF(self):
+    '''def testPDF(self):
         xml = self.xml
         try:
             data = { 'params':xml, 'odt':"invoice.odt" }
@@ -134,5 +153,50 @@ class testRest( unittest.TestCase ):
         except:
             allGood = False
         self.assertTrue( allGood )
+    '''
+    def testCalculator(self):
+        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
+        
+        data = { 'params':f.read(), 'odt':'../../tests/docs/calculator.ods' }
+        response = urllib2.urlopen( "http://localhost:8080/calculator", urllib.urlencode( data ) )
+        body = response.read()
+        
+        expected = { 'totals':[ '1514', '1668', '910' ],
+                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ],
+                    'results':[ '151.4', '333.6', '455' ],
+                    'more':[ '124', '548', '464' ]
+                   }
+        results = json.loads( body )
+        self.assertEquals( expected, results )
+    
+    def testGetNamedRanges(self):
+        data = { 'odt':'../../tests/docs/calculator.ods' }
+        response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
+        body = response.read()
+        
+        expected = [ 'first', 'second', 'third', 'totals', 'factors', 'results', 'test', 'more' ]
+        results = json.loads( body )
+        
+        for x in expected:
+            self.assertTrue( x in results, "%s is missing from results" % x )
+        
+    def testGetNamedRanges_XML(self):
+        data = { 'odt':'../../tests/docs/calculator.ods', 'format':'xml' }
+        response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
+        xml = response.read()
+        
+        expected = [ 'first', 'second', 'third', 'totals', 'factors', 'results', 'test', 'more' ]
+        
+        xml = etree.XML( xml )
+        elements = xml.xpath( "//namedranges/namedrange" )
+        
+        results = []
+        for x in elements:
+            results.append( x.text ) 
+            self.assertTrue( x.text in expected, 'was not expecting "%s" in results' % x )
+        
+        for x in expected:
+            self.assertTrue( x in results, 'was expecting "%s" in results' % x )
+                 
 if __name__ == '__main__':
     unittest.main()

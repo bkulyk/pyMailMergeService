@@ -5,6 +5,8 @@ import simplejson as json
 import tempfile
 import shutil
 from com.sun.star.task import ErrorCodeIOException
+import traceback
+import StringIO
 class base( object ):
     outputDir = stubsDir = documentBase = "../tests/docs/"
     def __init__( self, options={} ):
@@ -70,11 +72,6 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
-    def calculator( self, params, rangeNames, docPath='' ):
-        filename = os.paht.abspath( self.outputDir + docPath )
-        mms = pyMailMerge( filename )
-        values = mms.calculator( params, rangeNames )
-        return json.dumps( values )
                 
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
@@ -87,6 +84,25 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
+    
+    def calculator( self, params='', odt='', format='json' ):
+        try:
+            fileName = os.path.abspath( self.outputDir + odt )
+            mms = pyMailMerge( fileName, 'ods' )
+            data = mms.calculator( params )
+            #todo xml output
+            data = json.dumps( data )
+            return data
+        except:
+            number = '?'
+            message = 'unknown exeption in calculator'
+            message += "\n\n"
+            tmp = StringIO.StringIO()
+            traceback.print_exc( file=tmp )
+            message += tmp.getvalue()
+            
+        return self.__errorXML( number, message )
+    
     def batchpdf( self, batch ):
         from pyPdf import PdfFileWriter, PdfFileReader
         output = PdfFileWriter()
@@ -110,7 +126,6 @@ class base( object ):
     def getTokens( self, odt='', format='json' ):
         #try:
             path = os.path.abspath( self.outputDir + odt )
-            print path
             mms = pyMailMerge( path )
             tokens = mms.getTokens()
             if format=='xml':
@@ -123,12 +138,25 @@ class base( object ):
                 return json.dumps( tokens )
         #except:
         #    return self.__errorXML( '?', 'could not get tokens' )
+    def getNamedRanges( self, odt='', format='json' ):
+        path = os.path.abspath( self.outputDir + odt )
+        mms = pyMailMerge( path, 'ods' )
+        names = mms.getNamedRanges()
+        if format=='xml':
+            xml = """<?xml version="1.0" encoding="UTF-8"?><namedranges>"""
+            for x in names:
+                xml += "<namedrange>%s</namedrange>" % x
+            xml += "</namedranges>"
+            return xml
+        else:
+            return json.dumps( names )
+        
     def __errorXML( self, number, message ):
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <errors>
             <error>
                 <number>%s</number>
-                <message>%s</message>
+                <message><![CDATA[%s]]></message>
             </error>
         </errors>""" % (number, message)

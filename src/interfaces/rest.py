@@ -33,6 +33,12 @@ class rest( interfaces.base ):
     @http.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
+    @http.expose
+    def calculator( self, params='', odt='', format='josn' ):
+        return interfaces.base.calculator( self, params, odt, format )
+    @http.expose
+    def getNamedRanges( self, odt, format='json' ):
+        return interfaces.base.getNamedRanges( self, odt, format )
     @staticmethod
     def run( options={} ):
         http.config.update( {'server.socket_host':'0.0.0.0', 'server.socket_port':8080} )
