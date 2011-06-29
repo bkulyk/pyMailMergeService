@@ -30,7 +30,7 @@ class pyMailMerge:
             #I should have caught them when opening or connecting
             pass
     def getTokens( self ):
-        tokens = self.document.re_match( r"~[a-zA-Z_\|\:\.]+~" )
+        tokens = self.document.re_match( r"~[a-zA-Z0-9\_\|\:\.]+~" )
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     def joinDocumentToEnd( self, fileName ):
         return self.document.addDocumentToEnd( fileName )
@@ -70,26 +70,29 @@ class pyMailMerge:
         return data
     
     def convert( self, params, type='pdf', resave=False, saveExport=False ):
-        params = pyMailMerge._readParamsFromXML( params )
+        try:
+            params = pyMailMerge._readParamsFromXML( params )
 
-        #process params
-        self._process(params)
+            #process params
+            self._process(params)
 
-        if resave != False:
-            self.document.save()
+            if resave != False:
+                self.document.save()
 
-        if saveExport != False:
-            filename = self.document.getFilename()
-            if filename != '':
-                basename, extension = os.path.splitext(filename)
-                filename = filename.replace(extension, '.' + type)
-                self.document.refresh()
-                self.document.saveAs( filename )
+            if saveExport != False:
+                filename = self.document.getFilename()
+                if filename != '':
+                    basename, extension = os.path.splitext(filename)
+                    filename = filename.replace(extension, '.' + type)
+                    self.document.refresh()
+                    self.document.saveAs( filename )
 
-        #get temporary out put file
-        out = self._getTempFile( '.%s' % type )
-        self.document.refresh()
-        self.document.saveAs( out )
+            #get temporary out put file
+            out = self._getTempFile( '.%s' % type )
+            self.document.refresh()
+            self.document.saveAs( out )
+        except Exception, e:
+            print sys.exc_info()
 
         #read contents
         file = open( out, 'r' )
@@ -162,7 +165,9 @@ class pyMailMerge:
             sorted[ x['name'] ] = []
         #now place each key in the right spot in sorted
         for x in params:
-            result = re.match( r"(?P<modifier>^[A-Za-z\._]+\|)*(?P<token>[A-Za-z\._\:\|]+)", x['token'] )
+            print x['token']
+            result = re.match( r"(?P<modifier>^[0-9A-Za-z\._]+\|)*(?P<token>[0-9A-Za-z\._\:\|]+)", x['token'] )
+            print result
             mod = "%s" % result.group( 'modifier' )
             mod = mod.replace( '|', '' )
             #add the modifier to the dictionary, this will save some effor later

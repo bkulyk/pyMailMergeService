@@ -1,5 +1,5 @@
-from sys import path
-path.append( '..' )
+import sys, traceback
+sys.path.append( '..' )
 from modifiers import *
 import modifiers
 class __init__( modifier ):
