@@ -15,7 +15,9 @@ class __init__( modifier ):
                     try:
                         if x == '-1.0':
                             x = 'Unlimited'
-                        else:
+                        elif x == '':
+			    x = ''
+			else:
                             result = '$' + locale.format("%d", int(round(float(x))), True, True)
                             x = result
                     except Exception, e:
@@ -30,7 +32,7 @@ class __init__( modifier ):
                         param['value'] = result
                 except Exception, e:
                     traceback.print_exc(file=sys.stdout)
-            document.searchAndReplace( key, param['value'] )
+	        document.searchAndReplace( key, param['value'] )
         except Exception, e:
             traceback.print_exc(file=sys.stdout)
 modifiers.modifiers.modifierOrder.append( {'name':'currency', 'order':99 } )
