@@ -8,7 +8,9 @@ from OfficeDocument.WriterDocument import *
 import unittest, os, uno
 #define unit tests
 class testWriterDocument( unittest.TestCase ):
+    path = ''
     def setUp(self):
+	self.path = os.path.dirname( os.path.abspath( __file__ ) )
         pass
     def test_fromBase26(self):
         self.assertEquals( 1,  B26.fromBase26( 'A' ) )
@@ -19,44 +21,44 @@ class testWriterDocument( unittest.TestCase ):
         self.assertEquals( 54, B26.fromBase26( 'BB' ) )
     def test_duplicateRow(self):
         ood = WriterDocument()
-        ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
+        ood.open( '%s/docs/repeat_row_repeat_column.odt' % self.path )
         ood.duplicateRow( "~a2~", True )
-        ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.pdf' )
+        ood.saveAs( '%s/docs/repeat_row_repeat_column.pdf' % self.path )
         ood.close()
     def test_duplicateColumn(self):
         ood = WriterDocument()
-        ood.open( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.odt' )
+        ood.open( '%s/docs/repeat_row_repeat_column.odt' % self.path )
         ood.duplicateColumn( "~a1~", True )
-        ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/repeat_row_repeat_column.2.pdf' )
+        ood.saveAs( '%s/docs/repeat_row_repeat_column.2.pdf' % self.path )
         ood.close()
     def test_searchAndDuplicate( self ):
         ood = WriterDocument()
-        ood.open( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.odt" )
+        ood.open( "%s/docs/duplicate_section.odt" % self.path )
         ood.searchAndDuplicate( "~start~", '~end~', 3, True )
-        ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/duplicate_section.pdf" )
+        ood.saveAs( "%s/docs/duplicate_section.pdf" % self.path )
         ood.close()    
     def test_searchAndCursor( self ):
     	ood = WriterDocument()
-    	ood.open( "/usr/share/pyMailMergeService/tests/docs/find_replace.odt" )
+    	ood.open( "%s/docs/find_replace.odt" % self.path )
     	search = ood.oodocument.createSearchDescriptor()
     	search.setSearchString( 'search' )
     	result = ood.oodocument.findFirst( search )
-    	path = uno.systemPathToFileUrl( "/usr/share/pyMailMergeService/tests/docs/insertme.html" )
+    	path = uno.systemPathToFileUrl( "%s/docs/insertme.html" % self.path )
     	result.insertDocumentFromURL( path, tuple() )
-    	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/docInTheMiddle.pdf" )
+    	ood.saveAs( "%s/docs/docInTheMiddle.pdf" % self.path )
     	ood.close()
     def test_searchAndReplaceWithDocument( self ):
     	ood = WriterDocument()
-    	ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
+    	ood.open( '%s/docs/find_replace.odt' % self.path )
     	replace = ood.oodocument.createReplaceDescriptor()
     	replace.setSearchString( "search" )
     	replace.setReplaceString( "replace" )
     	ood.oodocument.replaceAll( replace )
-    	ood.saveAs( '/usr/share/pyMailMergeService/tests/docs/find_replaced.pdf' )
+    	ood.saveAs( '%s/docs/find_replaced.pdf' % self.path )
         ood.close()
     def test_insertDocument( self ):
     	ood = WriterDocument()
-        ood.open( '/usr/share/pyMailMergeService/tests/docs/find_replace.odt' )
+        ood.open( '%s/docs/find_replace.odt' % self.path )
     	cursor = ood.oodocument.Text.createTextCursor()
     	replace = ood.oodocument.createReplaceDescriptor()
     	replace.setSearchString( "search" )
@@ -65,8 +67,8 @@ class testWriterDocument( unittest.TestCase ):
     	ood.oodocument.Text.insertString( cursor, 'inserted', 0 )
     	properties = []
     	properties = tuple( properties )
-    	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("/usr/share/pyMailMergeService/tests/docs/insert_doc.odt"), properties )
-    	ood.saveAs( "/usr/share/pyMailMergeService/tests/docs/inserted_doc.pdf" )
+    	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("%s/docs/insert_doc.odt" % self.path), properties )
+    	ood.saveAs( "%s/docs/inserted_doc.pdf" % self.path )
     	ood.close()
 if __name__ == '__main__':
     unittest.main()
