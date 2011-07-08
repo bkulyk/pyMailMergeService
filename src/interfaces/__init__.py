@@ -33,52 +33,6 @@ class base( object ):
             message = "unknown exception"
         return self.__errorXML( number, message )
     
-    def joinDocuments( self, odt, fileNames, appendToExistingDoc=False, useOutputDir=True ):
-        try:
-            if useOutputDir:
-                outputFileName = os.path.abspath( self.outputDir + odt )
-            else:
-                outputFileName = os.path.abspath( odt )
-            mms = pyMailMerge()
-    
-            if appendToExistingDoc:
-                mms.document.open( outputFileName )
-            else:
-                mms.document.createNew()
-    
-            for x in fileNames.split( ':' ):
-                inputFileName = os.path.abspath( self.stubsDir + x )
-                mms.joinDocumentToEnd( inputFileName )
-    
-            if appendToExistingDoc:
-                mms.document.save()
-            else:
-                mms.document.saveAs( outputFileName )
-    
-            mms.document.close()
-            return "Ok"
-        except ErrorCodeIOException:
-            number = "500"
-            message = "Could not write completed file"
-        except:
-            number = '?'
-            message = "unknown exception"
-        return self.__errorXML( number, message )
-    
-    def copyDocument( self, target, source ):
-        try:
-            sourceFileName = os.path.abspath( self.stubsDir + source )
-            outputFileName = os.path.abspath( self.outputDir + target )
-            shutil.copy(sourceFileName, outputFileName)
-            return "Ok"
-        except IOError, e:
-            number = "500"
-            message = "Unable to copy file: %s" % e
-        except:
-            number = '?'
-            message = "unknown exception"
-        return self.__errorXML( number, message )
-                
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
     
