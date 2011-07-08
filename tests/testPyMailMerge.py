@@ -263,7 +263,72 @@ class testPyMailMerge( unittest.TestCase ):
                     'more':[ '124', '548', '464' ]
                    }
         
-        self.assertEqual( expected, results ) 
+        self.assertEqual( expected, results )
+        
+    def test_deleteRow(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/deleteRow.odt' ) )
+        outFile = os.path.join( os.path.dirname( __file__ ), 'docs/deleteRow.out.odt' )
+        pmm = pyMailMerge( path ) 
+        
+        xml = """<tokens>
+            <token>
+                <name>deleterow|wanted</name>
+                <value>0</value>
+            </token>
+            <token>
+                <name>deleterow|unwanted</name>
+                <value>1</value>
+            </token>
+            <token>
+                <name>deleterow|another</name>
+                <value>0</value>
+            </token>
+        </tokens>"""
+        
+        x = pyMailMerge._readParamsFromXML( xml )
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( outFile )
+        
+        results = self._getFirstTableData( outFile )
+        
+        expected = [[ 'Wanted Row', '', "Send value '0' to keep" ],
+                    [ 'Another Wanted', '', "Send value '0' to keep"] ]
+        
+        self.assertEqual( expected, results )
+        
+    def test_deleteColumn(self):
+        path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/deleteColumn.odt' ) )
+        outFile = os.path.join( os.path.dirname( __file__ ), 'docs/deleteColumn.out.odt' )
+        pmm = pyMailMerge( path ) 
+        
+        xml = """<tokens>
+            <token>
+                <name>deletecolumn|wanted</name>
+                <value>0</value>
+            </token>
+            <token>
+                <name>deletecolumn|unwanted</name>
+                <value>1</value>
+            </token>
+            <token>
+                <name>deletecolumn|another</name>
+                <value>0</value>
+            </token>
+        </tokens>"""
+        
+        x = pyMailMerge._readParamsFromXML( xml )
+        pmm._process( x )
+        pmm.document.refresh()
+        pmm.document.saveAs( outFile )
+        
+        results = self._getFirstTableData( outFile )
+        
+        expected = [[ 'First', "Third" ],
+                    [ 'A', 'C' ],
+                    [ 'D', 'F' ] ]
+        
+        self.assertEqual( expected, results )
     
 if __name__ == '__main__':
     unittest.main()

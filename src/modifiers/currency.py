@@ -9,7 +9,6 @@ class __init__( modifier ):
     @staticmethod
     def process( document, param ):
         key = "~%s~" % param['token']
-        debug = False
         try:
             if isinstance( param['value'], ( list, tuple ) ):
                 for x in param['value']:

@@ -177,6 +177,37 @@ class WriterDocument( OfficeDocument ):
             return i
         except:
             return i
+        
+    def deleteRow( self, phrase ):
+        cursor = self._getCursorForStartPhrase( phrase )
+        x = cursor.createEnumeration()
+        if x.hasMoreElements():
+            table = x.nextElement()
+            cellNames = table.getCellNames()
+            #need to find the cell with the search phrase that was provided
+            for cellName in cellNames:
+                cell = table.getCellByName( cellName )
+                if cell is not None:
+                    text = cell.Text.getString()
+                    if phrase in text: #text == phrase:
+                        sourceRow = self._convertCellNameToCellPositions( cellName )[0]
+                        table.Rows.removeByIndex( sourceRow, 1 )
+    
+    def deleteColumn(  self, phrase ):
+        cursor = self._getCursorForStartPhrase( phrase )
+        x = cursor.createEnumeration()
+        if x.hasMoreElements():
+            table = x.nextElement()
+            cellNames = table.getCellNames()
+            #need to find the cell with the search phrase that was provided
+            for cellName in cellNames:
+                cell = table.getCellByName( cellName )
+                if cell is not None:
+                    text = cell.Text.getString()
+                    if phrase in text: #text == phrase:
+                        sourceCol = self._convertCellNameToCellPositions( cellName )[1]
+                        table.Columns.removeByIndex( sourceCol, 1 )
+                    
     def duplicateRow( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
@@ -249,64 +280,6 @@ class WriterDocument( OfficeDocument ):
                             controller.insertTransferable( sourceRows[ rowIndex ] )
                     return
                     
-                    
-#    def duplicateColumn( self, phrase, count=1, regex=False ):
-#        cursor = self._getCursorForStartPhrase( phrase, regex )
-#        #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
-#        x = cursor.createEnumeration()
-#        if x.hasMoreElements():
-#            e = x.nextElement()
-#            cellNames = e.getCellNames()
-#            #need to find the cell with the search phrase that was provided
-#            for cellName in cellNames:
-#                cell = e.getCellByName( cellName )
-#                text = cell.Text.getString()
-#                if text == phrase:
-#                    rowpos, colpos = self._convertCellNameToCellPositions(cellName)
-#                    cols = e.getColumns()
-#                    cols.insertByIndex( colpos+1, 1 )
-#                    self._copyColumnCells( e, cellName )
-#                    return
-#    def _copyColumnCells(self, table, cellName):
-#        #start by getting the current row number
-#        matches = re.match( "(\w)+(\d)+", cellName )
-#        col = matches.group( 1 )
-#        #initialize values
-#        cols = []
-#        cellCursor = None
-#        pos = 0 
-#        #loop through all cells with this row number in the cell name
-#        for x in table.getCellNames():
-#            matches = re.match( "(\w)+(\d)+", x )
-#            row = "%s" % B26.fromBase26( matches.group( 1 ) )
-#            col = "%s" % col
-#            if matches.group( 1 ) == col:
-#                currentcolumn = B26.fromBase26( matches.group(1) )
-#                x = matches.group( 1 ) + "%s" % row
-#                if cellCursor is None:
-#                    #on first loop we need to get the cursor
-#                    cellCursor = table.createCursorByCellName( x )
-#                else:
-#                    #on every other loop we just need to move the cursor 1 position down
-#                    cellCursor.goDown( 1, False )
-#                matches = re.match( "(\w)+(\d)+", cellCursor.getRangeName() )
-#                #get the source cell and copy content
-#                sourceCell = table.getCellByPosition( currentcolumn-1, int(matches.group( 2 ))-1 )
-#                #get target cell
-#                targetCell = table.getCellByPosition( currentcolumn, int(matches.group( 2 ))-1 )
-#                targetCell.setString( ' ' )
-#                #paste contents from source to targets
-#                '''a HUGE thanks goes to Alessandro Dentella for this solution which allows me to get 
-#                rid of the dependency on AutoText for this, which is awesome because AutoText requires 
-#                root and is very slow.  AutoText also seemed to give me a bunch of segmentation faults.
-#                http://stackoverflow.com/questions/4541081/openoffice-duplicating-rows-of-a-table-in-writer/4596191#4596191'''
-#                controller = self.oodocument.getCurrentController()
-#                viewCursor = controller.getViewCursor()
-#                viewCursor.gotoRange( sourceCell.Text, False )
-#                txt = controller.getTransferable()
-#                viewCursor.gotoRange( targetCell.Text, False )
-#                controller.insertTransferable( txt )
-#        return
     def getTextTableStrings( self, table ):
         #extract data
         tableData = []
@@ -325,16 +298,13 @@ class WriterDocument( OfficeDocument ):
         row = int( matches.group(2) ) - 1
         col = ord( col ) - 65
         return ( row, col )
+    
     @staticmethod
     def _base26Decode( num ):
         return int( num, 26 )
+    
 if __name__ == "__main__":
     from sys import argv, exit
     if len( argv ) == 3:
         WriterDocument.convert( argv[1], argv[2] )
-class PermissionError( Exception ):
-    value = None
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr( self.value )
+        
