@@ -11,7 +11,7 @@ from lxml import etree
 #define unit tests
 class testRest( unittest.TestCase ):
     process = None
-    startRest = True
+    startRest = False
     devnull = None
     def setUp(self):
         if self.startRest:
@@ -157,7 +157,7 @@ class testRest( unittest.TestCase ):
     def testCalculator(self):
         f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
         
-        data = { 'params':f.read(), 'odt':'../../tests/docs/calculator.ods' }
+        data = { 'params':f.read(), 'ods':'../tests/docs/calculator.ods' }
         response = urllib2.urlopen( "http://localhost:8080/calculator", urllib.urlencode( data ) )
         body = response.read()
         
@@ -170,7 +170,7 @@ class testRest( unittest.TestCase ):
         self.assertEquals( expected, results )
     
     def testGetNamedRanges(self):
-        data = { 'odt':'../../tests/docs/calculator.ods' }
+        data = { 'ods':'../tests/docs/calculator.ods' }
         response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
         body = response.read()
         
@@ -181,7 +181,7 @@ class testRest( unittest.TestCase ):
             self.assertTrue( x in results, "%s is missing from results" % x )
         
     def testGetNamedRanges_XML(self):
-        data = { 'odt':'../../tests/docs/calculator.ods', 'format':'xml' }
+        data = { 'ods':'../tests/docs/calculator.ods', 'format':'xml' }
         response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
         xml = response.read()
         
@@ -197,6 +197,20 @@ class testRest( unittest.TestCase ):
         
         for x in expected:
             self.assertTrue( x in results, 'was expecting "%s" in results' % x )
-                 
+    
+    def testBatchConvert(self):
+
+        data = [ [ "../tests/docs/batchConvert_part1.odt", '' ], 
+                 [ "../tests/docs/batchConvert_part2.odt", '' ],
+                 [ "../tests/docs/batchConvert_part3.odt", '' ] ]
+        
+        data = { 'batch':json.dumps( data ), 'outputType':'odt' }
+        
+        response = urllib2.urlopen( "http://localhost:8080/batchConvert", urllib.urlencode( data ) )
+        
+        f = open( 'docs/batchConvert.out.odt', 'w' )
+        f.write( response.read() )
+        f.close()
+        
 if __name__ == '__main__':
     unittest.main()

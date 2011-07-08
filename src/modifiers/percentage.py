@@ -1,21 +1,33 @@
 #from sys import path
-import sys, os
+import sys, os, traceback
 sys.path.append( '..' )
 from modifiers import *
 import modifiers
+import locale
+locale.setlocale(locale.LC_ALL, '')
 class __init__( modifier ):
     @staticmethod
     def process( document, param ):
         key = "~%s~" % param['token']
+        debug = False
         try:
             if isinstance( param['value'], ( list, tuple ) ):
-                pass
+                for x in param['value']:
+                  x = __init__.cleanVal(x)
+                  document.searchAndReplaceFirst( key, x )
             else:
-                try:
-                    param['value'] = "%d%%" % int(round(float(param['value'])))
-                except Exception, e:
-                    print sys.exc_info()
-            document.searchAndReplace( key, param['value'] )
+                x = param['value']
+                x = __init__.cleanVal(x)
+                count = document.searchAndReplace( key, x )
         except Exception, e:
-            print sys.exc_info()
+            traceback.print_exc(file=sys.stdout)
+    @staticmethod
+    def cleanVal( x ):
+        try:
+            x = "%d" % int( round( float(x) ) )
+            x += "%"
+        except Exception, e:
+            x = ''
+        return x
+            
 modifiers.modifiers.modifierOrder.append( {'name':'percentage', 'order':97 } )

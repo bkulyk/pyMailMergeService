@@ -18,7 +18,7 @@ class __init__( modifier ):
                     else:
                         param['value'] = str(val) + {1 : 'st', 2 : 'nd', 3 : 'rd'}.get(val % 10, "th")
                 except Exception, e:
-                    print sys.exc_info()
+                    pass #print sys.exc_info()
             document.searchAndReplace( key, param['value'] )
         except Exception, e:
             print sys.exc_info()

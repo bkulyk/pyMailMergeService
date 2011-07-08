@@ -33,6 +33,7 @@ class pyMailMerge:
     def getTokens( self ):
         tokens = self.document.re_match( r"~[a-zA-Z0-9\_\|\:\.]+~" )
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
+    
     def joinDocumentToEnd( self, fileName ):
         return self.document.addDocumentToEnd( fileName )
 
@@ -40,16 +41,19 @@ class pyMailMerge:
         return self.document.getNamedRanges()
 
     def calculator( self, xml ):
-        #process the document, just like a conversion
-        params = pyMailMerge._readParamsFromXML( xml )
+        try:
+            #process like normal mail merge 
+            params = pyMailMerge._readParamsFromXML( xml )
+            self._process( params )
+        except:
+            print 'no tokens'
+            pass
         
         xml = etree.XML( xml )
         
-        #process like normal mail merge 
-        self._process( params )
-
         #for each input namedrange set the values
         for x in xml.xpath( "//input/namedranges/namedrange" ):
+            
             #get the name, could be attribute or sub element
             name = x.get( 'name' )
             if name is None:
@@ -71,40 +75,39 @@ class pyMailMerge:
         #extraced the data for the named ranges requested in the 'output' node
         for x in xml.xpath( "//output/namedrange" ):
             data[ x.text ] = self.document.getNamedRangeStrings( x.text )
+            
         return data
     
-    def convert( self, params, type='pdf', resave=False, saveExport=False ):
+    def convert( self, params, type='pdf' ):
         try:
-            params = pyMailMerge._readParamsFromXML( params )
-
-            #process params
-            self._process(params)
-
-            if resave != False:
-                self.document.save()
-
-            if saveExport != False:
-                filename = self.document.getFilename()
-                if filename != '':
-                    basename, extension = os.path.splitext(filename)
-                    filename = filename.replace(extension, '.' + type)
-                    self.document.refresh()
-                    self.document.saveAs( filename )
-
-            #get temporary out put file
-            out = self._getTempFile( '.%s' % type )
-            self.document.refresh()
-            self.document.saveAs( out )
+            out = self.convertFile( params, type  )
         except Exception, e:
             print sys.exc_info()
 
         #read contents
-        file = open( out, 'r' )
-        x = file.read()
-        file.close()
-        #clean up
-        os.unlink( out )
+        if out is not None:
+            file = open( out, 'r' )
+            x = file.read()
+            file.close()
+            
+            #clean up
+            os.unlink( out )
         return x
+    
+    def convertFile(self, params, type='pdf' ):
+        if params is not None and params != '':
+            params = pyMailMerge._readParamsFromXML( params )
+    
+            #process params
+            self._process(params)
+
+        #get temporary out put file
+        out = self._getTempFile( '.%s' % type )
+        self.document.refresh()
+        self.document.saveAs( out )
+        
+        return out
+
     def _process( self, params ):
         params = pyMailMerge._sortParams(params)
         for param in params:
@@ -190,4 +193,4 @@ class pyMailMerge:
             return int( number )
         except:
             pass
-        return numnber
+        return number

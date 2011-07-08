@@ -26,8 +26,7 @@ class WriterDocument( OfficeDocument ):
         if cursor:
             cursor.gotoEnd( False )
             if pageBreak:
-                cursor.BreakType = PAGE_BEFORE
-                #self.oodocument.getText().insertControlCharacter( cursor, PARAGRAPH_BREAK, False )
+                cursor.BreakType = PAGE_AFTER
             cursor.insertDocumentFromURL( uno.systemPathToFileUrl( os.path.abspath( documentUrl ) ), () )
             return True
         return False

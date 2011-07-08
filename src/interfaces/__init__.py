@@ -8,12 +8,13 @@ from com.sun.star.task import ErrorCodeIOException
 import traceback
 import StringIO
 class base( object ):
-    outputDir = stubsDir = documentBase = "../tests/docs/"
+    outputDir = stubsDir = documentBase = "./docs/"
     def __init__( self, options={} ):
         if 'outputDir' in options:
             self.outputDir = options['outputDir'] + "/"
         if 'stubsDir' in options:
             self.stubsDir = options['stubsDir'] + "/"
+            
     def uploadConvert( self, params='', odt='', type='pdf' ):
         #write temporary file
         file, fileName = tempfile.mkstemp( suffix="_pyMMS.odt" )
@@ -31,25 +32,29 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
-    def joinDocuments( self, odt, fileNames, appendToExistingDoc=False ):
+    
+    def joinDocuments( self, odt, fileNames, appendToExistingDoc=False, useOutputDir=True ):
         try:
-            outputFileName = os.path.abspath( self.outputDir + odt )
+            if useOutputDir:
+                outputFileName = os.path.abspath( self.outputDir + odt )
+            else:
+                outputFileName = os.path.abspath( odt )
             mms = pyMailMerge()
-
+    
             if appendToExistingDoc:
                 mms.document.open( outputFileName )
             else:
                 mms.document.createNew()
-
+    
             for x in fileNames.split( ':' ):
                 inputFileName = os.path.abspath( self.stubsDir + x )
                 mms.joinDocumentToEnd( inputFileName )
-
+    
             if appendToExistingDoc:
                 mms.document.save()
             else:
                 mms.document.saveAs( outputFileName )
-
+    
             mms.document.close()
             return "Ok"
         except ErrorCodeIOException:
@@ -59,6 +64,7 @@ class base( object ):
             number = '?'
             message = "unknown exception"
         return self.__errorXML( number, message )
+    
     def copyDocument( self, target, source ):
         try:
             sourceFileName = os.path.abspath( self.stubsDir + source )
@@ -75,6 +81,7 @@ class base( object ):
                 
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
+    
     def convert( self, params='', odt='', type='pdf', resave=False, saveExport=False ):
         try:
             fileName = os.path.abspath( self.outputDir + odt )
@@ -85,23 +92,76 @@ class base( object ):
             message = "unknown exception"
         return self.__errorXML( number, message )
     
-    def calculator( self, params='', odt='', format='json' ):
-        try:
-            fileName = os.path.abspath( self.outputDir + odt )
+    def calculator( self, params='', ods='', format='json' ):
+#        try:
+            fileName = os.path.abspath( self.stubsDir + ods )
             mms = pyMailMerge( fileName, 'ods' )
             data = mms.calculator( params )
             #todo xml output
             data = json.dumps( data )
             return data
+#        except:
+#            number = '?'
+#            message = 'unknown exeption in calculator'
+#            message += "\n\n"
+#            tmp = StringIO.StringIO()
+#            traceback.print_exc( file=tmp )
+#            message += tmp.getvalue()
+#            
+#        return self.__errorXML( number, message )
+    
+    def batchConvert( self, batch=None, outputType='pdf', outputFilePath=False ):
+        try:
+            batch = json.loads( batch )
         except:
-            number = '?'
-            message = 'unknown exeption in calculator'
+            pass
+ 
+        try:       
+            #process tokens for each document individually
+            files = []
+            i = 0
+            for doc, params in batch:
+                mm = pyMailMerge( self.stubsDir + doc )
+                outputFile = mm.convertFile( params, 'odt' )
+                files.append( outputFile )
+                
+                i+=1
+                xmlfile = open( os.path.join( self.outputDir, "%s_%s.xml" % ( outputFilePath, i ) ), 'w' )
+                xmlfile.write( params )
+                xmlfile.close()
+    
+            #open first file
+            mm = pyMailMerge( files[0] )
+            
+            #append every other file to the first
+            for x in files[1:]:
+                mm.joinDocumentToEnd( x )
+                
+            if outputFilePath is not False:
+                #convert file and get path
+                outputFile = mm.convertFile( None, outputType )
+                #copy file to putput dir
+                outputFilePath = os.path.abspath( os.path.join( self.outputDir, outputFilePath ) )
+                shutil.copy( outputFile, outputFilePath )
+                #return the filename
+                content = outputFilePath
+                #cleanout
+                os.unlink( outputFile )
+            else:
+                content = mm.convert( None, 'odt' )
+            
+            for x in files:
+                os.unlink( x )
+            
+            return content
+        except:
+            number = "?"
+            message = 'unknown exception in batchConvert'
             message += "\n\n"
             tmp = StringIO.StringIO()
             traceback.print_exc( file=tmp )
             message += tmp.getvalue()
-            
-        return self.__errorXML( number, message )
+            return self.__errorXML( number, message )        
     
     def batchpdf( self, batch ):
         from pyPdf import PdfFileWriter, PdfFileReader
@@ -123,9 +183,10 @@ class base( object ):
         readin = open( outfile, 'r' )
         contents = readin.read()
         return contents
+    
     def getTokens( self, odt='', format='json' ):
-        #try:
-            path = os.path.abspath( self.outputDir + odt )
+        try:
+            path = os.path.abspath( self.stubsDir + odt )
             mms = pyMailMerge( path )
             tokens = mms.getTokens()
             if format=='xml':
@@ -136,10 +197,10 @@ class base( object ):
                 return xml
             else:
                 return json.dumps( tokens )
-        #except:
-        #    return self.__errorXML( '?', 'could not get tokens' )
-    def getNamedRanges( self, odt='', format='json' ):
-        path = os.path.abspath( self.outputDir + odt )
+        except:
+            return self.__errorXML( '?', 'could not get tokens' )
+    def getNamedRanges( self, ods='', format='json' ):
+        path = os.path.abspath( self.stubsDir + odt )
         mms = pyMailMerge( path, 'ods' )
         names = mms.getNamedRanges()
         if format=='xml':
