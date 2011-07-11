@@ -31,7 +31,7 @@ class pyMailMerge:
             #I should have caught them when opening or connecting
             pass
     def getTokens( self ):
-        tokens = self.document.re_match( r"~[a-zA-Z0-9\_\|\:\.]+~" )
+        tokens = self.document.re_match( r"~[a-zA-Z0-9\_\|\:\.\?]+~" )
         return dict( map( lambda i: ( i, 1 ), tokens ) ).keys()
     
     def joinDocumentToEnd( self, fileName ):

@@ -73,17 +73,11 @@ class base( object ):
         try:       
             #process tokens for each document individually
             files = []
-            i = 0
             for doc, params in batch:
                 mm = pyMailMerge( self.stubsDir + doc )
                 outputFile = mm.convertFile( params, 'odt' )
                 files.append( outputFile )
                 
-                i+=1
-                xmlfile = open( os.path.join( self.outputDir, "%s_%s.xml" % ( outputFilePath, i ) ), 'w' )
-                xmlfile.write( params )
-                xmlfile.close()
-    
             #open first file
             mm = pyMailMerge( files[0] )
             
