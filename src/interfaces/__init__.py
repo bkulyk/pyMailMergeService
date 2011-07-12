@@ -46,12 +46,16 @@ class base( object ):
             message = "unknown exception"
         return self.__errorXML( number, message )
     
-    def calculator( self, params='', ods='', format='json' ):
+    def calculator( self, params='', ods='', format='json', outputFile=None ):
 #        try:
             fileName = os.path.abspath( self.stubsDir + ods )
             mms = pyMailMerge( fileName, 'ods' )
-            data = mms.calculator( params )
+            if outputFile is not None:
+                data = mms.calculator( params, self.outputDir + outputFile )
+            else:
+                data = mms.calculator( params )
             #todo xml output
+            print data
             data = json.dumps( data )
             return data
 #        except:
@@ -65,18 +69,25 @@ class base( object ):
 #        return self.__errorXML( number, message )
     
     def batchConvert( self, batch=None, outputType='pdf', outputFilePath=False ):
-        try:
+#        try:
             batch = json.loads( batch )
-        except:
-            pass
- 
-        try:       
+#        except:
+#            pass
+# 
+#        try:       
             #process tokens for each document individually
             files = []
+            i=0
             for doc, params in batch:
                 mm = pyMailMerge( self.stubsDir + doc )
                 outputFile = mm.convertFile( params, 'odt' )
                 files.append( outputFile )
+                
+                #some stuff for debugging.
+#                x = open( "/var/www/mms_docs/output/%s_%s.xml" % ( doc, i ), 'w' )
+#                x.write( params )
+#                x.close()
+#                i+=1
                 
             #open first file
             mm = pyMailMerge( files[0] )
@@ -102,14 +113,14 @@ class base( object ):
                 os.unlink( x )
             
             return content
-        except:
-            number = "?"
-            message = 'unknown exception in batchConvert'
-            message += "\n\n"
-            tmp = StringIO.StringIO()
-            traceback.print_exc( file=tmp )
-            message += tmp.getvalue()
-            return self.__errorXML( number, message )        
+#        except:
+#            number = "?"
+#            message = 'unknown exception in batchConvert'
+#            message += "\n\n"
+#            tmp = StringIO.StringIO()
+#            traceback.print_exc( file=tmp )
+#            message += tmp.getvalue()
+#            return self.__errorXML( number, message )        
     
     def batchpdf( self, batch ):
         from pyPdf import PdfFileWriter, PdfFileReader

@@ -138,7 +138,7 @@ class OfficeDocument:
         exportFilter = self._getExportFilter( filename )
         props = exportFilter, 
         #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
-        self.oodocument.storeToURL( filename, props )
+        self.oodocument.storeAsURL( filename, props )
         return self.getFilename()
     def close( self ):
         """Close the OpenOffice document"""

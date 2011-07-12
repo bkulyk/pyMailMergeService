@@ -15,17 +15,17 @@ class pyMailMerge:
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
             #copy filt to temporary document, becasuse two webservice users using the same file causes problems
-            #os.path.exists( odt )
-            #self.documentPath = self._getTempFile( type )
-            #shutil.copyfile( odt, self.documentPath )
-            #self.document.open( self.documentPath )
+            os.path.exists( odt )
+            self.documentPath = self._getTempFile( type )
+            shutil.copyfile( odt, self.documentPath )
+            self.document.open( self.documentPath )
             self.document.open( odt )
     def __del__(self):
         try:
             self.document.close()
-           # if self.documentPath is not None:
-           #     if os.path.exists( self.documentPath ):
-           #         os.unlink( self.documentPath )
+            if self.documentPath is not None:
+                if os.path.exists( self.documentPath ):
+                    os.unlink( self.documentPath )
         except:
             #I don't really care about any errors at this point...
             #I should have caught them when opening or connecting
@@ -40,7 +40,7 @@ class pyMailMerge:
     def getNamedRanges( self ):
         return self.document.getNamedRanges()
 
-    def calculator( self, xml ):
+    def calculator( self, xml, outputFile=None ):
         try:
             #process like normal mail merge 
             params = pyMailMerge._readParamsFromXML( xml )
@@ -74,8 +74,19 @@ class pyMailMerge:
         data = {}    
         #extraced the data for the named ranges requested in the 'output' node
         for x in xml.xpath( "//output/namedrange" ):
-            data[ x.text ] = self.document.getNamedRangeStrings( x.text )
-            
+            try:
+                limit = int( x.get('limit') )
+            except:
+                limit = None
+            try:
+                data[ x.text ] = self.document.getNamedRangeStrings( x.text, limit )
+            except:
+                #would mean that the range does not exist
+                data[ x.text ] = 'error range %s does not exist' % x.text 
+        
+        if outputFile is not None:
+            self.document.saveAs( outputFile )
+        
         return data
     
     def convert( self, params, type='pdf' ):

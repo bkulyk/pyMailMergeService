@@ -33,8 +33,8 @@ class rest( interfaces.base ):
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
     @http.expose
-    def calculator( self, params='', ods='', format='josn' ):
-        return interfaces.base.calculator( self, params, ods, format )
+    def calculator( self, params='', ods='', format='json', outputFile=None ):
+        return interfaces.base.calculator( self, params, ods, format, outputFile )
     @http.expose
     def getNamedRanges( self, ods, format='json' ):
         return interfaces.base.getNamedRanges( self, ods, format )

@@ -93,7 +93,7 @@ class CalcDocument( OfficeDocument ):
             i += 1
         return tuple( data )
     
-    def getNamedRangeStrings( self, rangeName ):
+    def getNamedRangeStrings( self, rangeName, limit=None ):
         namedRange = self.oodocument.NamedRanges.getByName( rangeName )
         sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
         sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
@@ -102,12 +102,22 @@ class CalcDocument( OfficeDocument ):
         
         #extract strings
         data = []
+        i = 0
+        quit = False
         for row in xrange( range.getRows().getCount() ):
             rowdata = []
-            for col in xrange( range.getColumns().getCount() ):
-                cell = range.getCellByPosition( col, row )
-                rowdata.append( cell.Text.getString() )
-            data.append( rowdata )
+            if quit is False:
+                for col in xrange( range.getColumns().getCount() ):
+                    if quit is False:
+                        if limit is None or i < limit:
+                            cell = range.getCellByPosition( col, row )
+                            rowdata.append( cell.Text.getString() )
+                            i += 1
+                        else:
+                            quit = True
+                            break
+                if len( rowdata ):
+                    data.append( rowdata )
             
         #if there is only one row, only return a list instead of a list of lists
         if len( data ) == 1:
