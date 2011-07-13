@@ -137,8 +137,22 @@ class OfficeDocument:
         #filterlist: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
         exportFilter = self._getExportFilter( filename )
         props = exportFilter, 
+        try:
+            #if the filetype is a pdf this will crap-out
+            self.oodocument.storeAsURL( filename, props )
+        except:
+            self.oodocument.storeToURL( filename, props )
+        return self.getFilename()
+    def saveTo( self, filename ):
+        """Save the open office document to a new file, and possibly filetype. 
+        The type of document is parsed out of the file extension of the filename given."""
+        self.filename = os.path.abspath( filename )
+        filename = uno.systemPathToFileUrl( self.filename )
+        #filterlist: http://wiki.services.openoffice.org/wiki/Framework/Article/Filter/FilterList_OOo_3_0
+        exportFilter = self._getExportFilter( filename )
+        props = exportFilter, 
         #storeToURL: #http://codesnippets.services.openoffice.org/Office/Office.ConvertDocuments.snip
-        self.oodocument.storeAsURL( filename, props )
+        self.oodocument.storeToURL( filename, props )
         return self.getFilename()
     def close( self ):
         """Close the OpenOffice document"""

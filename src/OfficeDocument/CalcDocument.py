@@ -132,29 +132,38 @@ class CalcDocument( OfficeDocument ):
         return data
     
     def setNamedRangeStrings( self, rangeName, values ):
-        namedRange = self.oodocument.NamedRanges.getByName( rangeName )
+        try:
+            namedRange = self.oodocument.NamedRanges.getByName( rangeName )
+        except:
+            print "wtf missing range name %s" % rangeName
         sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
         sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
         sheet = self.oodocument.getSheets().getByName( sheetName )
         range = sheet.getCellRangeByName( sheetAndRangeDesc )
         
+        quit = False
         rowcount = range.getRows().getCount()
         for row in xrange( rowcount ):
-            colcount = range.getColumns().getCount()
-            for col in xrange( colcount ):
-                cell = range.getCellByPosition( col, row )
-                
-                if colcount > 1 and rowcount > 1:
-                    value = values[ col ][ row ]
-                elif colcount == 1 and rowcount > 1:
-                    value = values[ row ]
-                elif rowcount == 1 and colcount > 1:
-                    value = values[ col ]
-                    
-                if CalcDocument.isNumber( value ):
-                    cell.setValue( value )
-                else:
-                    cell.Text.setString( value )
+            if quit is False:
+                colcount = range.getColumns().getCount()
+                for col in xrange( colcount ):
+                    if quit is False:
+                        cell = range.getCellByPosition( col, row )
+                        try:
+                            if colcount > 1 and rowcount > 1:
+                                value = values[ col ][ row ]
+                            elif colcount == 1 and rowcount > 1:
+                                value = values[ row ]
+                            elif rowcount == 1 and colcount > 1:
+                                value = values[ col ]
+                                
+                            if CalcDocument.isNumber( value ):
+                                cell.setValue( value )
+                            else:
+                                cell.Text.setString( value )
+                        except:
+                            quit = True
+                        print "== set %s - col_%s row_%s to: %s" % ( rangeName, col, row, value )
 
     @staticmethod
     def isNumber( value ):

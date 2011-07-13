@@ -41,6 +41,8 @@ class pyMailMerge:
         return self.document.getNamedRanges()
 
     def calculator( self, xml, outputFile=None ):
+        if outputFile is not None:
+            self.document.saveAs( outputFile )
         try:
             #process like normal mail merge 
             params = pyMailMerge._readParamsFromXML( xml )
@@ -85,7 +87,7 @@ class pyMailMerge:
                 data[ x.text ] = 'error range %s does not exist' % x.text 
         
         if outputFile is not None:
-            self.document.saveAs( outputFile )
+            self.document.save()
         
         return data
     
