@@ -212,9 +212,7 @@ class pyMailMergeService:
                 try:
                     pdf = PdfFileReader( file( pdfpath, 'rb' ) )
                 except:
-                    print "====================================="
-                    print "cant merge pdf file: %s " % pdfpath
-                    print ''
+                    self.logging.info( "cant merge pdf file: %s ", pdfpath )
                 #add each page of the new pdf to the big pdf
                 for x in range( 0, pdf.getNumPages() ):
                     output.addPage( pdf.getPage( x ) )
@@ -290,9 +288,7 @@ class pyMailMergeService:
                             for y in x:
                                 params[0][k].append( y )
                     except:
-                        #import traceback
                         #can't do merge, bad data given
-                        #traceback.print_exc(file=sys.stdout)
                         #return "error: cant do merge, bad data given"
                         #return None
                         pass
