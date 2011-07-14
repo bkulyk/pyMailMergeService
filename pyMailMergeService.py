@@ -209,7 +209,12 @@ class pyMailMergeService:
             for x in param0:
                 odtname, tokens = x
                 pdfpath = self._doConversion( odtname, tokens, 'pdf' )
-                pdf = PdfFileReader( file( pdfpath, 'rb' ) )
+                try:
+                    pdf = PdfFileReader( file( pdfpath, 'rb' ) )
+                except:
+                    print "====================================="
+                    print "cant merge pdf file: %s " % pdfpath
+                    print ''
                 #add each page of the new pdf to the big pdf
                 for x in range( 0, pdf.getNumPages() ):
                     output.addPage( pdf.getPage( x ) )
@@ -285,10 +290,12 @@ class pyMailMergeService:
                             for y in x:
                                 params[0][k].append( y )
                     except:
+                        #import traceback
                         #can't do merge, bad data given
-                        return "error: cant do merge, bad data given"
-                        self.logging.error( "cant do merge, bad data given" )
-                        return None
+                        #traceback.print_exc(file=sys.stdout)
+                        #return "error: cant do merge, bad data given"
+                        #return None
+                        pass
             doctype = param2
             '''http://docs.python.org/library/shutil.html'''
             sourcezip = zipfile.ZipFile( u"docs/"+odtName, 'r' )
@@ -346,36 +353,39 @@ class pyMailMergeService:
             """
             #these were moved out of the loop because compiling the re everytime would be ineffeciant
             para_exp = re.compile( '\<p\>.+\<\/p\>' )
-            #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
-            for dictionary in params:
-                key = dictionary.keys()[0]
-                value = dictionary.values()[0]
-                if type( value ).__name__ in ( 'instance', 'list', 'typedArrayType' ):
-                    xml = self._multipleValues( xml, key, value )
-                else:
-                    if key.find( r'image|' ) == 0:
-                        self._image( key, value, xml, zip )
-                    if key.find( r'multiparagraph|' ) == 0:
-                        xml = self._multiparagraph( key, value, xml )
-                    if key.find( r"if|" ) == 0:
-                        xml = self._if( key, value, xml )
-                    if key.find( r"endif|" ) == 0:
-                        continue
-                    if key.find( r"repeatsection|" ) == 0:
-                        xml = self._repeatsection( key, value, xml )
-                    if key.find( r"endrepeatsection|" ) == 0:
-                        continue
-                    #do a simple find and replace with a regular expression
-                    exp = re.compile( '~%s~' % re.escape(key) )
-                    value = self._cleanValue( value )
-                    try:
-                        xml = exp.sub( "%s" % value, xml )
-                    except:
-                        #This took me hours and hours to figure out.  Apparantly sometimes when
-                        #you copy and paste french content into an odt, it does not save as proper
-                        #utf-8, so it needs a conversion before we can continue.
-                        xml = unicode( xml, "utf-8" )
-                        xml = xml.replace( "~%s~" % key, value )
+            try:
+                #for syntax: http://www.php2python.com/wiki/control-structures.foreach/
+                for dictionary in params:
+                    key = dictionary.keys()[0]
+                    value = dictionary.values()[0]
+                    if type( value ).__name__ in ( 'instance', 'list', 'typedArrayType' ):
+                        xml = self._multipleValues( xml, key, value )
+                    else:
+                        if key.find( r'image|' ) == 0:
+                            self._image( key, value, xml, zip )
+                        if key.find( r'multiparagraph|' ) == 0:
+                            xml = self._multiparagraph( key, value, xml )
+                        if key.find( r"if|" ) == 0:
+                            xml = self._if( key, value, xml )
+                        if key.find( r"endif|" ) == 0:
+                            continue
+                        if key.find( r"repeatsection|" ) == 0:
+                            xml = self._repeatsection( key, value, xml )
+                        if key.find( r"endrepeatsection|" ) == 0:
+                            continue
+                        #do a simple find and replace with a regular expression
+                        exp = re.compile( '~%s~' % re.escape(key) )
+                        value = self._cleanValue( value )
+                        try:
+                            xml = exp.sub( "%s" % value, xml )
+                        except:
+                            #This took me hours and hours to figure out.  Apparantly sometimes when
+                            #you copy and paste french content into an odt, it does not save as proper
+                            #utf-8, so it needs a conversion before we can continue.
+                            xml = unicode( xml, "utf-8" )
+                            xml = xml.replace( "~%s~" % key, value )
+            except:
+                pass            
             return xml
         def _image( self, key, value, xml, zip ):
             """This modifier is for replacing the contents of an image. A good example for 
