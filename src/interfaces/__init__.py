@@ -104,6 +104,10 @@ class base( object ):
                 shutil.copy( outputFile, outputFilePath )
                 #return the filename
                 content = outputFilePath
+                try:
+                    os.chmod( outputFilePath, 0777 )
+                except:
+                    pass
                 #cleanout
                 os.unlink( outputFile )
             else:
