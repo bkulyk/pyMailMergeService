@@ -87,15 +87,28 @@ class WriterDocument( OfficeDocument ):
         search2.SearchRegularExpression = regex
         result2 = self.oodocument.findFirst( search2 )
         try:
-            #create new cursor at start of first phrase, expand to second, and return the cursor range
-            cursor = self.oodocument.Text.createTextCursorByRange( result.getStart() )
-            cursor.gotoRange( result2.getEnd(), True )
-            return cursor
+            if result1 is not None and result2 is not None:
+                #create new cursor at start of first phrase, expand to second, and return the cursor range
+                cursor = self.oodocument.Text.createTextCursorByRange( result.getStart() )
+                cursor.gotoRange( result2.getEnd(), True )
+                return cursor
         except:
-            return None
-    def searchAndRemoveSection( self, startPhrase, endPhrase, regex=False ):
+            pass
+        return None
+    def searchAndRemoveSection( self, startPhrase, endPhrase, regex=False, debug=False ):
         cursor = self._getCursorForStartAndEndPhrases(startPhrase, endPhrase, regex)
-        self.oodocument.Text.insertString( cursor, '', True )
+        if cursor is None:
+            #it seems on occasion the _getCursorForStartAndEndPhrases way or doing this does not work
+            c1 = self._getCursorForStartPhrase( startPhrase )
+            c2 = self._getCursorForStartPhrase( endPhrase )
+            if c1 is not None and c2 is not None:
+                c1.gotoRange( c2.getEnd(), True )
+                c1.setString( '' )
+                return 1
+            return 0
+        else:
+            self.oodocument.Text.insertString( cursor, '', True )
+            return 1
     def searchAndDuplicateInTable( self, startPhrase, endPhrase, count, regex=False ):
 #        try:
         #get the start and end cells

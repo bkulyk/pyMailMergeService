@@ -7,9 +7,11 @@ class __init__( modifier ):
     @staticmethod
     def process( document, param ):
         key = "~%s~" % param['token']
-        if param['value'] == '1' :
-            document.deleteRow( key )
-        else:
-            document.searchAndReplace( key, '' )
-        
+        try:
+            if param['value'] == '1' :
+                document.deleteRow( key )
+            else:
+                document.searchAndReplace( key, '' )
+        except:
+            pass
 modifiers.modifiers.modifierOrder.append( {'name':'deleterow', 'order':50 } )
