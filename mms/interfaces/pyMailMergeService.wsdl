@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+	name="pyMailMergeService"
+	targetNamespace="com.approve" 
+	xmlns:tns="com.approve"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+	xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" >
+	
+	<types>
+		<xs:schema>
+			<xs:complexType name='ArrayOfString'>
+				<xs:restriction base='soapenc:Array'>
+					<xs:attribute ref='soapenc:arrayType' wsdl:arrayType='xs:string[]' />
+				</xs:restriction>
+			</xs:complexType>
+			<xs:complexType name='ArrayofArrayOfString'>
+				<xs:complexContent>
+					<xs:restriction base='soapenc:Array'>
+						<xs:attribute ref='soapenc:arrayType' wsdl:arrayType='tns:ArrayOfString[]' />
+					</xs:restriction>
+				</xs:complexContent>
+			</xs:complexType>
+		</xs:schema>
+	</types>
+	
+	<!-- ==== hello ======================================================= -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="helloRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="xs:string" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="helloResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" type="xs:string" />
+		</message>
+		
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="helloPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="hello">
+				<input  message="tns:helloRequest" />
+				<output message="tns:helloResponse" />
+			</operation>
+		</portType>
+	
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="helloBinding" type="tns:helloPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+	
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="hello">
+				<soap:operation soapAction="urn:approve#hello" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== hello ======================================================= -->
+	
+	<!-- ==== getTokens =================================================== -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokensRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="xs:string" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokensResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" xsi:type="SOAP-ENC:Array" />
+		</message>
+		
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokensPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokens">
+				<input  message="tns:getTokensRequest" />
+				<output message="tns:getTokensResponse" />
+			</operation>
+		</portType>
+	
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokensBinding" type="tns:getTokensPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+			
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokens">
+				<soap:operation soapAction="urn:approve#getTokens" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== getTokens =================================================== -->
+	
+	<!-- ==== pdf ========================================================= -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdfRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="xs:string" />
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param1" type="xs:string" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdfResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" type="xs:string" />
+		</message>
+	
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdfPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdf">
+				<input  message="tns:pdfRequest" />
+				<output message="tns:pdfResponse" />
+			</operation>
+		</portType>
+		
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdfBinding" type="tns:pdfPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+			
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdf">
+				<soap:operation soapAction="urn:approve#pdf" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== pdf ========================================================= -->
+	
+	<!-- ==== batchpdf ==================================================== -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="param0" type="tns:ArrayOfArrayOfString" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" type="xs:string" />
+		</message>
+	
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf">
+				<input  message="tns:batchpdfRequest" />
+				<output message="tns:batchpdfResponse" />
+			</operation>
+		</portType>
+		
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdfBinding" type="tns:batchpdfPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+			
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf">
+				<soap:operation soapAction="urn:approve#pdf" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== batchpdf ==================================================== -->
+	
+	<!-- ==== ODTconvert ================================================== -->
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvertRequest">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="odtfile" type="xs:string" />
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="destformat" type="xs:string" />
+		</message>
+		<message xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvertResponse">
+			<part xmlns="http://schemas.xmlsoap.org/wsdl/" name="return" type="xs:string" />
+		</message>
+	
+		<portType xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvertPort">
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvert">
+				<input  message="tns:ODTconvertRequest" />
+				<output message="tns:ODTconvertResponse" />
+			</operation>
+		</portType>
+		
+		<binding xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvertBinding" type="tns:ODTconvertPort">
+			<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+			
+			<operation xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvert">
+				<soap:operation soapAction="urn:approve#ODTconvert" style="rpc" />
+				<input>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</input>
+				<output>
+					<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+						namespace="urn:approve" />
+				</output>
+			</operation>
+		</binding>
+	<!-- ==== ODTconvert ================================================== -->
+	
+	<service xmlns="http://schemas.xmlsoap.org/wsdl/" name="pyMailMergeService">
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="hello" binding="tns:helloBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="getTokens" binding="tns:getTokensBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="pdf" binding="tns:pdfBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="batchpdf" binding="tns:batchpdfBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+		<port xmlns="http://schemas.xmlsoap.org/wsdl/" name="ODTconvert" binding="tns:ODTconvertBinding">
+			<soap:address location="http://192.168.28.235:8888" />
+		</port>
+	</service>
+	
+</definitions>
