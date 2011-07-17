@@ -6,7 +6,7 @@ setup(
        description='OpenOffice/LibreOffice mail merge like document creation implemented over webservice',
        url="http://mailmergeservice.com",
        packages=['mms', 'mms.interfaces', 'mms.modifiers', 'mms.OfficeDocument'],
-       scripts=['mmsd'],
+       scripts=['mmsd.py'],
        install_requires=[
             'pyPDF>=3',
             'uno',
