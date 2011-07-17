@@ -1,24 +1,15 @@
 #!/usr/bin/env python
-from sys import path
-from sys import exit
+from sys import path, exit
 path.append( '..' )
-path.append( '../src' )
-path.append( '../src/OfficeDocument' )
-from OfficeDocument.WriterDocument import *
+from mms.OfficeDocument import *
+from mms.OfficeDocument.WriterDocument import WriterDocument
 import unittest, os, uno
-#define unit tests
+
 class testWriterDocument( unittest.TestCase ):
     path = ''
     def setUp(self):
 	self.path = os.path.dirname( os.path.abspath( __file__ ) )
         pass
-    def test_fromBase26(self):
-        self.assertEquals( 1,  B26.fromBase26( 'A' ) )
-        self.assertEquals( 27, B26.fromBase26( 'AA' ) )
-        self.assertEquals( 26, B26.fromBase26( 'Z' ) )
-        self.assertEquals( 2,  B26.fromBase26( 'B' ) )
-        self.assertEquals( 53, B26.fromBase26( 'BA' ) )
-        self.assertEquals( 54, B26.fromBase26( 'BB' ) )
     def test_duplicateRow(self):
         ood = WriterDocument()
         ood.open( '%s/docs/repeat_row_repeat_column.odt' % self.path )
@@ -72,23 +63,4 @@ class testWriterDocument( unittest.TestCase ):
     	ood.close()
 if __name__ == '__main__':
     unittest.main()
-'''	def test_RandomStuff(self):
-        """This test doen't do anything except serve as a place holder for some code, i'm not
-        yet willing to delete."""
-        filterFactory = uno.createUnoStruct( 'com.sun.star.document.FilterFactory' )
-        x = filterFactory.getElementNames()
-        host = 'localhost'
-        port = 8100
-        local = uno.getComponentContext()
-        resolver = local.ServiceManager.createInstanceWithContext( 'com.sun.star.bridge.UnoUrlResolver', local )
-        context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
-        """This code retrieves a list of all the import/export filters supported by OOo"""
-        desktop = context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', context )
-        doc = desktop.loadComponentFromURL( uno.systemPathToFileUrl( os.path.abspath( "docs/if_section_simple.odt" ) ), "_blank", 0, () )
-        filterFactory = local.ServiceManager.createInstanceWithContext( 'com.sun.star.document.FilterFactory', context )
-        for x in filterFactory.getElementNames():
-            for y in filterFactory.getByName( x ):
-                #print '%s ============= %s' % (y.Name, y.Value)
-                pass
-            #print ''
-	'''
+
