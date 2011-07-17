@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-import os.path, sys
-from interfaces import rest
+import os.path, sys, time, getopt
 import simplejson as json
-import time, getopt
-from daemon import Daemon
 from mms import pyMailMerge
+from mms.interfaces import rest
+from mms.daemon import Daemon
 #need to extend daemon and implement the run method in order to tell daemon what to do 
 class mmsd( Daemon ):
     config = None

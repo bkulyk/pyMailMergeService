@@ -11,4 +11,5 @@ setup(
             'pyPDF>=3',
             'uno',
             'cherrypy>=3',
-            'soappy>0.12' ] )
+            'soappy>0.12',
+            'lxml>2.3' ] )
