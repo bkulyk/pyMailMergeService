@@ -1,12 +1,7 @@
-import os, sys
-sys.path.append( ".." )
-from lib.pyMailMerge import pyMailMerge
+import os, sys, tempfile, shutil, traceback, StringIO
+from mms import pyMailMerge
 import simplejson as json
-import tempfile
-import shutil
 from com.sun.star.task import ErrorCodeIOException
-import traceback
-import StringIO
 class base( object ):
     outputDir = stubsDir = documentBase = "./docs/"
     def __init__( self, options={} ):

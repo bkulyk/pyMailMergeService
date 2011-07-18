@@ -9,8 +9,8 @@ setup(
        packages=['mms', 'mms.interfaces', 'mms.modifiers', 'mms.OfficeDocument'],
        scripts=['mms/mmsd.py'],
        requires=[
-            'pyPDF (>=3)',
+            'pyPDF (>=3.0)',
             'uno',
-            'cherrypy (>=3)',
+            'cherrypy (>=3.0)',
             'soappy (>0.12)',
             'lxml (>2.3)' ] )

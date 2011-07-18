@@ -1,6 +1,6 @@
 from SOAPpy import *
 import base64, sys
-import interfaces
+import mms.interfaces
 class soaphelper:
     exposedMethods = {}
     @staticmethod

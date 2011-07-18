@@ -1,7 +1,7 @@
 import cherrypy as http
-import interfaces
+from mms.interfaces import base
 import simplejson as json
-class rest( interfaces.base ):
+class __init__( base ):
     @http.expose
     def index(self, test='default'):
         return """

@@ -1,7 +1,6 @@
 import sys
-from OfficeDocument import OfficeDocument
-#from modifiers import modifiers
-import modifiers
+from mms.OfficeDocument import OfficeDocument
+import mms.modifiers
 from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
