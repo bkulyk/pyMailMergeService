@@ -3,7 +3,7 @@ import os.path, sys, time, getopt
 import simplejson as json
 from mms import pyMailMerge
 #from mms.interfaces import rest
-import mms.interfaces.rest
+from mms.interfaces.rest import rest
 from mms.daemon import Daemon
 #need to extend daemon and implement the run method in order to tell daemon what to do 
 class mmsd( Daemon ):
@@ -17,7 +17,7 @@ class mmsd( Daemon ):
 #        self.config.read( inifile )
 #        return
         print self.options
-        rest.rest.run( self.options )
+        rest.run( self.options )
 #    def get( self, option, default='' ):
 #        pass
 

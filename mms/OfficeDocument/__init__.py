@@ -169,10 +169,10 @@ class OfficeDocument:
     @staticmethod
     def createDocument( type ):
         if type == 'odt':
-            from OfficeDocument.WriterDocument import WriterDocument
+            from mms.OfficeDocument.WriterDocument import WriterDocument
             return WriterDocument()
         elif type == 'ods':
-            from OfficeDocument.CalcDocument import CalcDocument
+            from mms.OfficeDocument.CalcDocument import CalcDocument
             return CalcDocument()
     @staticmethod
     def _makeProperty( key, value ):
