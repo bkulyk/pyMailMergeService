@@ -26,7 +26,7 @@ def usage():
 
 #parse arguments and take necessary actions
 if __name__ == "__main__":
-    command = 'run'
+    command = ''
     stubsDir = ''
     outputDir = ''
     try:
@@ -50,9 +50,19 @@ if __name__ == "__main__":
             outputDir = a
         elif o in ("--stubs-dir"):
             stubsDir = a
+        elif o == 'start':
+            command = 'start'
+        elif o == 'restart':
+            command = 'restart'
+        elif o == 'stop':
+            command = 'stop'
         else:
             usage()
             sys.exit()
+            
+    if command == '':
+        usage()
+        sys.exit()
 
     daemon = mmsd()
     if outputDir != '':
