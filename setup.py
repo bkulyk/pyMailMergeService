@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from distutils.core import setup
 
 setup( 
@@ -8,8 +9,8 @@ setup(
        packages=['mms', 'mms.interfaces', 'mms.modifiers', 'mms.OfficeDocument'],
        scripts=['mms/mmsd.py'],
        requires=[
-            'pyPDF>=3',
+            'pyPDF (>=3)',
             'uno',
-            'cherrypy>=3',
-            'soappy>0.12',
-            'lxml>2.3' ] )
+            'cherrypy (>=3)',
+            'soappy (>0.12)',
+            'lxml (>2.3)' ] )
