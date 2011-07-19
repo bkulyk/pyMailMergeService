@@ -222,3 +222,32 @@ class B26:
             total = total + add
             pos = pos + 1
         return total
+
+class mms:
+    options = None
+    interface = None
+    
+    def __init__(self):
+        
+        #parse a config file
+        self.parseConfig()
+        return
+        #initiate one of the webservice interfaces
+        if self.interfaceType == 'rest':
+            from mms.interfaces.rest import rest
+            self.interface = rest()
+        elif self.interfaceType == 'soap':
+            from mms.interfaces.soap import soap
+            self.interface = soap()
+        
+        self.interface.run()    
+    
+    def parseConfig(self):
+        import ConfigParser
+        
+        config = ConfigParser.ConfigParser()
+        config.readfp( open( 'defaults.cfg' ) )
+        config.read( [ 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
+        
+        print config.get( 'mms', 'interface' )
+    
