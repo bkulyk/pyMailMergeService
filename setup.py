@@ -11,7 +11,7 @@ setup(
        install_requires=[
 #            'pyPDF>=3.0',
 #            'uno',
-            'cherrypy (>=3.0)',
-            'soappy (>0.12)',
+            'cherrypy>=3.0',
+            'soappy>0.12',
 #            'lxml>2.3' 
             ] )
