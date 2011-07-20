@@ -10,7 +10,13 @@ class __init__( modifier ):
         value = "%s" % param['value']
         try:
             if value == '0':
-                document.searchAndRemoveSection( start, end )
+                keepgoing = True
+                i = 0
+                while keepgoing == True and i < 10:
+                    count = document.searchAndRemoveSection( start, end )
+                    if count == 0:
+                        keepgoing = False
+                    i += 1
             else:
                 document.searchAndReplace( start, '' )
                 document.searchAndReplace( end, '' )
