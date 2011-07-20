@@ -1,4 +1,5 @@
 from mms.OfficeDocument import OfficeDocument
+from com.sun.star.container import NoSuchElementException
 
 class CalcDocument( OfficeDocument ):
     __sheets = []
@@ -136,20 +137,30 @@ class CalcDocument( OfficeDocument ):
         try:
             namedRange = self.oodocument.NamedRanges.getByName( rangeName )
         except:
-            print "wtf missing range name %s" % rangeName
+            print "wtf document does not have range named: %s" % rangeName
+            return
         sheetAndRangeDesc = namedRange.getContent() #ie. $Sheet1.$A$1:$C$4
         sheetName = sheetAndRangeDesc.split( '.' )[0][1:]
-        sheet = self.oodocument.getSheets().getByName( sheetName )
+        try:
+            sheet = self.oodocument.getSheets().getByName( sheetName )
+        except NoSuchElementException:
+            print "=================================="
+            print "sheetname: %s does not appear to exist.  range name: %s cannot be accessed." % (sheetName, rangeName)
+            print "=================================="
+            return
+            
         range = sheet.getCellRangeByName( sheetAndRangeDesc )
         
         quit = False
         rowcount = range.getRows().getCount()
+        colcount = range.getColumns().getCount()
+
         for row in xrange( rowcount ):
             if quit is False:
-                colcount = range.getColumns().getCount()
                 for col in xrange( colcount ):
                     if quit is False:
                         cell = range.getCellByPosition( col, row )
+                        
                         try:
                             if colcount > 1 and rowcount > 1:
                                 value = values[ col ][ row ]
@@ -157,14 +168,18 @@ class CalcDocument( OfficeDocument ):
                                 value = values[ row ]
                             elif rowcount == 1 and colcount > 1:
                                 value = values[ col ]
+                            elif isinstance( values, ( list, tuple ) ):
+                                value = values[0]
+                            else:
+                                value = values
                                 
                             if CalcDocument.isNumber( value ):
                                 cell.setValue( value )
                             else:
                                 cell.Text.setString( value )
+                                
                         except:
                             quit = True
-                        print "== set %s - col_%s row_%s to: %s" % ( rangeName, col, row, value )
 
     @staticmethod
     def isNumber( value ):

@@ -22,6 +22,12 @@ class OfficeConnection:
             OfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
             OfficeConnection.desktop = OfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OfficeConnection.context )
         return OfficeConnection.desktop
+    @staticmethod
+    def closeConnection():
+        try:
+            OfficeConnection.desktop.terminate()
+        except:
+            pass
 class OfficeDocument:
     """Represent an open office document, with some really dumbed down method names. 
     Example: saveAs instead of storetourl (or whatever)"""
@@ -205,7 +211,6 @@ class OfficeDocument:
         """
         from com.sun.star.beans.MethodConcept import ALL as ALLMETHS
         from com.sun.star.beans.PropertyConcept import ALL as ALLPROPS
-        from OfficeDocument import OfficeConnection
         ctx = OfficeConnection.context
         introspection = ctx.ServiceManager.createInstanceWithContext( "com.sun.star.beans.Introspection", ctx)
         access = introspection.inspect(unoobj)

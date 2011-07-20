@@ -50,6 +50,10 @@ class pyMailMerge:
             print 'no tokens'
             pass
         
+        xmloutfile = open( "%s.xml" % outputFile, 'w' )
+        xmloutfile.write( xml );
+        xmloutfile.close()
+
         xml = etree.XML( xml )
         
         #for each input namedrange set the values
@@ -62,7 +66,9 @@ class pyMailMerge:
             values = []
             for value in x.findall( 'value' ):
                 #check to see if the value is supposed to be a number or a string
-                if x.get( 'numeric' ) in ( 'true', 'True', 'numeric', 'yes', 'Yes', 1, '1' ):
+                rangenumeric = "%s" % x.get( 'numeric' )
+                valuenumeric = "%s" % value.get( 'numeric' )
+                if rangenumeric == '1' or valuenumeric == '1':
                     values.append( pyMailMerge.toNumber( value.text ) )
                 else:
                     values.append( value.text )
@@ -87,6 +93,11 @@ class pyMailMerge:
         
         if outputFile is not None:
             self.document.save()
+            self.document.close()
+            try:
+                os.chmod( outputFile, 0777 )
+            except:
+                pass
         
         return data
     
