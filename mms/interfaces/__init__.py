@@ -4,11 +4,11 @@ import simplejson as json
 from com.sun.star.task import ErrorCodeIOException
 class base( object ):
     outputDir = stubsDir = documentBase = "./docs/"
-    def __init__( self, options={} ):
-        if 'outputDir' in options:
-            self.outputDir = options['outputDir'] + "/"
-        if 'stubsDir' in options:
-            self.stubsDir = options['stubsDir'] + "/"
+    config = None
+    def __init__( self, config ):
+        self.config = config
+        self.outputDir = self.config.get( 'mms', 'output_dir' ) + "/"
+        self.stubsDir = self.config.get( 'mms', 'stubs_dir' ) + "/"
             
     def uploadConvert( self, params='', odt='', type='pdf' ):
         #write temporary file

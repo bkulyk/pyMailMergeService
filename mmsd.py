@@ -36,5 +36,6 @@ if __name__ == "__main__":
     if args.stubs_dir is not None:
         daemon.options['stubsDir'] = args.stubs_dir
         
-    #run command    
-    getattr(daemon, args.command)()
+    i = mms()
+    #run command
+#    getattr(daemon, args.command)()

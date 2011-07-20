@@ -37,6 +37,6 @@ class rest( base ):
     def getNamedRanges( self, ods, format='json' ):
         return base.getNamedRanges( self, ods, format )
     @staticmethod
-    def run( options={} ):
-        http.config.update( {'server.socket_host':'0.0.0.0', 'server.socket_port':8080} )
-        http.quickstart( rest( options ) )
+    def run( config ):
+        http.config.update( {'server.socket_host':config.get( 'rest', 'host' ), 'server.socket_port':int( config.get( 'rest', 'port' ) )} )
+        http.quickstart( rest( config ) )

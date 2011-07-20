@@ -6,7 +6,7 @@ import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
-import shutil
+import shutil, ConfigParser
 class pyMailMerge:
     document = None
     documentPath = None
@@ -224,30 +224,25 @@ class B26:
         return total
 
 class mms:
-    options = None
-    interface = None
+    config = None
     
     def __init__(self):
-        
         #parse a config file
         self.parseConfig()
-        return
-        #initiate one of the webservice interfaces
-        if self.interfaceType == 'rest':
-            from mms.interfaces.rest import rest
-            self.interface = rest()
-        elif self.interfaceType == 'soap':
-            from mms.interfaces.soap import soap
-            self.interface = soap()
         
-        self.interface.run()    
+        #initiate one of the webservice interfaces, REST is going to be the default
+        if self.config.get( 'mms', 'interface' ) == 'soap':
+            from mms.interfaces.soap import soap
+            soap.run( self.config )
+        else:
+            from mms.interfaces.rest import rest
+            rest.run( self.config )
     
     def parseConfig(self):
-        import ConfigParser
+        self.config = ConfigParser.ConfigParser()
+        #include the default config file.
+        defaultPath = os.path.join( os.path.dirname( __file__ ), 'defaults.cfg' )
+        #override with file in install path, then override with file in users home dir if present
+        self.config.read( [ defaultPath, 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
         
-        config = ConfigParser.ConfigParser()
-        config.readfp( open( 'defaults.cfg' ) )
-        config.read( [ 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
-        
-        print config.get( 'mms', 'interface' )
     
