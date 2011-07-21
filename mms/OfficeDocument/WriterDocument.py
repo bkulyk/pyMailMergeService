@@ -191,6 +191,8 @@ class WriterDocument( OfficeDocument ):
         
     def deleteRow( self, phrase ):
         cursor = self._getCursorForStartPhrase( phrase )
+        if cursor is None:
+            return 0
         x = cursor.createEnumeration()
         if x.hasMoreElements():
             table = x.nextElement()
@@ -203,9 +205,13 @@ class WriterDocument( OfficeDocument ):
                     if phrase in text: #text == phrase:
                         sourceRow = self._convertCellNameToCellPositions( cellName )[0]
                         table.Rows.removeByIndex( sourceRow, 1 )
+                        return 1
+        return 0
     
     def deleteColumn(  self, phrase ):
         cursor = self._getCursorForStartPhrase( phrase )
+        if cursor is None:
+            return 0
         x = cursor.createEnumeration()
         if x.hasMoreElements():
             table = x.nextElement()
@@ -218,6 +224,8 @@ class WriterDocument( OfficeDocument ):
                     if phrase in text: #text == phrase:
                         sourceCol = self._convertCellNameToCellPositions( cellName )[1]
                         table.Columns.removeByIndex( sourceCol, 1 )
+                        return 1
+        return 0
                     
     def duplicateRow( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )

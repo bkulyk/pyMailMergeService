@@ -6,7 +6,11 @@ class __init__( modifier ):
         key = "~%s~" % param['token']
         try:
             if param['value'] == '1' :
-                document.deleteRow( key )
+                more = 1
+                i = 0
+                while more == 1 and i < 10:
+                    more = document.deleteRow( key )
+                    i += 1
             else:
                 document.searchAndReplace( key, '' )
         except:

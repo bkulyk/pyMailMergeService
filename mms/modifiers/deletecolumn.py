@@ -5,7 +5,11 @@ class __init__( modifier ):
     def process( document, param ):
         key = "~%s~" % param['token']
         if param['value'] == '1' :
-            document.deleteColumn( key )
+            more = 1
+            i = 0
+            while more == 1 and i < 10:
+                more = document.deleteColumn( key )
+                i += 1
         else:
             document.searchAndReplace( key, '' )
         
