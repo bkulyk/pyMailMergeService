@@ -10,18 +10,29 @@ import shutil
 class pyMailMerge:
     document = None
     documentPath = None
+    origionalPath = None
+    
+    documentsOpen = { } #should allow me to keep track of how many document are supposed to be open at a time. 
+    
     def __init__( self, odt='', type='odt' ):
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
             #copy filt to temporary document, becasuse two webservice users using the same file causes problems
             os.path.exists( odt )
+            self.origionalPath = odt 
             self.documentPath = self._getTempFile( type )
             shutil.copyfile( odt, self.documentPath )
             self.document.open( self.documentPath )
-            self.document.open( odt )
+            
+            pyMailMerge.documentsOpen[ self.documentPath ] = self.documentPath
     def __del__(self):
+        self.document.close()
+        
+        #remove entry from dict of currently open documents
+        if self.documentPath in pyMailMerge.documentsOpen.keys():
+            del( pyMailMerge.documentsOpen[ self.documentPath ] )
+            
         try:
-            self.document.close()
             if self.documentPath is not None:
                 if os.path.exists( self.documentPath ):
                     os.unlink( self.documentPath )

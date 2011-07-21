@@ -77,7 +77,6 @@ class base( object ):
                 mm = pyMailMerge( self.stubsDir + doc )
                 outputFile = mm.convertFile( params, 'odt' )
                 files.append( outputFile )
-                
                 #some stuff for debugging.
 #                x = open( "/var/www/mms_docs/output/%s_%s.xml" % ( doc, i ), 'w' )
 #                x.write( params )
@@ -90,7 +89,7 @@ class base( object ):
             #append every other file to the first
             for x in files[1:]:
                 mm.joinDocumentToEnd( x )
-                
+            
             if outputFilePath is not False:
                 #convert file and get path
                 outputFile = mm.convertFile( None, outputType )
@@ -157,6 +156,7 @@ class base( object ):
                 return json.dumps( tokens )
         except:
             return self.__errorXML( '?', 'could not get tokens' )
+        
     def getNamedRanges( self, ods='', format='json' ):
         path = os.path.abspath( self.stubsDir + odt )
         mms = pyMailMerge( path, 'ods' )
