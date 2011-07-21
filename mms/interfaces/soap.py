@@ -22,10 +22,9 @@ class soap( interfaces.base ):
     @soaphelper.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
-    @staticmethod
-    def run():
-        host = 'localhost'
-        port = 8181
+    def run( config ):
+        host = config.get( 'soap', 'host' )
+        port = config.get( 'soap', 'port' )
         server = SOAPServer( ( host, port ) )
         namespace = 'com.mailmergeservice'
         for k in soaphelper.exposedMethods:
