@@ -61,10 +61,6 @@ class pyMailMerge:
             print 'no tokens'
             pass
         
-        xmloutfile = open( "%s.xml" % outputFile, 'w' )
-        xmloutfile.write( xml );
-        xmloutfile.close()
-
         xml = etree.XML( xml )
         
         #for each input namedrange set the values
