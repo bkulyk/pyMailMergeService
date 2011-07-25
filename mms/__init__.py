@@ -246,21 +246,24 @@ class mms:
     
     def __init__(self):
         #parse a config file
-        self.parseConfig()
+        self.config = self.parseConfig()
         
+	interface = self.config.get( 'mms', 'interface' )
         #initiate one of the webservice interfaces, REST is going to be the default
-        if self.config.get( 'mms', 'interface' ) == 'soap':
+        if interface == 'soap':
             from mms.interfaces.soap import soap
             soap.run( self.config )
-        else:
+        elif interface == 'rest':
             from mms.interfaces.rest import rest
             rest.run( self.config )
     
-    def parseConfig(self):
-        self.config = ConfigParser.ConfigParser()
+    @staticmethod
+    def parseConfig():
+        config = ConfigParser.ConfigParser()
         #include the default config file.
         defaultPath = os.path.join( os.path.dirname( __file__ ), 'defaults.cfg' )
         #override with file in install path, then override with file in users home dir if present
-        self.config.read( [ defaultPath, 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
+        config.read( [ defaultPath, 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
+        return config
         
     
