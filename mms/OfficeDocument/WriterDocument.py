@@ -229,6 +229,8 @@ class WriterDocument( OfficeDocument ):
                     
     def duplicateRow( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
+        if cursor is None:
+            return 0
         #when the cursor in is a table, the elements in the enumeration are tables, and not cells like I was expecting
         x = cursor.createEnumeration()
         if x.hasMoreElements():

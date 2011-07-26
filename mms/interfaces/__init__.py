@@ -105,7 +105,7 @@ class base( object ):
                 #cleanout
                 os.unlink( outputFile )
             else:
-                content = mm.convert( None, 'odt' )
+                content = mm.convert( None, outputType )
             
             for x in files:
                 os.unlink( x )
