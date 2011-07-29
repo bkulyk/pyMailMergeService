@@ -8,8 +8,7 @@ import unittest, os, uno
 class testWriterDocument( unittest.TestCase ):
     path = ''
     def setUp(self):
-	self.path = os.path.dirname( os.path.abspath( __file__ ) )
-        pass
+	    self.path = os.path.dirname( os.path.abspath( __file__ ) )
     def test_duplicateRow(self):
         ood = WriterDocument()
         ood.open( '%s/docs/repeat_row_repeat_column.odt' % self.path )

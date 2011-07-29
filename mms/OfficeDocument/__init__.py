@@ -4,16 +4,24 @@ from sys import path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import IOException
 from com.sun.star.document.MacroExecMode import NEVER_EXECUTE #, FROM_LIST, ALWAYS_EXECUTE, USE_CONFIG, ALWAYS_EXECUTE_NO_WARN, USE_CONFIG_REJECT_CONFIRMATION, USE_CONFIG_APPROVE_CONFIRMATION, FROM_LIST_NO_WARN, FROM_LIST_AND_SIGNED_WARN, FROM_LIST_AND_SIGNED_NO_WARN
+
 class OfficeException( Exception ):
     pass
+
 class OfficeConnection:
     """Object to hold the connection to open office/libre office, so there is only ever one connection"""
+    singleton = None 
     desktop = None
     host = "localhost"
     port = 8100
     context = ''
     filename = ''
     officeProcess = None
+    
+    def __del__(self):
+        #this is a little kludgy, but I need to be able to stop office if this app started it and this app is terminated.
+        OfficeConnection.stopOffice()
+    
     @staticmethod
     def getConnection( **kwargs ):
         """Create the connection object to open office, only ever create one."""
@@ -28,7 +36,7 @@ class OfficeConnection:
         except: 
             if OfficeConnection.isOfficeRunning() is False:
                 OfficeConnection.startOffice()
-            
+                OfficeConnection.singleton = OfficeConnection()
             #can't connect to socket, try again in a second.
             time.sleep( 1 )
             return OfficeConnection.getConnection()
@@ -43,16 +51,31 @@ class OfficeConnection:
     
     @staticmethod
     def getOfficePath():
-        if os.path.exists( "/usr/lib/libreoffice/program/soffice" ):
-            return "/usr/lib/libreoffice/program/soffice"
-        elif os.path.exists( "/usr/lib/openoffice/program/soffice" ):
-            return "/usr/lib/openoffice/program/soffice"
-        else:
-            raise OfficeException( "Libre/Open Office not found." )
+        commonPaths = [ "/usr/lib/libreoffice/program/soffice", "/usr/lib/openoffice/program/soffice" ]
+        for x in commonPaths:
+            if os.path.exists( x ):
+                return x
+        #If a path was found, then we would have returned by now.
+        raise OfficeException( "Libre/Open Office not found." )
         
     @staticmethod
     def startOffice():
-        self.officeProcess = subprocess.Popen( [ OfficeConnection.getOfficePath(), '-headless', "-accept=socket,host=%s,port=%s;urp" % (OfficeConnection.host, OfficeConnection.port), "-nologo", "-nofirststartwizard" ] )
+        OfficeConnection.officeProcess = subprocess.Popen( [ OfficeConnection.getOfficePath(), '-headless', "-accept=socket,host=%s,port=%s;urp" % (OfficeConnection.host, OfficeConnection.port), "-nologo", "-nofirststartwizard" ] )
+        time.sleep( 2 ) #give it a couple of seconds to open
+        
+    @staticmethod
+    def stopOffice():
+        if OfficeConnection.officeProcess is not None:
+            OfficeConnection.officeProcess.terminate()
+            OfficeConnection.singleton = None
+            OfficeConnection.officeProcess = None
+            time.sleep( 2 ) #give it a couple seconds to close
+            
+    @staticmethod
+    def restartOffice():
+        """Stop office.  I don't actually need to worry about restarting, because it will restart
+        it's self as necessicary"""
+        OfficeConnection.stopOffice()
     
     @staticmethod
     def isOfficeRunning():
