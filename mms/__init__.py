@@ -62,6 +62,7 @@ class pyMailMerge:
             pass
         
         xml = etree.XML( xml )
+        positivevalues = [ '1', 1, 'true', True, 'True', 'yes', 'Yes' ]
         
         #for each input namedrange set the values
         for x in xml.xpath( "//input/namedranges/namedrange" ):
@@ -75,7 +76,7 @@ class pyMailMerge:
                 #check to see if the value is supposed to be a number or a string
                 rangenumeric = "%s" % x.get( 'numeric' )
                 valuenumeric = "%s" % value.get( 'numeric' )
-                if rangenumeric == '1' or valuenumeric == '1':
+                if rangenumeric in positivevalues or valuenumeric in positivevalues:
                     values.append( pyMailMerge.toNumber( value.text ) )
                 else:
                     values.append( value.text )

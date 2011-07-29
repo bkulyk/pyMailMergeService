@@ -1,9 +1,11 @@
-import uno
-import os
+import uno, os, time, subprocess
+from StringIO import StringIO
 from sys import path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import IOException
 from com.sun.star.document.MacroExecMode import NEVER_EXECUTE #, FROM_LIST, ALWAYS_EXECUTE, USE_CONFIG, ALWAYS_EXECUTE_NO_WARN, USE_CONFIG_REJECT_CONFIRMATION, USE_CONFIG_APPROVE_CONFIRMATION, FROM_LIST_NO_WARN, FROM_LIST_AND_SIGNED_WARN, FROM_LIST_AND_SIGNED_NO_WARN
+class OfficeException( Exception ):
+    pass
 class OfficeConnection:
     """Object to hold the connection to open office/libre office, so there is only ever one connection"""
     desktop = None
@@ -11,23 +13,65 @@ class OfficeConnection:
     port = 8100
     context = ''
     filename = ''
+    officeProcess = None
     @staticmethod
     def getConnection( **kwargs ):
         """Create the connection object to open office, only ever create one."""
         port = kwargs.get( 'port', OfficeConnection.port )
         host = kwargs.get( 'host', OfficeConnection.host )
-        if OfficeConnection.desktop is None:
-            local = uno.getComponentContext()
-            resolver = local.ServiceManager.createInstanceWithContext( 'com.sun.star.bridge.UnoUrlResolver', local )
-            OfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
-            OfficeConnection.desktop = OfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OfficeConnection.context )
+        try:
+            if OfficeConnection.desktop is None:
+                local = uno.getComponentContext()
+                resolver = local.ServiceManager.createInstanceWithContext( 'com.sun.star.bridge.UnoUrlResolver', local )
+                OfficeConnection.context = resolver.resolve( "uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % ( host, port ) )
+                OfficeConnection.desktop = OfficeConnection.context.ServiceManager.createInstanceWithContext( 'com.sun.star.frame.Desktop', OfficeConnection.context )
+        except: 
+            if OfficeConnection.isOfficeRunning() is False:
+                OfficeConnection.startOffice()
+            
+            #can't connect to socket, try again in a second.
+            time.sleep( 1 )
+            return OfficeConnection.getConnection()
+        
+        #basically ping open office.  If it craps out, then reconnect. 
+        try: 
+            OfficeConnection.desktop.isTop()
+        except:
+            OfficeConnection.desktop = None
+            return OfficeConnection.getConnection()
         return OfficeConnection.desktop
+    
+    @staticmethod
+    def getOfficePath():
+        if os.path.exists( "/usr/lib/libreoffice/program/soffice" ):
+            return "/usr/lib/libreoffice/program/soffice"
+        elif os.path.exists( "/usr/lib/openoffice/program/soffice" ):
+            return "/usr/lib/openoffice/program/soffice"
+        else:
+            raise OfficeException( "Libre/Open Office not found." )
+        
+    @staticmethod
+    def startOffice():
+        self.officeProcess = subprocess.Popen( [ OfficeConnection.getOfficePath(), '-headless', "-accept=socket,host=%s,port=%s;urp" % (OfficeConnection.host, OfficeConnection.port), "-nologo", "-nofirststartwizard" ] )
+    
+    @staticmethod
+    def isOfficeRunning():
+        p1 = subprocess.Popen( ['ps', 'aux'], stdout=subprocess.PIPE )
+        p2 = subprocess.Popen( ['grep', 'soffice.bin' ], stdin=p1.stdout, stdout=subprocess.PIPE )
+        
+        output = p2.communicate()[0]
+        if len( output.split( "\n" ) ) > 2:
+            #one, for the grep, and one for open/libre office
+            return True
+        return False
+
     @staticmethod
     def closeConnection():
         try:
             OfficeConnection.desktop.terminate()
         except:
             pass
+        
 class OfficeDocument:
     """Represent an open office document, with some really dumbed down method names. 
     Example: saveAs instead of storetourl (or whatever)"""

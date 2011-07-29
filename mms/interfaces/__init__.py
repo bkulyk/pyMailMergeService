@@ -158,7 +158,7 @@ class base( object ):
             return self.__errorXML( '?', 'could not get tokens' )
         
     def getNamedRanges( self, ods='', format='json' ):
-        path = os.path.abspath( self.stubsDir + odt )
+        path = os.path.abspath( self.stubsDir + ods )
         mms = pyMailMerge( path, 'ods' )
         names = mms.getNamedRanges()
         if format=='xml':

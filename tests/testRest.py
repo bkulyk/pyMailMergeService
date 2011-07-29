@@ -154,21 +154,21 @@ class testRest( unittest.TestCase ):
             allGood = False
         self.assertTrue( allGood )
     '''
-    def testCalculator(self):
-        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
-        
-        data = { 'params':f.read(), 'ods':'../tests/docs/calculator.ods' }
-        response = urllib2.urlopen( "http://localhost:8080/calculator", urllib.urlencode( data ) )
-        body = response.read()
-        
-        expected = { 'totals':[ '1514', '1668', '910' ],
-                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ],
-                    'results':[ '151.4', '333.6', '455' ],
-                    'more':[ '124', '548', '464' ]
-                   }
-        results = json.loads( body )
-        self.assertEquals( expected, results )
-    
+#    def testCalculator(self):
+#        f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
+#        
+#        data = { 'params':f.read(), 'ods':'../tests/docs/calculator.ods' }
+#        response = urllib2.urlopen( "http://localhost:8080/calculator", urllib.urlencode( data ) )
+#        body = response.read()
+#        
+#        expected = { 'totals':[ '1514', '1668', '910' ],
+#                    'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ],
+#                    'results':[ '151.4', '333.6', '455' ],
+#                    'more':[ '124', '548', '464' ]
+#                   }
+#        results = json.loads( body )
+#        self.assertEquals( expected, results )
+#    
     def testGetNamedRanges(self):
         data = { 'ods':'../tests/docs/calculator.ods' }
         response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
@@ -179,38 +179,38 @@ class testRest( unittest.TestCase ):
         
         for x in expected:
             self.assertTrue( x in results, "%s is missing from results" % x )
-        
-    def testGetNamedRanges_XML(self):
-        data = { 'ods':'../tests/docs/calculator.ods', 'format':'xml' }
-        response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
-        xml = response.read()
-        
-        expected = [ 'first', 'second', 'third', 'totals', 'factors', 'results', 'test', 'more' ]
-        
-        xml = etree.XML( xml )
-        elements = xml.xpath( "//namedranges/namedrange" )
-        
-        results = []
-        for x in elements:
-            results.append( x.text ) 
-            self.assertTrue( x.text in expected, 'was not expecting "%s" in results' % x )
-        
-        for x in expected:
-            self.assertTrue( x in results, 'was expecting "%s" in results' % x )
-    
-    def testBatchConvert(self):
-
-        data = [ [ "../tests/docs/batchConvert_part1.odt", '' ], 
-                 [ "../tests/docs/batchConvert_part2.odt", '' ],
-                 [ "../tests/docs/batchConvert_part3.odt", '' ] ]
-        
-        data = { 'batch':json.dumps( data ), 'outputType':'odt' }
-        
-        response = urllib2.urlopen( "http://localhost:8080/batchConvert", urllib.urlencode( data ) )
-        
-        f = open( 'docs/batchConvert.out.odt', 'w' )
-        f.write( response.read() )
-        f.close()
+#        
+#    def testGetNamedRanges_XML(self):
+#        data = { 'ods':'../tests/docs/calculator.ods', 'format':'xml' }
+#        response = urllib2.urlopen( "http://localhost:8080/getNamedRanges", urllib.urlencode( data ) )
+#        xml = response.read()
+#        
+#        expected = [ 'first', 'second', 'third', 'totals', 'factors', 'results', 'test', 'more' ]
+#        
+#        xml = etree.XML( xml )
+#        elements = xml.xpath( "//namedranges/namedrange" )
+#        
+#        results = []
+#        for x in elements:
+#            results.append( x.text ) 
+#            self.assertTrue( x.text in expected, 'was not expecting "%s" in results' % x )
+#        
+#        for x in expected:
+#            self.assertTrue( x in results, 'was expecting "%s" in results' % x )
+#    
+#    def testBatchConvert(self):
+#
+#        data = [ [ "../tests/docs/batchConvert_part1.odt", '' ], 
+#                 [ "../tests/docs/batchConvert_part2.odt", '' ],
+#                 [ "../tests/docs/batchConvert_part3.odt", '' ] ]
+#        
+#        data = { 'batch':json.dumps( data ), 'outputType':'odt' }
+#        
+#        response = urllib2.urlopen( "http://localhost:8080/batchConvert", urllib.urlencode( data ) )
+#        
+#        f = open( 'docs/batchConvert.out.odt', 'w' )
+#        f.write( response.read() )
+#        f.close()
         
 if __name__ == '__main__':
     unittest.main()

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 from sys import path
-path.append( '../src' )
-path.append( '../src/lib' )
-path.append( '../src/OfficeDocument' )
-from pyMailMerge import *
+path.append( '..' )
+#path.append( '../mms/lib' )
+#path.append( '../mms/OfficeDocument' )
+from mms import pyMailMerge
 import unittest
-import os
-from OfficeDocument import WriterDocument
+import os, shutil
+from mms.OfficeDocument import WriterDocument
 #define unit tests
 class testPyMailMerge( unittest.TestCase ):
     xml = r'''<tokens>
@@ -256,14 +256,22 @@ class testPyMailMerge( unittest.TestCase ):
         f = open( os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'fixtures/calculator.xml' ) ) )
         
         results = pmm.calculator( f.read() )
-                
+        out = pmm.convertFile( None, 'ods' )
+        
+        del( pmm ) #close file, etc.
+        shutil.move( out, outFile )
+                        
         expected = { 'totals':[ '1514', '1668', '910' ],
                     'test':[ ['a','b'],['c','d'],['e','f'],['g','h'] ],
                     'results':[ '151.4', '333.6', '455' ],
                     'more':[ '124', '548', '464' ]
                    }
         
-        self.assertEqual( expected, results )
+        self.assertEquals( expected['totals'], results['totals'] )
+        self.assertEquals( expected['test'], results['test'] )
+        self.assertEquals( expected['results'], results['results'] )
+        self.assertEquals( expected['more'], results['more'] )
+#        self.assertEqual( expected, results )
         
     def test_deleteRow(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/deleteRow.odt' ) )
