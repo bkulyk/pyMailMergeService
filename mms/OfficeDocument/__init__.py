@@ -10,7 +10,7 @@ class OfficeException( Exception ):
 
 class OfficeConnection:
     """Object to hold the connection to open office/libre office, so there is only ever one connection"""
-    singleton = None 
+    instance = None 
     desktop = None
     host = "localhost"
     port = 8100
@@ -36,7 +36,6 @@ class OfficeConnection:
         except: 
             if OfficeConnection.isOfficeRunning() is False:
                 OfficeConnection.startOffice()
-                OfficeConnection.singleton = OfficeConnection()
             #can't connect to socket, try again in a second.
             time.sleep( 1 )
             return OfficeConnection.getConnection()
@@ -60,6 +59,7 @@ class OfficeConnection:
         
     @staticmethod
     def startOffice():
+        OfficeConnection.instance = OfficeConnection()
         OfficeConnection.officeProcess = subprocess.Popen( [ OfficeConnection.getOfficePath(), '-headless', "-accept=socket,host=%s,port=%s;urp" % (OfficeConnection.host, OfficeConnection.port), "-nologo", "-nofirststartwizard" ] )
         time.sleep( 2 ) #give it a couple of seconds to open
         
@@ -67,7 +67,7 @@ class OfficeConnection:
     def stopOffice():
         if OfficeConnection.officeProcess is not None:
             OfficeConnection.officeProcess.terminate()
-            OfficeConnection.singleton = None
+            OfficeConnection.instance = None
             OfficeConnection.officeProcess = None
             time.sleep( 2 ) #give it a couple seconds to close
             
