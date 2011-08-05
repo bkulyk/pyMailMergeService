@@ -1,12 +1,14 @@
 import sys
 from mms.OfficeDocument import OfficeDocument
 from mms.modifiers import modifiers
+import mms.exceptions as mms_exceptions
 from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
-import shutil, ConfigParser
+import shutil, ConfigParser, logging
+from logging import handlers
 class pyMailMerge:
     document = None
     documentPath = None
@@ -17,13 +19,15 @@ class pyMailMerge:
     def __init__( self, odt='', type='odt' ):
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
-            #copy filt to temporary document, becasuse two webservice users using the same file causes problems
-            os.path.exists( odt )
-            self.origionalPath = odt 
-            self.documentPath = self._getTempFile( type )
-            shutil.copyfile( odt, self.documentPath )
-            self.document.open( self.documentPath )
-            
+            try:
+                #copy filt to temporary document, becasuse two webservice users using the same file causes problems
+                os.path.exists( odt )
+                self.origionalPath = odt 
+                self.documentPath = self._getTempFile( type )
+                shutil.copyfile( odt, self.documentPath )
+                self.document.open( self.documentPath )
+            except:
+                raise mms_exceptions.StubNotFound( "Stub '%s' could not be found" % odt )
             pyMailMerge.documentsOpen[ self.documentPath ] = self.documentPath
     def __del__(self):
         self.document.close()
@@ -244,19 +248,21 @@ class B26:
 
 class mms:
     config = None
+    logger = None
     
     def __init__(self):
         #parse a config file
-        self.config = self.parseConfig()
+        self.config = mms.parseConfig()
+        self.logger = mms.getLogger( self.config )
         
-	interface = self.config.get( 'mms', 'interface' )
+        interface = self.config.get( 'mms', 'interface' )
         #initiate one of the webservice interfaces, REST is going to be the default
         if interface == 'soap':
             from mms.interfaces.soap import soap
-            soap.run( self.config )
+            soap.run( self.config, self.logger )
         elif interface == 'rest':
             from mms.interfaces.rest import rest
-            rest.run( self.config )
+            rest.run( self.config, self.logger )
     
     @staticmethod
     def parseConfig():
@@ -266,5 +272,31 @@ class mms:
         #override with file in install path, then override with file in users home dir if present
         config.read( [ defaultPath, 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
         return config
-        
     
+    @staticmethod
+    def getLogger( config ):
+        enabled = config.get( "logging", 'enabled' ) in ( 'True', 'true' )
+        if enabled:
+            x = logging.getLogger( 'mms' )
+            level = config.get( "logging", "level" ).upper()
+            level = getattr( logging, level )
+            x.setLevel( level )
+            maxbyte = int( config.get( "logging", "maxbytes" ) )
+            path = config.get( "logging", 'path' )
+            handler = logging.handlers.RotatingFileHandler( path, maxBytes=maxbyte )
+            formatter = logging.Formatter( "%(asctime)s - %(name)s - %(levelname)s - %(message)s" )
+            handler.setFormatter( formatter )
+            x.addHandler( handler )
+            return x
+        else:
+            return NoLogging()
+        
+class NoLogging:
+    def info(self, msg):
+        pass
+    def error(self, msg):
+        pass
+    def exception(self,msg):
+        pass
+    def debug(self,msg):
+        pass

@@ -4,6 +4,7 @@ import simplejson as json
 class rest( base ):
     @http.expose
     def index(self, test='default'):
+        self.log.info( "index called test param is '%s'" % test )
         return """
         <html><body>
         <form action='/test' method='post'>
@@ -37,6 +38,6 @@ class rest( base ):
     def getNamedRanges( self, ods, format='json' ):
         return base.getNamedRanges( self, ods, format )
     @staticmethod
-    def run( config ):
+    def run( config, logging ):
         http.config.update( {'server.socket_host':config.get( 'rest', 'host' ), 'server.socket_port':int( config.get( 'rest', 'port' ) )} )
-        http.quickstart( rest( config ) )
+        http.quickstart( rest( config, logging ) )

@@ -22,7 +22,7 @@ class soap( interfaces.base ):
     @soaphelper.expose
     def getTokens( self, odt='', format='json' ):
         return interfaces.base.getTokens( self, odt, format )
-    def run( config ):
+    def run( config, logging ):
         host = config.get( 'soap', 'host' )
         port = config.get( 'soap', 'port' )
         server = SOAPServer( ( host, port ) )

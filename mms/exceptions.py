@@ -1,0 +1,2 @@
+class StubNotFound( Exception ):
+    pass

@@ -1,14 +1,31 @@
 import os, sys, tempfile, shutil, traceback, StringIO
 from mms import pyMailMerge
+import mms.exceptions as mms_exceptions
 import simplejson as json
-from com.sun.star.task import ErrorCodeIOException
+#from com.sun.star.task import ErrorCodeIOException
+import traceback
+from StringIO import StringIO
+
 class base( object ):
     outputDir = stubsDir = documentBase = "./docs/"
     config = None
-    def __init__( self, config ):
+    log = None
+    
+    def __init__( self, config, logger ):
+        #store config infio
         self.config = config
+        self.log = logger
+        
+        #set some values
         self.outputDir = self.config.get( 'mms', 'output_dir' ) + "/"
         self.stubsDir = self.config.get( 'mms', 'stubs_dir' ) + "/"
+        
+        self.log.info( "starting %s interface" % self.__class__ )
+        self.log.debug( "output_dir set to: %s" % self.outputDir )
+        self.log.debug( "stubs_dir set to: %s" % self.stubsDir )
+        
+    def __del__( self ):
+        self.log.info( "stopping %s interface" % self.__class__ )
             
     def uploadConvert( self, params='', odt='', type='pdf' ):
         #write temporary file
@@ -24,9 +41,8 @@ class base( object ):
             os.unlink( fileName )
             return content
         except:
-            number = '?'
             message = "unknown exception"
-        return self.__errorXML( number, message )
+        return self.__errorXML( message )
     
     def pdf( self, params='', odt='' ):
         return self.convert(params, odt, 'pdf')
@@ -37,9 +53,8 @@ class base( object ):
             mms = pyMailMerge( fileName )
             return mms.convert( params, type, resave, saveExport )
         except:
-            number = '?'
             message = "unknown exception"
-        return self.__errorXML( number, message )
+        return self.__errorXML( message )
     
     def calculator( self, params='', ods='', format='json', outputFile=None ):
 #        try:
@@ -143,9 +158,12 @@ class base( object ):
     
     def getTokens( self, odt='', format='json' ):
         try:
+            self.log.info( "getTokens %s" % odt )
             path = os.path.abspath( self.stubsDir + odt )
+            self.log.debug( "getTokens open file: %s", path )
             mms = pyMailMerge( path )
             tokens = mms.getTokens()
+            self.log.info( "getTokens for %s found %s tokens" % ( odt, len( tokens ) ) )
             if format=='xml':
                 xml = """<?xml version="1.0" encoding="UTF-8"?><tokens>"""
                 for x in tokens:
@@ -154,8 +172,17 @@ class base( object ):
                 return xml
             else:
                 return json.dumps( tokens )
+        except mms_exceptions.StubNotFound:
+            self.log.error( "getTokens '%s' -- stub not found" % odt )
+            return self.__errorXML( "stub document could not be found" )
         except:
-            return self.__errorXML( '?', 'could not get tokens' )
+            return self.unknownError()
+        
+    def unknownError(self):
+        s = StringIO()
+        traceback.print_exc( file=s )
+        self.log.exception( s.getvalue() )
+        return self.__errorXML( 'unknown exception' )
         
     def getNamedRanges( self, ods='', format='json' ):
         path = os.path.abspath( self.stubsDir + ods )
@@ -170,12 +197,11 @@ class base( object ):
         else:
             return json.dumps( names )
         
-    def __errorXML( self, number, message ):
+    def __errorXML( self, message ):
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <errors>
             <error>
-                <number>%s</number>
                 <message><![CDATA[%s]]></message>
             </error>
-        </errors>""" % (number, message)
+        </errors>""" % (message)

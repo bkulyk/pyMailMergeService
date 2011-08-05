@@ -229,8 +229,11 @@ class OfficeDocument:
         return self.getFilename()
     def close( self ):
         """Close the OpenOffice document"""
-        self.oodocument.dispose()
-        self.oodocument.close( 1 )
+        try:
+            self.oodocument.dispose()
+            self.oodocument.close( 1 )
+        except:
+            pass
     def _getExportFilter( self, filename ):
         """Automatically determine to output filter depending on the file extension"""
         #self._makeProperty( 'FilterName', 'writer_pdf_Export' )
