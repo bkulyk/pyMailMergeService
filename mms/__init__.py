@@ -13,22 +13,33 @@ class pyMailMerge:
     document = None
     documentPath = None
     origionalPath = None
+    log = None
     
     documentsOpen = { } #should allow me to keep track of how many document are supposed to be open at a time. 
     
-    def __init__( self, odt='', type='odt' ):
+    def __init__( self, odt='', type='odt', log=None ):
+        #reuse logging object
+        self.log = mms.logger
+        
+        self.log.debug( "create %s document" % type )
         self.document = OfficeDocument.createDocument( type )
         if odt != '':
             try:
                 #copy filt to temporary document, becasuse two webservice users using the same file causes problems
-                os.path.exists( odt )
                 self.origionalPath = odt 
                 self.documentPath = self._getTempFile( type )
                 shutil.copyfile( odt, self.documentPath )
+                self.log.debug( 'copied file from: %s to: %s' % (odt, self.documentPath) )
+                
                 self.document.open( self.documentPath )
             except:
+                self.log.error( "Stub '%s' could not be found" % odt )
                 raise mms_exceptions.StubNotFound( "Stub '%s' could not be found" % odt )
+            
             pyMailMerge.documentsOpen[ self.documentPath ] = self.documentPath
+            
+            self.log.info( "opened office document: %s" % self.documentPath )
+            
     def __del__(self):
         self.document.close()
         
