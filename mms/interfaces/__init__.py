@@ -157,11 +157,14 @@ class base( object ):
         return contents
     
     def getTokens( self, odt='', format='json' ):
+        if odt == '':
+            return self.__errorXML( "no stub document provided" )
         try:
             self.log.info( "getTokens %s" % odt )
             path = os.path.abspath( self.stubsDir + odt )
             self.log.debug( "getTokens open file: %s", path )
             mms = pyMailMerge( path )
+            self.log.debug( "getTokens must have opended %s" % path )
             tokens = mms.getTokens()
             self.log.info( "getTokens for %s found %s tokens" % ( odt, len( tokens ) ) )
             if format=='xml':

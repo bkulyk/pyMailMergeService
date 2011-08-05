@@ -12,7 +12,7 @@ set :deploy_to, "/home/ubuntu/#{application}"
 
 set :repository, "git://github.com/bkulyk/pyMailMergeService.git"
 set :scm, :git
-set :branch, "pyMailMerge.2.0"
+set :branch, "auto-start-office"
 set :repository_cache, 'git_cache'
 set :deploy_via, :remote_cache
 set :scm_verbose, true
@@ -22,13 +22,16 @@ role :app, "mms", :primary => true
 
 namespace :deploy do
 	
-	desc <<-DESC
-		Restart the python application and openoffice
-	DESC
 	task :restart, :roles=>:app do
-		run "#{latest_release}/restartOOandPMMS.sh"
-	end
-	task :finalize_update, :except => { :no_release => true  } do
-		run "chmod -R g+w #{latest_release}" if fetch( :group_writable, true )
-	end
+    run "cd #{latest_release} && /usr/bin/env python setup.py build"
+    sudo "whoami"
+    run "chmod 0755 #{latest_release}/setup.py"
+    run "cd #{latest_release} && sudo ./setup.py install"
+    sudo "service apache2 reload"
+  end
+  
+  task :finalize_update, :except => { :no_release => true  } do
+    #run "chmod -R g+w #{latest_release}" if fetch( :group_writable, true )
+  end
+
 end
