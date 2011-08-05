@@ -263,8 +263,8 @@ class mms:
     
     def __init__(self):
         #parse a config file
-        self.config = mms.parseConfig()
-        self.logger = mms.getLogger( self.config )
+        mms.config = mms.parseConfig()
+        mms.logger = mms.getLogger( mms.config )
         
         interface = self.config.get( 'mms', 'interface' )
         #initiate one of the webservice interfaces, REST is going to be the default
