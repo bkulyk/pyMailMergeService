@@ -2,6 +2,15 @@
 import sys, os, traceback, locale
 from mms.modifiers import modifiers, modifier
 locale.setlocale(locale.LC_ALL, '')
+
+try:
+    from mms import mms
+    lc = mms.config.get( "mms", 'locale' )
+    if lc != '':
+        locale.setlocale( locale.LC_ALL, tuple( mms.config.get( 'mms', 'locale' ).split( "." ) ) )
+except:
+    pass
+
 class __init__( modifier ):
     @staticmethod
     def process( document, param ):
