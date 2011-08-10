@@ -1,14 +1,5 @@
 import sys, os, traceback
 from mms.modifiers import modifiers, modifier
-import locale
-locale.setlocale( locale.LC_ALL, '' )
-
-try:
-    lc = mms.config.get( "mms", 'locale' )
-    if lc != '':
-        locale.setlocale( locale.LC_ALL, tuple( mms.config.get( 'mms', 'locale' ).split( "." ) ) )
-except:
-    pass
 
 class __init__( modifier ):
     @staticmethod

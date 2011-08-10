@@ -7,7 +7,7 @@ import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
-import shutil
+import shutil, ConfigParser, locale
 
 class pyMailMerge:
     document = None
@@ -243,20 +243,22 @@ class B26:
             pos = pos + 1
         return total
 
-class mms:
-    config = None
+def run_mms():
+    config = mms_config.getConfig()
+    init_locale()
     
-    def __init__(self):
-        #parse a config file
-        self.config = mms_config.getConfig()
-        
-	interface = self.config.get( 'mms', 'interface' )
-        #initiate one of the webservice interfaces, REST is going to be the default
-        if interface == 'soap':
-            from mms.interfaces.soap import soap
-            soap.run( self.config )
-        elif interface == 'rest':
-            from mms.interfaces.rest import rest
-            rest.run( self.config )
-    
+    interface = config.get( 'mms', 'interface' )
+    #initiate one of the webservice interfaces, REST is going to be the default
+    if interface == 'soap':
+        from mms.interfaces.soap import soap
+        soap.run( config )
+    elif interface == 'rest':
+        from mms.interfaces.rest import rest
+        rest.run( config )
+
+def init_locale():
+    config = mms_config.getConfig()
+    lc = config.get("mms", 'locale')
+    if lc != '':
+        locale.setlocale( locale.LC_ALL, tuple( lc.split( "." ) ) )
     
