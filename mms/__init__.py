@@ -1,7 +1,7 @@
 import sys
 from mms.OfficeDocument import OfficeDocument
 from mms.modifiers import modifiers
-import mms.config as mms_config
+import config as mms_config
 from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
@@ -259,6 +259,8 @@ def run_mms():
 def init_locale():
     config = mms_config.getConfig()
     lc = config.get("mms", 'locale')
+    print 'here'
+    print lc
     if lc != '':
         locale.setlocale( locale.LC_ALL, tuple( lc.split( "." ) ) )
     
