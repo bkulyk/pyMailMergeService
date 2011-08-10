@@ -1,12 +1,14 @@
 import sys
 from mms.OfficeDocument import OfficeDocument
 from mms.modifiers import modifiers
+import mms.config as mms_config
 from lxml import etree              #for parsing xml parameters
 import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
-import shutil, ConfigParser
+import shutil
+
 class pyMailMerge:
     document = None
     documentPath = None
@@ -246,7 +248,7 @@ class mms:
     
     def __init__(self):
         #parse a config file
-        self.config = self.parseConfig()
+        self.config = mms_config.getConfig()
         
 	interface = self.config.get( 'mms', 'interface' )
         #initiate one of the webservice interfaces, REST is going to be the default
@@ -257,13 +259,4 @@ class mms:
             from mms.interfaces.rest import rest
             rest.run( self.config )
     
-    @staticmethod
-    def parseConfig():
-        config = ConfigParser.ConfigParser()
-        #include the default config file.
-        defaultPath = os.path.join( os.path.dirname( __file__ ), 'defaults.cfg' )
-        #override with file in install path, then override with file in users home dir if present
-        config.read( [ defaultPath, 'mms.cfg', os.path.expanduser("~/.mms.cfg") ] )
-        return config
-        
     

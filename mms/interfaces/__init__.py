@@ -2,6 +2,7 @@ import os, sys, tempfile, shutil, traceback, StringIO
 from mms import pyMailMerge
 import simplejson as json
 from com.sun.star.task import ErrorCodeIOException
+
 class base( object ):
     outputDir = stubsDir = documentBase = "./docs/"
     config = None

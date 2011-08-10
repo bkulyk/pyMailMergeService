@@ -4,9 +4,12 @@ from mms.modifiers import modifiers, modifier
 locale.setlocale( locale.LC_ALL, '' )
 
 #try:
-lc = mms.config.get( "mms", 'locale' )
+import mms.config as mms_config
+config = mms_config.getConfig()
+lc = config.get("mms", 'locale')
 if lc != '':
-    locale.setlocale( locale.LC_ALL, tuple( mms.config.get( 'mms', 'locale' ).split( "." ) ) )
+    locale.setlocale( locale.LC_ALL, tuple( lc.split( "." ) ) )
+print locale.getlocale( locale.LC_ALL )
 #except:
 #    pass
 
