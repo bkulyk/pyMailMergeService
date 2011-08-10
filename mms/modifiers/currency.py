@@ -1,6 +1,7 @@
 #from sys import path
 import sys, os, traceback
 from mms.modifiers import modifiers, modifier
+import locale
 
 class __init__( modifier ):
     @staticmethod
@@ -29,5 +30,5 @@ class __init__( modifier ):
         except Exception, e:
             pass
         return x
-        
+
 modifiers.modifierOrder.append( {'name':'currency', 'order':99 } )

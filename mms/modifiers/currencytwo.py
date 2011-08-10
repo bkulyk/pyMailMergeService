@@ -1,4 +1,4 @@
-import sys, os, traceback
+import sys, os, traceback, locale
 from mms.modifiers import modifiers, modifier
 
 class __init__( modifier ):

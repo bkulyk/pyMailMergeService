@@ -259,8 +259,6 @@ def run_mms():
 def init_locale():
     config = mms_config.getConfig()
     lc = config.get("mms", 'locale')
-    print 'here'
-    print lc
     if lc != '':
         locale.setlocale( locale.LC_ALL, tuple( lc.split( "." ) ) )
     
