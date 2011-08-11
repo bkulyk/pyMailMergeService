@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from sys import path, exit
 path.append( '..' )
-path.append( '../src' )
-path.append( '../src/OfficeDocument' )
+path.append( '../mms' )
+path.append( '../mms/OfficeDocument' )
 from OfficeDocument.CalcDocument import *
 import unittest, os, uno
 

@@ -75,7 +75,7 @@ class CalcDocument( OfficeDocument ):
         return count
     
     def refresh(self):
-        pass
+        self.oodocument.calculateAll()
     
     def getNamedRanges(self):
         return self.oodocument.NamedRanges.ElementNames

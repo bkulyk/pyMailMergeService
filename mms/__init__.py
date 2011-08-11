@@ -7,7 +7,7 @@ import re                           #regular expressions
 import operator                     #using for sorting the params
 import os                           #removing the temp files
 import tempfile                     #create temp files for writing xml and output
-import shutil, ConfigParser, locale
+import shutil, locale
 
 class pyMailMerge:
     document = None
