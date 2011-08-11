@@ -53,8 +53,6 @@ class pyMailMerge:
         return self.document.getNamedRanges()
 
     def calculator( self, xml, outputFile=None ):
-        self.document.refresh()
-        
         if outputFile is not None:
             self.document.saveAs( outputFile )
         try:
