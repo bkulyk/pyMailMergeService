@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tokens>
+	<token>
+		<name>repeatcolumn|users:keys</name>
+		<value>name</value>
+		<value>life_benefit</value>
+		<value>life</value>
+		<value>add</value>
+		<value>dep_life</value>
+		<value>crit_illness</value>
+		<value>eap</value>
+		<value>wi_benefit</value>
+		<value>wi</value>
+		<value>ltd_benefit</value>
+		<value>ltd</value>
+		<value>ehb</value>
+		<value>dental</value>
+		<value>total</value>
+	</token>
+	<token>
+		<name>current_class_covers:to_s</name>
+		<value>Officers</value>
+	</token>
+	<token>
+		<name>benefit:volume</name>
+		<value> </value>
+	</token>
+	<token>
+		<name>employee:totalpremium</name>
+		<value> </value>
+	</token>
+	<token>
+		<name>repeatrow|current_run.users:name</name>
+		<value>Test User</value>
+		<value>Test User 2</value>
+		<value/>
+		<value/>
+		<value/>
+		<value/>
+		<value/>
+		<value/>
+		<value/>
+		<value>Another User</value>
+	</token>
+</tokens>

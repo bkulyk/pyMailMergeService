@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tokens>
+    <token>
+        <name>competition:name</name>
+        <value>Financial</value>
+    </token>
+    <token>
+        <name>comparison_view:competition</name>
+        <value> - </value>
+        <value>10000</value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+    </token>
+    <token>
+        <name>repeatrow|comparison_view:benefit</name>
+        <value>Life Benefit</value>
+        <value>Officers</value>
+        <value>Owners/Officers/Managers</value>
+        <value>Dental Benefit</value>
+        <value>Employees</value>
+        <value>Officers</value>
+        <value>Health Benefit</value>
+        <value>Officers</value>
+        <value>LTD Benefit</value>
+        <value>Officers</value>
+        <value>Weekly Income Benefit</value>
+        <value>Officers</value>
+    </token>
+    <token>
+        <name>comparison_view:wla</name>
+        <value> - </value>
+        <value>10000</value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+        <value> - </value>
+        <value>10000</value>
+    </token>
+</tokens>

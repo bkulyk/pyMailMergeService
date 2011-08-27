@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
-/usr/share/pyMailMergeService/startOpenOffice.sh &
-/usr/share/pyMailMergeService/startPMMS.sh &
+THEPATH="`dirname $0`";
+$THEPATH/startOpenOffice.sh &
+$THEPATH/startPMMS.sh &
 
