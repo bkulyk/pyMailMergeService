@@ -148,7 +148,8 @@ class CalcDocument( OfficeDocument ):
             print "=================================="
             print "sheetname: %s does not appear to exist.  range name: %s cannot be accessed." % (sheetName, rangeName)
             print "=================================="
-            return
+        except:
+            pass
             
         range = sheet.getCellRangeByName( sheetAndRangeDesc )
         
