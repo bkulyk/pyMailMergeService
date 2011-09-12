@@ -53,8 +53,8 @@ class pyMailMerge:
         return self.document.getNamedRanges()
 
     def calculator( self, xml, outputFile=None ):
-        if outputFile is not None:
-            self.document.saveAs( outputFile )
+#        if outputFile is not None:
+#            self.document.saveAs( outputFile )
         try:
             #process like normal mail merge 
             params = pyMailMerge._readParamsFromXML( xml )
@@ -104,6 +104,8 @@ class pyMailMerge:
             self.document.save()
             self.document.close()
             try:
+                if outputFile is not None:
+                    shutil.copy( self.documentPath, outputFile )
                 os.chmod( outputFile, 0777 )
             except:
                 pass
