@@ -61,6 +61,7 @@ class testWriterDocument( unittest.TestCase ):
     	cursor.insertDocumentFromURL( uno.systemPathToFileUrl("%s/docs/insert_doc.odt" % self.path), properties )
     	ood.saveAs( "%s/docs/inserted_doc.pdf" % self.path )
     	ood.close()
+        
 if __name__ == '__main__':
     unittest.main()
 

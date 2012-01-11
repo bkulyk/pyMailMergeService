@@ -4,3 +4,6 @@ pymms.log*
 tests/docs/*.pdf
 tests/docs/*.out.odt
 .~lock*
+MailMergeService.egg-info/
+build/*
+dist/*

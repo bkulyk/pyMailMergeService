@@ -4,9 +4,9 @@ from mms.OfficeDocument import OfficeDocument
 
 from com.sun.star.text.ControlCharacter import PARAGRAPH_BREAK
 from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER, NONE
-from com.sun.star.style.NumberingType import ARABIC
 from com.sun.star.text.PageNumberType import CURRENT
 from com.sun.star.style.ParagraphAdjust import RIGHT
+from com.sun.star.chart.ChartDataRowSource import COLUMNS
 
 class WriterDocument( OfficeDocument ):
     def re_match( self, pattern ):
@@ -311,6 +311,61 @@ class WriterDocument( OfficeDocument ):
                 rowData.append( cell.Text.getString() )
             tableData.append( rowData )
         return tableData
+    
+    def updateCharts( self ):
+        #get all of the tables in the document, we'll need them later
+        tables = self.oodocument.getTextTables()
+        
+        #loop through each of the draw pages in this document
+        count = 0
+        drawPage = self.oodocument.getDrawPage()
+        e = drawPage.createEnumeration()
+        while e.hasMoreElements():
+            x = e.nextElement()
+            count += 1
+            
+            #get the chart object
+            embedded = x.getEmbeddedObject()
+            
+            #get a tuple of all the ranges used in the chart
+            used = embedded.getUsedRangeRepresentations()
+            #eg, (u"Table1.A2:A4", u"Table1.B1:B1", u"Table1.B2:B4", u"Table1.C1:C1", u"Table1.C2:C4" )
+            
+            #need to pass these properties to the new data source we will create
+            props = 'DataSourceLabelsInFirstRow', 'DataSourceLabelsInFirstColumn'
+            DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn = embedded.getPropertyValues( props )
+
+            #get the table the range is based off of
+            tablename = used[0].split('.')[0]
+            table = tables.getByName( tablename )
+            
+            #determine the cell name that we are going to start out new range with
+            cellName = used[0].split('.')[1].split(":")[0]
+            row, col = self._convertCellNameToCellPositions( cellName )
+            if DataSourceLabelsInFirstRow and row > 1:
+                row = int(row)-1
+            startCellName =  "%s%s" % ( re.sub( '\d+', '', cellName ), row )
+            
+            #determine the cell name that we are going to end our new range with
+            lastcolumn = used[ len(used)-1 ].split(":")[1]
+            columnName = re.sub( '\d+', '', lastcolumn )
+            
+            #build the representation string ie.  "Table1.A1:C4"
+            representation = "%s.%s:%s%s" % (tablename, startCellName, columnName, table.Rows.getCount() )
+            
+            #create a new re.sub( '\d+', '', cellName ) out of the representation we built
+            dp = embedded.getDataProvider()
+            ds = WriterDocument.createDataSource( dp, representation, COLUMNS, DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn )
+            
+            #get the diagram object and tell it to use our new data source
+            diagram = embedded.getFirstDiagram()
+            prop = OfficeDocument._makeProperty( "HasCategories", True ),
+            diagram.setDiagramData( ds, prop )
+            
+    def refresh(self):
+        self.updateCharts()
+        OfficeDocument.refresh( self )
+        
 #========static methods============================================================================
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
@@ -319,6 +374,19 @@ class WriterDocument( OfficeDocument ):
         row = int( matches.group(2) ) - 1
         col = ord( col ) - 65
         return ( row, col )
+    
+    @staticmethod
+    def createDataSource( DataProvider, CellRangeRepresentation, DataRowSource, FirstCellAsLabel=True, HasCategories=True ):
+        props = []
+        props.append( OfficeDocument._makeProperty( 'CellRangeRepresentation', CellRangeRepresentation ) )
+        props.append( OfficeDocument._makeProperty( 'DataRowSource', DataRowSource ) )
+        props.append( OfficeDocument._makeProperty( 'FirstCellAsLabel', FirstCellAsLabel ) )
+        props.append( OfficeDocument._makeProperty( 'HasCategories', HasCategories ) )
+        
+        props = tuple( props )
+        
+        ds = DataProvider.createDataSource( props )
+        return ds
     
 if __name__ == "__main__":
     from sys import argv, exit

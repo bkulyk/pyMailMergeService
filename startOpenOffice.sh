@@ -10,7 +10,7 @@ while true; do
         then
                 OFFICE="$LIBRE"
         fi
-        $OFFICE -headless "-accept=socket,host=localhost,port=8100;urp" -nologo -nofirststartwizard
+        $OFFICE --headless "--accept=socket,host=localhost,port=8100;urp" --nologo --nofirststartwizard
         sleep 1
 done
 
