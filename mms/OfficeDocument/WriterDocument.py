@@ -4,6 +4,7 @@ from mms.OfficeDocument import OfficeDocument
 
 from com.sun.star.text.ControlCharacter import PARAGRAPH_BREAK
 from com.sun.star.style.BreakType import PAGE_BEFORE, PAGE_AFTER, NONE
+from com.sun.star.style.NumberingType import ARABIC
 from com.sun.star.text.PageNumberType import CURRENT
 from com.sun.star.style.ParagraphAdjust import RIGHT
 from com.sun.star.chart.ChartDataRowSource import COLUMNS
@@ -363,8 +364,11 @@ class WriterDocument( OfficeDocument ):
             diagram.setDiagramData( ds, prop )
             
     def refresh(self):
-        self.updateCharts()
         OfficeDocument.refresh( self )
+        try:
+            self.updateCharts()
+        except:
+            pass
         
 #========static methods============================================================================
     @staticmethod
