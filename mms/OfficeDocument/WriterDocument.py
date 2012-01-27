@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import uno, os, re
+import uno, os, re, traceback, sys
 from mms.OfficeDocument import OfficeDocument
 
 from com.sun.star.text.ControlCharacter import PARAGRAPH_BREAK
@@ -252,17 +252,25 @@ class WriterDocument( OfficeDocument ):
                         #get cell contents
                         controller = self.oodocument.getCurrentController()
                         viewCursor = controller.getViewCursor()
-                        viewCursor.gotoRange( cell.Text, False )
-                        txt = controller.getTransferable()
-                        sourceCols.append( txt )
+                        try:
+                            viewCursor.gotoRange( cell.Text, False )
+                            txt = controller.getTransferable()
+                            sourceCols.append( txt )
+                        except:
+                            traceback.print_exc( file=sys.stdout )
+                            print 'cant copy cells. phrase: %s text: %s ---- %s-%s' % ( phrase, text, colIndex, sourceRow )
+                            
                     #now insert new row and paste content into said row.
                     rows = table.getRows()
                     for i in xrange( count ):
                         rows.insertByIndex( sourceRow+1, 1 )
                         for colIndex in xrange( table.Columns.getCount() ):
-                            cell = table.getCellByPosition( colIndex, sourceRow+1 )
-                            viewCursor.gotoRange( cell.Text, False )
-                            controller.insertTransferable( sourceCols[ colIndex ] )
+                            try:
+                                cell = table.getCellByPosition( colIndex, sourceRow+1 )
+                                viewCursor.gotoRange( cell.Text, False )
+                                controller.insertTransferable( sourceCols[ colIndex ] )
+                            except:
+                                print 'cant paste cells. phrase: %s text: %s ---- %s-%s' % ( phrase, text, colIndex, sourceRow )
     
     def duplicateColumn( self, phrase, count=1, regex=False ):
         cursor = self._getCursorForStartPhrase( phrase, regex )
@@ -325,49 +333,57 @@ class WriterDocument( OfficeDocument ):
             x = e.nextElement()
             count += 1
             
-            #get the chart object
-            embedded = x.getEmbeddedObject()
+            try:
+                #get the chart object
+                embedded = x.getEmbeddedObject()
+                skip = False
+            except:
+                skip = True
             
-            #get a tuple of all the ranges used in the chart
-            used = embedded.getUsedRangeRepresentations()
-            #eg, (u"Table1.A2:A4", u"Table1.B1:B1", u"Table1.B2:B4", u"Table1.C1:C1", u"Table1.C2:C4" )
+            if skip is False:
+                #get a tuple of all the ranges used in the chart
+                used = embedded.getUsedRangeRepresentations()
+                #eg, (u"Table1.A2:A4", u"Table1.B1:B1", u"Table1.B2:B4", u"Table1.C1:C1", u"Table1.C2:C4" )
+                
+                #need to pass these properties to the new data source we will create
+                props = 'DataSourceLabelsInFirstRow', 'DataSourceLabelsInFirstColumn'
+                DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn = embedded.getPropertyValues( props )
+    
+                #get the table the range is based off of
+                tablename = used[0].split('.')[0]
+                table = tables.getByName( tablename )
+                
+                #determine the cell name that we are going to start out new range with
+                cellName = used[0].split('.')[1].split(":")[0]
+                row, col = self._convertCellNameToCellPositions( cellName )
+                if DataSourceLabelsInFirstRow and row > 1:
+                    row = int(row)-1
+                startCellName =  "%s%s" % ( re.sub( '\d+', '', cellName ), row )
+                
+                #determine the cell name that we are going to end our new range with
+                lastcolumn = used[ len(used)-1 ].split(":")[1]
+                columnName = re.sub( '\d+', '', lastcolumn )
+                
+                #build the representation string ie.  "Table1.A1:C4"
+                representation = "%s.%s:%s%s" % (tablename, startCellName, columnName, table.Rows.getCount() )
+                
+                #create a new re.sub( '\d+', '', cellName ) out of the representation we built
+                dp = embedded.getDataProvider()
+                ds = WriterDocument.createDataSource( dp, representation, COLUMNS, DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn )
+                
+                #get the diagram object and tell it to use our new data source
+                diagram = embedded.getFirstDiagram()
+                prop = OfficeDocument._makeProperty( "HasCategories", True ),
+                diagram.setDiagramData( ds, prop )
             
-            #need to pass these properties to the new data source we will create
-            props = 'DataSourceLabelsInFirstRow', 'DataSourceLabelsInFirstColumn'
-            DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn = embedded.getPropertyValues( props )
-
-            #get the table the range is based off of
-            tablename = used[0].split('.')[0]
-            table = tables.getByName( tablename )
-            
-            #determine the cell name that we are going to start out new range with
-            cellName = used[0].split('.')[1].split(":")[0]
-            row, col = self._convertCellNameToCellPositions( cellName )
-            if DataSourceLabelsInFirstRow and row > 1:
-                row = int(row)-1
-            startCellName =  "%s%s" % ( re.sub( '\d+', '', cellName ), row )
-            
-            #determine the cell name that we are going to end our new range with
-            lastcolumn = used[ len(used)-1 ].split(":")[1]
-            columnName = re.sub( '\d+', '', lastcolumn )
-            
-            #build the representation string ie.  "Table1.A1:C4"
-            representation = "%s.%s:%s%s" % (tablename, startCellName, columnName, table.Rows.getCount() )
-            
-            #create a new re.sub( '\d+', '', cellName ) out of the representation we built
-            dp = embedded.getDataProvider()
-            ds = WriterDocument.createDataSource( dp, representation, COLUMNS, DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn )
-            
-            #get the diagram object and tell it to use our new data source
-            diagram = embedded.getFirstDiagram()
-            prop = OfficeDocument._makeProperty( "HasCategories", True ),
-            diagram.setDiagramData( ds, prop )
             
     def refresh(self):
         OfficeDocument.refresh( self )
         try:
             self.updateCharts()
         except:
+            self.saveAs( '/home/brian/Desktop/timeout.pdf' )
+            traceback.print_exc( file=sys.stdout )
             pass
         
 #========static methods============================================================================
