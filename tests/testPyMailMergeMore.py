@@ -9,6 +9,26 @@ import os
 
 #define unit tests
 class testPyMailMergeMore( unittest.TestCase ):
+    
+    def test_toNumber(self):
+        self.assertEqual( 4, WriterDocument.toNumber( '4' ) )
+        self.assertEqual( 4000, WriterDocument.toNumber( '4,000.00' ) )
+        self.assertEqual( 4000, WriterDocument.toNumber( '$4,000.00' ) )
+        self.assertEqual( 4000, WriterDocument.toNumber( '4 000.00 $' ) )
+    
+    def test_invertTuple(self):
+        
+        data = [ [1, 2, 3, 4, 5],
+                 [6, 7, 8, 9, 10] ]
+        
+        expected = ( ( 1, 6 ), 
+                     ( 2, 7 ), 
+                     ( 3, 8 ), 
+                     ( 4, 9 ), 
+                     ( 5, 10 ) )
+        
+        self.assertEquals( expected, WriterDocument.invertTuple( data   ) )
+    
     def test_updateChart(self):
         path = os.path.abspath( os.path.join( os.path.dirname( __file__ ), 'docs/charttest.odt' ) )
         outFile = os.path.join( os.path.dirname( __file__ ), 'docs/charttest.out.pdf' )
@@ -17,10 +37,10 @@ class testPyMailMergeMore( unittest.TestCase ):
         xml = """<tokens>
             <token>
                 <name>repeatrow|timeperiod</name>
-                <value>2009</value>
-                <value>2010</value>
-                <value>2011</value>
-                <value>2012</value>
+                <value>Year - 2009</value>
+                <value>Year - 2010</value>
+                <value>Year - 2011</value>
+                <value>Year - 2012</value>
             </token>
             <token>
                 <name>premium</name>
@@ -34,7 +54,7 @@ class testPyMailMergeMore( unittest.TestCase ):
                 <value>$200</value>
                 <value>$2000</value>
                 <value>$50</value>
-                <value>$50</value>
+                <value>$3000</value>
             </token>
             <token>
                 <name>lossratio</name>
@@ -48,19 +68,9 @@ class testPyMailMergeMore( unittest.TestCase ):
         x = pyMailMerge._readParamsFromXML( xml )
         pmm._process( x )
         pmm.document.refresh()
-#        pmm.document.updateCharts()
         pmm.document.saveAs( outFile )
         
         self.assertTrue( True )
-        
-        
-#        results = self._getFirstTableData( outFile )
-#        
-#        expected = [[ 'First', "Third" ],
-#                    [ 'A', 'C' ],
-#                    [ 'D', 'F' ] ]
-#        
-#        self.assertEqual( expected, results )
 
 if __name__ == '__main__':
     unittest.main()

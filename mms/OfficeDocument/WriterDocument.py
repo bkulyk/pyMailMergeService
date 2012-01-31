@@ -31,15 +31,15 @@ class WriterDocument( OfficeDocument ):
         return False
     def searchAndReplaceWithDocument( self, phrase, documentPath, regex=False ):
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_1_Editing_Text
-    	#cursor = self.oodocument.Text.createTextCursor()
+        #cursor = self.oodocument.Text.createTextCursor()
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_3_3_Search_and_Replace
-    	search = self.oodocument.createSearchDescriptor()
-    	search.setSearchString( phrase )
-    	search.SearchRegularExpression = regex
-    	result = self.oodocument.findFirst( search )
-    	path = uno.systemPathToFileUrl( os.path.abspath( documentPath ) )
+        search = self.oodocument.createSearchDescriptor()
+        search.setSearchString( phrase )
+        search.SearchRegularExpression = regex
+        result = self.oodocument.findFirst( search )
+        path = uno.systemPathToFileUrl( os.path.abspath( documentPath ) )
         #http://api.openoffice.org/docs/DevelopersGuide/Text/Text.xhtml#1_3_1_5_Inserting_Text_Files
-    	return result.insertDocumentFromURL( path, tuple() )
+        return result.insertDocumentFromURL( path, tuple() )
     def drawSearchAndReplace( self, phrase, replacement ):
         drawPage = self.oodocument.getDrawPage()
         e = drawPage.createEnumeration()
@@ -351,42 +351,93 @@ class WriterDocument( OfficeDocument ):
     
                 #get the table the range is based off of
                 tablename = used[0].split('.')[0]
-                table = tables.getByName( tablename )
+                try:
+                    table = tables.getByName( tablename )
+                except:
+                    table = None
                 
-                #determine the cell name that we are going to start out new range with
-                cellName = used[0].split('.')[1].split(":")[0]
-                row, col = self._convertCellNameToCellPositions( cellName )
-                if DataSourceLabelsInFirstRow and row > 1:
-                    row = int(row)-1
-                startCellName =  "%s%s" % ( re.sub( '\d+', '', cellName ), row )
-                
-                #determine the cell name that we are going to end our new range with
-                lastcolumn = used[ len(used)-1 ].split(":")[1]
-                columnName = re.sub( '\d+', '', lastcolumn )
-                
-                #build the representation string ie.  "Table1.A1:C4"
-                representation = "%s.%s:%s%s" % (tablename, startCellName, columnName, table.Rows.getCount() )
-                
-                #create a new re.sub( '\d+', '', cellName ) out of the representation we built
-                dp = embedded.getDataProvider()
-                ds = WriterDocument.createDataSource( dp, representation, COLUMNS, DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn )
-                
-                #get the diagram object and tell it to use our new data source
-                diagram = embedded.getFirstDiagram()
-                prop = OfficeDocument._makeProperty( "HasCategories", True ),
-                diagram.setDiagramData( ds, prop )
-            
+                if table is not None:
+                    #determine the cell name that we are going to start out new range with
+                    cellName = used[0].split('.')[1].split(":")[0]
+                    row, col = self._convertCellNameToCellPositions( cellName )
+                    if DataSourceLabelsInFirstRow and row > 1:
+                        row = int(row)-1
+                    startCellName =  "%s%s" % ( re.sub( '\d+', '', cellName ), row )
+                    
+                    #determine the cell name that we are going to end our new range with
+                    lastcolumn = used[ len(used)-1 ].split(":")[1]
+                    columnName = re.sub( '\d+', '', lastcolumn )
+                    
+                    #build the representation string ie.  "Table1.A1:C4"
+                    representation = "%s.%s:%s%s" % (tablename, startCellName, columnName, table.Rows.getCount() )
+                    
+                    #create a new re.sub( '\d+', '', cellName ) out of the representation we built
+                    dp = embedded.getDataProvider()
+                    ds = WriterDocument.createDataSource( dp, representation, COLUMNS, DataSourceLabelsInFirstRow, DataSourceLabelsInFirstColumn )
+                    
+                    #get the diagram object and tell it to use our new data source
+                    diagram = embedded.getFirstDiagram()
+                    
+                    try:
+                        #this is a much better way of updating the chart, however I have a system
+                        #  where the setDiagramData method does not exist, and throws an exception
+                        #  never fear.... I have a backup plan.
+                        prop = OfficeDocument._makeProperty( "HasCategories", True ),
+                        diagram.setDiagramData( ds, prop )
+                    except:
+                        #here is the backup plan, it's a lot more convoluted
+                        sequences = ds.getDataSequences()
+        
+                        new_data = []
+                        for x in sequences:
+                            values = []
+                            for x in x.getValues().getData():
+                                try:
+                                    values.append( float( x.replace('$','').replace( ',', ''  ).replace( ' ', ''  ) ) )
+                                except:
+                                    pass
+                            if len( values ) > 0:
+                                new_data.append( tuple( values ) )
+        
+                        #need to invert the matrix 
+                        new_data = WriterDocument.invertTuple( new_data )
+        
+                        #set the data
+                        embedded.getData().setData( new_data )
+                        
+                        #new get the data for the updated legends
+                        pos_row, pos_col = WriterDocument._convertCellNameToCellPositions( used[0].split('.')[1] )
+                        new_legends = []
+                        for x in xrange( pos_row-1, table.getRows().getCount()-1 ):
+                            new_legends.append( table.getCellByPosition( pos_col, x+pos_row ).Text.getString() )
+                        
+                        #set the updated legend data
+                        embedded.getData().setRowDescriptions( tuple(new_legends) )
             
     def refresh(self):
         OfficeDocument.refresh( self )
         try:
             self.updateCharts()
         except:
-            self.saveAs( '/home/brian/Desktop/timeout.pdf' )
             traceback.print_exc( file=sys.stdout )
             pass
         
 #========static methods============================================================================
+    @staticmethod 
+    def toNumber( input_string ):
+        return float( re.sub( r"[^\d+\.]", '', input_string ) )
+    
+    @staticmethod
+    def invertTuple( data ):
+        new = []
+        for x in xrange( len( data[0] ) ):
+            vals = []
+            for y in xrange( len( data ) ):
+                vals.append( data[y][x] )
+            new.append( tuple( vals ) )
+        
+        return tuple( new )
+    
     @staticmethod
     def _convertCellNameToCellPositions( cellName ):
         matches = re.match( "(\w)+(\d)+", cellName )
