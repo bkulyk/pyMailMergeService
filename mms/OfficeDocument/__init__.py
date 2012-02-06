@@ -128,6 +128,7 @@ class OfficeDocument:
         properties.append( OfficeDocument._makeProperty( 'Hidden', True ) )
         properties.append( OfficeDocument._makeProperty( 'MacroExecutionMode', NEVER_EXECUTE ) )
         properties.append( OfficeDocument._makeProperty( 'ReadOnly', False ) )
+        properties.append( OfficeDocument._makeProperty( 'UpdateDocMode', 1 ) )
         properties = tuple( properties )
         self.oodocument = self.openoffice.loadComponentFromURL( url, "_blank", 0, properties )
     def getFilename( self ):

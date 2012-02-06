@@ -110,6 +110,8 @@ class pyMailMerge:
             except:
                 pass
         
+        print data
+        
         return data
     
     def convert( self, params, type='pdf' ):
